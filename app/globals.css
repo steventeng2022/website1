@@ -10,6 +10,8 @@ main { overflow:hidden; background-image:repeating-linear-gradient(90deg, transp
 .brand { font-size:34px; font-weight:900; letter-spacing:-.055em; }
 nav { display:flex; gap:clamp(24px,5vw,76px); }
 nav a,.text-link { font:700 14px/1.2 "Courier New",monospace; text-transform:uppercase; padding:10px 0 7px; border-bottom:1px solid; transition:.2s; }
+.language-toggle { min-width:42px; padding:9px 11px 7px; border:1px solid var(--ink); text-align:center; line-height:1; }
+.language-toggle:hover { border-color:var(--blue); background:var(--blue); color:white; }
 nav a:hover,.text-link:hover { color:var(--blue); }
 .hero { min-height:calc(100vh - 104px); padding:70px 4.2vw 46px; display:grid; grid-template-columns:2.1fr .9fr; gap:4vw; align-items:center; }
 .hero-copy { position:relative; z-index:2; animation:rise .65s ease-out both; }
@@ -110,7 +112,7 @@ footer .section-kicker span { color:#6688ff; }
 @keyframes mark-in { from { opacity:0; transform:translateX(45px); } }
 @media (max-width:800px) {
   main { background-size:25vw 100%; }
-  .site-header { height:80px; } nav { gap:18px; } nav a:nth-child(2),nav a:nth-child(3),nav a:nth-child(5){ display:none; }
+  .site-header { height:80px; } nav { gap:14px; } nav a:nth-child(2),nav a:nth-child(3),nav a:nth-child(5){ display:none; }
   .hero { min-height:auto; padding-top:54px; grid-template-columns:1fr; }
   h1 { font-size:clamp(72px,24vw,118px); }
   .intro { margin-top:32px; }

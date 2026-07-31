@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { requireAdmin } from "../cloudflare-auth";
 import { createPost, deletePost, updatePost } from "../../db/posts";
 
@@ -41,7 +40,6 @@ export async function createPostAction(formData: FormData) {
   await requireAdmin();
   await createPost(await fields(formData));
   revalidatePath("/"); revalidatePath("/admin");
-  redirect("/admin");
 }
 
 export async function updatePostAction(formData: FormData) {
