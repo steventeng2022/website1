@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Steven — 學生、程式設計與創作",
-  description: "Steven 的個人網站：程式設計、AI、Arduino、Raspberry Pi 與資安。",
+  description: "Steven 的個人網站：程式設計、AI、Arduino 與 Raspberry Pi。",
   other: {
     "codex-preview": "development",
   },

@@ -18,9 +18,9 @@ const projects = [
   },
   {
     number: "03",
-    title: "資安學習實驗室",
-    description: "學習網路安全、隱私保護與安全程式設計，建立正確的防禦觀念。",
-    tag: "CYBERSECURITY",
+    title: "AI 學習實驗室",
+    description: "探索機器學習、生成式 AI 與智慧應用，嘗試把模型整合到實用作品中。",
+    tag: "ARTIFICIAL INTELLIGENCE",
   },
 ];
 
@@ -30,13 +30,13 @@ const skills = [
   ["AI", "探索智慧系統如何學習、做出判斷，並協助創意工作。"],
   ["Arduino", "使用感測器、電子元件與程式設計，打造互動式硬體作品。"],
   ["Raspberry Pi", "以 Linux 與 Python 製作自動化工具、伺服器及物聯網專案。"],
-  ["資安", "學習網路安全、隱私保護與安全程式設計的基礎觀念。"],
+  ["AI 應用", "學習機器學習、生成式 AI，並將智慧功能整合到自己的作品。"],
 ];
 
 const englishProjects = [
   { number: "01", title: "Personal Website", description: "A clean, responsive introduction to who I am, what I am learning, and what I want to create next.", tag: "WEB DESIGN" },
   { number: "02", title: "Arduino & Raspberry Pi Projects", description: "Building automated devices with sensors, microcontrollers, and single-board computers while exploring hardware-software integration.", tag: "ARDUINO · RASPBERRY PI" },
-  { number: "03", title: "Cybersecurity Learning Lab", description: "Learning network security, privacy protection, and secure programming with a defensive mindset.", tag: "CYBERSECURITY" },
+  { number: "03", title: "AI Learning Lab", description: "Exploring machine learning, generative AI, and practical ways to integrate intelligent features into useful projects.", tag: "ARTIFICIAL INTELLIGENCE" },
 ];
 
 const englishSkills = [
@@ -45,7 +45,7 @@ const englishSkills = [
   ["AI", "Exploring how intelligent systems learn, make decisions, and support creative work."],
   ["Arduino", "Using sensors, electronic components, and code to build interactive hardware projects."],
   ["Raspberry Pi", "Creating automation tools, servers, and IoT projects with Linux and Python."],
-  ["Cybersecurity", "Learning the foundations of network security, privacy, and secure programming."],
+  ["AI Applications", "Learning machine learning and generative AI while integrating intelligent features into personal projects."],
 ];
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ lang?: string }> }) {
@@ -72,12 +72,12 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
         <div className="hero-copy">
           <p className="eyebrow">{en ? "TAIWAN · STUDENT · CREATOR" : "台灣 · 學生 · 創作者"}</p>
           <h1>{en ? <>Hi, I’m<br />Steven.</> : <>嗨，我是<br />Steven。</>}</h1>
-          <p className="intro">{en ? "I’m a high school student from Taiwan exploring programming, AI, Arduino, Raspberry Pi, and cybersecurity." : "我是一名來自台灣的高中生，正在探索程式設計、AI、Arduino、Raspberry Pi 與資安。"}</p>
+          <p className="intro">{en ? "I’m a high school student from Taiwan exploring programming, AI, Arduino, and Raspberry Pi." : "我是一名來自台灣的高中生，正在探索程式設計、AI、Arduino 與 Raspberry Pi。"}</p>
           <div className="hero-actions">
             <a className="primary-button" href="#projects">{en ? "View my work" : "查看我的作品"} <span aria-hidden="true">→</span></a>
             <a className="text-link" href="#about">{en ? "More about me" : "進一步認識我"}</a>
           </div>
-          <p className="skill-line"><span>C++</span><i>/</i><span>PYTHON</span><i>/</i><span>ARDUINO</span><i>/</i><span>CYBERSECURITY</span></p>
+          <p className="skill-line"><span>C++</span><i>/</i><span>PYTHON</span><i>/</i><span>ARDUINO</span><i>/</i><span>AI</span></p>
         </div>
         <div className="hero-photo">
           <img src="/flower.png" alt="Flower, a cheerful tiger character in front of a castle" />
@@ -91,7 +91,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
           <h2>{en ? <>Stay curious.<br />Keep creating.</> : <>保持好奇。<br />持續創作。</>}</h2>
           <div className="about-copy">
             <p>{en ? "I enjoy learning how things work, from the logic inside software to the connection between sensors, hardware, and networks. Technology is most exciting to me when it turns an idea into something people can see or use." : "我喜歡了解事物如何運作，從程式內部的邏輯，到感測器、硬體與網路之間的連結。對我來說，科技最有趣的地方，就是能把想法變成大家看得到或用得到的成果。"}</p>
-            <p>{en ? "Right now, I’m improving my programming through C++ and Python while exploring AI, Arduino, Raspberry Pi, and cybersecurity." : "目前我正在透過 C++ 與 Python 提升程式能力，並探索 AI、Arduino、Raspberry Pi 與資安。"}</p>
+            <p>{en ? "Right now, I’m improving my programming through C++ and Python while exploring AI, Arduino, and Raspberry Pi." : "目前我正在透過 C++ 與 Python 提升程式能力，並探索 AI、Arduino 與 Raspberry Pi。"}</p>
           </div>
         </div>
       </section>
