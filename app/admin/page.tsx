@@ -1,6 +1,7 @@
 import { requireAdmin } from "../cloudflare-auth";
 import { listAllPosts } from "../../db/posts";
 import { createPostAction, deletePostAction, updatePostAction } from "./actions";
+import CoverImageField from "./cover-image-field";
 
 export const dynamic = "force-dynamic";
 export default async function AdminPage() {
@@ -21,13 +22,12 @@ export default async function AdminPage() {
 }
 
 function PostForm({ action, post }: { action: (formData: FormData) => Promise<void>; post?: Awaited<ReturnType<typeof listAllPosts>>[number] }) {
-  return <form className="post-form" action={action} encType="multipart/form-data">
+  return <form className="post-form" action={action}>
     {post && <input type="hidden" name="id" value={post.id}/>}<label>文章標題<input required name="title" defaultValue={post?.title} placeholder="我從第一個專案學到的事"/></label>
     <label>網址代稱（英文）<input required name="slug" defaultValue={post?.slug} placeholder="my-first-project" pattern="[a-z0-9-]+"/></label>
     <label>簡短介紹<textarea name="excerpt" defaultValue={post?.excerpt} rows={2} placeholder="顯示在首頁的文章簡介。"/></label>
     <label>文章內容<textarea required name="content" defaultValue={post?.content} rows={12} placeholder="在這裡撰寫文章……"/></label>
-    <label className="image-field">封面照片<input type="file" name="coverImage" accept="image/jpeg,image/png,image/webp,image/gif"/><small>支援 JPG、PNG、WebP 或 GIF，檔案最大 8 MB；照片會顯示在文章最上方。</small></label>
-    {post?.cover_image && <div className="current-cover"><img src={post.cover_image} alt="目前的封面照片"/><label><input type="checkbox" name="removeCover" value="yes"/> 移除目前照片</label><input type="hidden" name="existingCover" value={post.cover_image}/></div>}
+    <CoverImageField existingCover={post?.cover_image ?? null}/>
     <div className="form-row"><label>文章狀態<select name="status" defaultValue={post?.status ?? "draft"}><option value="draft">草稿</option><option value="published">已發布</option></select></label><button className="primary-button" type="submit">{post ? "儲存變更" : "建立文章"} →</button></div>
   </form>;
 }
