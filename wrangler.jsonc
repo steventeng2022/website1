@@ -9,7 +9,13 @@
     {
       "binding": "DB",
       "database_name": "steven-blog",
-      "database_id": "bf66dcba-a79c-4c92-b8f3-0d812be14485"
+      "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "steven-blog-images"
     }
   ]
 }

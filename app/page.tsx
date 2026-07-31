@@ -5,29 +5,29 @@ export const dynamic = "force-dynamic";
 const projects = [
   {
     number: "01",
-    title: "Personal Intro Website",
-    description: "A clean, responsive space designed to introduce who I am, what I learn, and what I want to build next.",
-    tag: "WEB DESIGN",
+    title: "個人介紹網站",
+    description: "以簡潔、響應式的版面介紹我是誰、正在學什麼，以及接下來想完成的作品。",
+    tag: "網頁設計",
   },
   {
     number: "02",
-    title: "Sound Control Projects",
-    description: "Learning how audio systems, microphones, mixers, and live production work together behind the stage.",
-    tag: "AUDIO · EVENTS",
+    title: "音控實作",
+    description: "學習音響系統、麥克風、混音器與現場製作如何在舞台幕後協同運作。",
+    tag: "音控 · 活動",
   },
   {
     number: "03",
-    title: "Creative Coding Lab",
-    description: "Small C++ and Python experiments that turn class ideas and programming challenges into working projects.",
+    title: "創意程式實驗室",
+    description: "透過 C++ 與 Python 小實驗，把課堂想法和程式題目變成真正能運作的作品。",
     tag: "C++ · PYTHON",
   },
 ];
 
 const skills = [
-  ["C++", "Problem solving, algorithms, and the fundamentals behind efficient programs."],
-  ["Python", "Rapid prototyping, data exploration, and turning ideas into useful tools."],
-  ["AI", "Exploring how intelligent systems learn, make decisions, and support creative work."],
-  ["Sound", "Live audio, signal flow, microphones, mixers, and the teamwork behind events."],
+  ["C++", "練習解題、演算法，以及撰寫高效率程式所需的基礎。"],
+  ["Python", "快速製作原型、探索資料，並把想法變成實用工具。"],
+  ["AI", "探索智慧系統如何學習、做出判斷，並協助創意工作。"],
+  ["音控", "學習現場音訊、訊號流程、麥克風、混音器與活動團隊合作。"],
 ];
 
 export default async function Home() {
@@ -35,43 +35,46 @@ export default async function Home() {
   return (
     <main>
       <header className="site-header">
-        <a className="brand" href="#top" aria-label="Steven home">STEVEN</a>
-        <nav aria-label="Main navigation">
-          <a href="#about">About</a>
-          <a href="#projects">Projects</a>
-          <a href="#skills">Skills</a>
-          <a href="#blog">Blog</a>
-          <a href="#contact">Contact</a>
+        <a className="brand" href="#top" aria-label="Steven 首頁">STEVEN</a>
+        <nav aria-label="主要導覽列">
+          <a href="#about">關於我</a>
+          <a href="#projects">作品</a>
+          <a href="#skills">技能</a>
+          <a href="#blog">部落格</a>
+          <a href="#contact">聯絡我</a>
         </nav>
       </header>
 
       <section className="hero" id="top">
         <div className="hero-copy">
-          <p className="eyebrow">TAIWAN · STUDENT · CREATOR</p>
-          <h1>Hi, I’m<br />Steven.</h1>
-          <p className="intro">I’m a Taiwanese high-school student exploring code, AI, sound, and creative technology.</p>
+          <p className="eyebrow">台灣 · 學生 · 創作者</p>
+          <h1>嗨，我是<br />Steven。</h1>
+          <p className="intro">我是一名來自台灣的高中生，正在探索程式設計、AI、音控與創意科技。</p>
           <div className="hero-actions">
-            <a className="primary-button" href="#projects">View my work <span aria-hidden="true">→</span></a>
-            <a className="text-link" href="#about">More about me</a>
+            <a className="primary-button" href="#projects">查看我的作品 <span aria-hidden="true">→</span></a>
+            <a className="text-link" href="#about">進一步認識我</a>
           </div>
           <p className="skill-line"><span>C++</span><i>/</i><span>PYTHON</span><i>/</i><span>AI</span><i>/</i><span>SOUND CONTROL</span></p>
         </div>
-        <div className="hero-mark" aria-hidden="true"><span>ST</span></div>
+        <div className="hero-photo">
+          <img src="/flower.png" alt="Flower, a cheerful tiger character in front of a castle" />
+          <span aria-hidden="true">FLOWER · STEVEN</span>
+        </div>
       </section>
 
       <section className="section about" id="about">
-        <div className="section-kicker"><span>01</span> About</div>
+        <div className="section-kicker"><span>01</span> 關於我</div>
         <div className="about-grid">
-          <h2>Curious by nature.<br />Always building.</h2>
+          <h2>保持好奇。<br />持續創作。</h2>
           <div className="about-copy">
-            <p>I enjoy learning how things work—from the logic inside a program to the audio system behind a live event. For me, technology is most exciting when it helps turn an idea into something people can see, hear, or use.</p>
-            <p>I’m currently improving my programming through C++ and Python, exploring AI, and gaining hands-on experience with school sound control and event production.</p>
+            <p>我喜歡了解事物如何運作，從程式內部的邏輯，到現場活動幕後的音響系統。對我來說，科技最有趣的地方，就是能把一個想法變成大家看得到、聽得到或用得到的成果。</p>
+            <p>目前我正在透過 C++ 與 Python 提升程式能力、探索 AI，並在學校音控與活動執行中累積實作經驗。</p>
           </div>
         </div>
       </section>
 
       <section className="section projects" id="projects">
-        <div className="section-kicker"><span>02</span> Selected projects</div>
+        <div className="section-kicker"><span>02</span> 精選作品</div>
         <div className="project-list">
           {projects.map((project) => (
             <article className="project-card" key={project.number}>
@@ -88,8 +91,8 @@ export default async function Home() {
       </section>
 
       <section className="section skills" id="skills">
-        <div className="section-kicker"><span>03</span> Skills & interests</div>
-        <h2>What I’m learning now.</h2>
+        <div className="section-kicker"><span>03</span> 技能與興趣</div>
+        <h2>我現在正在學習的事。</h2>
         <div className="skill-grid">
           {skills.map(([name, description], index) => (
             <article key={name}>
@@ -102,22 +105,22 @@ export default async function Home() {
       </section>
 
       <section className="section blog" id="blog">
-        <div className="section-kicker"><span>04</span> Personal blog</div>
-        <div className="blog-heading"><h2>Notes from<br/>the process.</h2><a className="text-link" href="/admin">Owner sign in →</a></div>
-        {posts.length === 0 ? <div className="blog-empty"><p>No published posts yet.</p><span>The first story is being written.</span></div> : <div className="blog-grid">{posts.map((post, index) => <article className="blog-card" key={post.id}><p className="project-tag">{String(index + 1).padStart(2,"0")} · {new Date(post.updated_at).toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" })}</p><h3><a href={`/blog/${post.slug}`}>{post.title}</a></h3><p>{post.excerpt}</p><a className="read-link" href={`/blog/${post.slug}`}>Read article ↗</a></article>)}</div>}
+        <div className="section-kicker"><span>04</span> 個人部落格</div>
+        <div className="blog-heading"><h2>記錄學習與<br/>創作過程。</h2><a className="text-link" href="/admin">站長登入 →</a></div>
+        {posts.length === 0 ? <div className="blog-empty"><p>目前還沒有已發布的文章。</p><span>第一篇故事正在撰寫中。</span></div> : <div className="blog-grid">{posts.map((post, index) => <article className="blog-card" key={post.id}><p className="project-tag">{String(index + 1).padStart(2,"0")} · {new Date(post.updated_at).toLocaleDateString("zh-TW", { year:"numeric", month:"short", day:"2-digit" })}</p><h3><a href={`/blog/${post.slug}`}>{post.title}</a></h3><p>{post.excerpt}</p><a className="read-link" href={`/blog/${post.slug}`}>閱讀文章 ↗</a></article>)}</div>}
       </section>
 
       <footer id="contact">
-        <p className="section-kicker"><span>05</span> Contact</p>
+        <p className="section-kicker"><span>05</span> 聯絡我</p>
         <div className="footer-grid">
-          <h2>Let’s create<br />something.</h2>
+          <h2>一起完成<br />新的作品。</h2>
           <div className="footer-note">
-            <p>I’m always open to learning, collaborating, and trying a new project.</p>
+            <p>我很樂意學習新事物、和大家合作，並嘗試新的專案。</p>
             <a href="mailto:hello@example.com">hello@example.com <span aria-hidden="true">↗</span></a>
-            <small>Replace this email with your own before sharing.</small>
+            <small>公開網站前，請將這個 Email 改成你自己的信箱。</small>
           </div>
         </div>
-        <div className="footer-bottom"><span>© 2026 STEVEN</span><a href="#top">Back to top ↑</a></div>
+        <div className="footer-bottom"><span>© 2026 STEVEN</span><a href="#top">回到頂端 ↑</a></div>
       </footer>
     </main>
   );

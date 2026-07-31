@@ -8,11 +8,17 @@ In Cloudflare Dashboard open **Storage & databases → D1 → Create database** 
 
 The app creates the `posts` table automatically on first use.
 
-## 2. Push this folder to GitHub
+## 2. Create image storage
+
+In Cloudflare Dashboard open **Storage & databases → R2 object storage → Create bucket** and name it `steven-blog-images`.
+
+The `BUCKET` binding is already included in `wrangler.jsonc`. The Blog editor accepts one optional cover photo per post (JPG, PNG, WebP or GIF, maximum 8 MB). Photos are stored in R2 and will not disappear after a GitHub deployment.
+
+## 3. Push this folder to GitHub
 
 Replace the old files in `steventeng2022/website1`, then commit and push.
 
-## 3. Connect GitHub to Cloudflare Workers
+## 4. Connect GitHub to Cloudflare Workers
 
 Open **Workers & Pages → Create application → Import a repository**, choose `steventeng2022/website1`, and use:
 
@@ -22,13 +28,13 @@ Open **Workers & Pages → Create application → Import a repository**, choose 
 
 If Cloudflare asks for a Node version, use Node.js 22.
 
-## 4. Add your domain
+## 5. Add your domain
 
 In the deployed Worker, open **Settings → Domains & Routes → Add → Custom domain** and add `steventeng.uk`.
 
 Remove old DNS records that pointed the domain at ChatGPT Sites if Cloudflare reports a conflict.
 
-## 5. Protect `/admin` with Cloudflare Access
+## 6. Protect `/admin` with Cloudflare Access
 
 Open **Zero Trust → Access → Applications → Add an application → Self-hosted**.
 

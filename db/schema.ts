@@ -6,6 +6,7 @@ export const posts = sqliteTable("posts", {
   slug: text("slug").notNull().unique(),
   excerpt: text("excerpt").notNull().default(""),
   content: text("content").notNull(),
+  coverImage: text("cover_image"),
   status: text("status", { enum: ["draft", "published"] }).notNull().default("draft"),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),

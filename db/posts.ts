@@ -4,6 +4,7 @@ export type Post = {
   slug: string;
   excerpt: string;
   content: string;
+  cover_image: string | null;
   status: "draft" | "published";
   created_at: number;
   updated_at: number;
@@ -22,10 +23,16 @@ async function ready() {
     slug TEXT NOT NULL UNIQUE,
     excerpt TEXT NOT NULL DEFAULT '',
     content TEXT NOT NULL,
+    cover_image TEXT,
     status TEXT NOT NULL DEFAULT 'draft',
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL
   )`).run();
+  try {
+    await db().prepare("ALTER TABLE posts ADD COLUMN cover_image TEXT").run();
+  } catch (error) {
+    if (!String(error).toLowerCase().includes("duplicate column")) throw error;
+  }
   await db().prepare("CREATE INDEX IF NOT EXISTS posts_status_updated_idx ON posts(status, updated_at DESC)").run();
 }
 
@@ -47,14 +54,14 @@ export async function getPublishedPost(slug: string) {
 export async function createPost(input: Omit<Post, "id" | "created_at" | "updated_at">) {
   await ready();
   const now = Date.now();
-  await db().prepare("INSERT INTO posts (title, slug, excerpt, content, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
-    .bind(input.title, input.slug, input.excerpt, input.content, input.status, now, now).run();
+  await db().prepare("INSERT INTO posts (title, slug, excerpt, content, cover_image, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+    .bind(input.title, input.slug, input.excerpt, input.content, input.cover_image, input.status, now, now).run();
 }
 
 export async function updatePost(id: number, input: Omit<Post, "id" | "created_at" | "updated_at">) {
   await ready();
-  await db().prepare("UPDATE posts SET title = ?, slug = ?, excerpt = ?, content = ?, status = ?, updated_at = ? WHERE id = ?")
-    .bind(input.title, input.slug, input.excerpt, input.content, input.status, Date.now(), id).run();
+  await db().prepare("UPDATE posts SET title = ?, slug = ?, excerpt = ?, content = ?, cover_image = ?, status = ?, updated_at = ? WHERE id = ?")
+    .bind(input.title, input.slug, input.excerpt, input.content, input.cover_image, input.status, Date.now(), id).run();
 }
 
 export async function deletePost(id: number) {
