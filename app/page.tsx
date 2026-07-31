@@ -12,15 +12,15 @@ const projects = [
   },
   {
     number: "02",
-    title: "音控實作",
-    description: "學習音響系統、麥克風、混音器與現場製作如何在舞台幕後協同運作。",
-    tag: "音控 · 活動",
+    title: "Arduino 與 Raspberry Pi 實作",
+    description: "使用感測器、微控制器與單板電腦製作自動化裝置，探索軟硬體整合。",
+    tag: "ARDUINO · RASPBERRY PI",
   },
   {
     number: "03",
-    title: "創意程式實驗室",
-    description: "透過 C++ 與 Python 小實驗，把課堂想法和程式題目變成真正能運作的作品。",
-    tag: "C++ · PYTHON",
+    title: "資安學習實驗室",
+    description: "學習網路安全、隱私保護與安全程式設計，建立正確的防禦觀念。",
+    tag: "CYBERSECURITY",
   },
 ];
 
@@ -28,20 +28,24 @@ const skills = [
   ["C++", "練習解題、演算法，以及撰寫高效率程式所需的基礎。"],
   ["Python", "快速製作原型、探索資料，並把想法變成實用工具。"],
   ["AI", "探索智慧系統如何學習、做出判斷，並協助創意工作。"],
-  ["音控", "學習現場音訊、訊號流程、麥克風、混音器與活動團隊合作。"],
+  ["Arduino", "使用感測器、電子元件與程式設計，打造互動式硬體作品。"],
+  ["Raspberry Pi", "以 Linux 與 Python 製作自動化工具、伺服器及物聯網專案。"],
+  ["資安", "學習網路安全、隱私保護與安全程式設計的基礎觀念。"],
 ];
 
 const englishProjects = [
   { number: "01", title: "Personal Website", description: "A clean, responsive introduction to who I am, what I am learning, and what I want to create next.", tag: "WEB DESIGN" },
-  { number: "02", title: "Live Sound Practice", description: "Learning how sound systems, microphones, mixers, and event production work together behind the stage.", tag: "SOUND · EVENTS" },
-  { number: "03", title: "Creative Coding Lab", description: "Turning classroom ideas and programming challenges into working projects with C++ and Python.", tag: "C++ · PYTHON" },
+  { number: "02", title: "Arduino & Raspberry Pi Projects", description: "Building automated devices with sensors, microcontrollers, and single-board computers while exploring hardware-software integration.", tag: "ARDUINO · RASPBERRY PI" },
+  { number: "03", title: "Cybersecurity Learning Lab", description: "Learning network security, privacy protection, and secure programming with a defensive mindset.", tag: "CYBERSECURITY" },
 ];
 
 const englishSkills = [
   ["C++", "Building a foundation in problem solving, algorithms, and efficient programming."],
   ["Python", "Creating quick prototypes, exploring data, and turning ideas into useful tools."],
   ["AI", "Exploring how intelligent systems learn, make decisions, and support creative work."],
-  ["Sound", "Learning live audio, signal flow, microphones, mixers, and event teamwork."],
+  ["Arduino", "Using sensors, electronic components, and code to build interactive hardware projects."],
+  ["Raspberry Pi", "Creating automation tools, servers, and IoT projects with Linux and Python."],
+  ["Cybersecurity", "Learning the foundations of network security, privacy, and secure programming."],
 ];
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ lang?: string }> }) {
@@ -68,12 +72,12 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
         <div className="hero-copy">
           <p className="eyebrow">{en ? "TAIWAN · STUDENT · CREATOR" : "台灣 · 學生 · 創作者"}</p>
           <h1>{en ? <>Hi, I’m<br />Steven.</> : <>嗨，我是<br />Steven。</>}</h1>
-          <p className="intro">{en ? "I’m a high school student from Taiwan exploring programming, AI, live sound, and creative technology." : "我是一名來自台灣的高中生，正在探索程式設計、AI、音控與創意科技。"}</p>
+          <p className="intro">{en ? "I’m a high school student from Taiwan exploring programming, AI, Arduino, Raspberry Pi, and cybersecurity." : "我是一名來自台灣的高中生，正在探索程式設計、AI、Arduino、Raspberry Pi 與資安。"}</p>
           <div className="hero-actions">
             <a className="primary-button" href="#projects">{en ? "View my work" : "查看我的作品"} <span aria-hidden="true">→</span></a>
             <a className="text-link" href="#about">{en ? "More about me" : "進一步認識我"}</a>
           </div>
-          <p className="skill-line"><span>C++</span><i>/</i><span>PYTHON</span><i>/</i><span>AI</span><i>/</i><span>SOUND CONTROL</span></p>
+          <p className="skill-line"><span>C++</span><i>/</i><span>PYTHON</span><i>/</i><span>ARDUINO</span><i>/</i><span>CYBERSECURITY</span></p>
         </div>
         <div className="hero-photo">
           <img src="/flower.png" alt="Flower, a cheerful tiger character in front of a castle" />
@@ -86,8 +90,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
         <div className="about-grid">
           <h2>{en ? <>Stay curious.<br />Keep creating.</> : <>保持好奇。<br />持續創作。</>}</h2>
           <div className="about-copy">
-            <p>{en ? "I enjoy learning how things work, from the logic inside software to the sound systems behind live events. Technology is most exciting to me when it turns an idea into something people can see, hear, or use." : "我喜歡了解事物如何運作，從程式內部的邏輯，到現場活動幕後的音響系統。對我來說，科技最有趣的地方，就是能把一個想法變成大家看得到、聽得到或用得到的成果。"}</p>
-            <p>{en ? "Right now, I’m improving my programming through C++ and Python, exploring AI, and gaining hands-on experience with school sound and event production." : "目前我正在透過 C++ 與 Python 提升程式能力、探索 AI，並在學校音控與活動執行中累積實作經驗。"}</p>
+            <p>{en ? "I enjoy learning how things work, from the logic inside software to the connection between sensors, hardware, and networks. Technology is most exciting to me when it turns an idea into something people can see or use." : "我喜歡了解事物如何運作，從程式內部的邏輯，到感測器、硬體與網路之間的連結。對我來說，科技最有趣的地方，就是能把想法變成大家看得到或用得到的成果。"}</p>
+            <p>{en ? "Right now, I’m improving my programming through C++ and Python while exploring AI, Arduino, Raspberry Pi, and cybersecurity." : "目前我正在透過 C++ 與 Python 提升程式能力，並探索 AI、Arduino、Raspberry Pi 與資安。"}</p>
           </div>
         </div>
       </section>
