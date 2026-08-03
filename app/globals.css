@@ -13,6 +13,7 @@ nav a,.text-link { font:700 14px/1.2 "Courier New",monospace; text-transform:upp
 .language-toggle { min-width:42px; padding:9px 11px 7px; border:1px solid var(--ink); text-align:center; line-height:1; }
 .language-toggle:hover { border-color:var(--blue); background:var(--blue); color:white; }
 nav a:hover,.text-link:hover { color:var(--blue); }
+nav a.active-nav { color:var(--blue); }
 .hero { min-height:calc(100vh - 104px); padding:70px 4.2vw 46px; display:grid; grid-template-columns:2.1fr .9fr; gap:4vw; align-items:center; }
 .hero-copy { position:relative; z-index:2; animation:rise .65s ease-out both; }
 .eyebrow,.section-kicker,.project-tag,.skill-index { font:700 13px/1.4 "Courier New",monospace; letter-spacing:.08em; text-transform:uppercase; }
@@ -142,6 +143,24 @@ h1 { margin:0; font-size:clamp(76px,10vw,158px); line-height:.82; letter-spacing
 .markdown-body table { width:100%; border-collapse:collapse; margin:1.5em 0; font:400 14px/1.5 "Courier New",monospace; }
 .markdown-body th,.markdown-body td { padding:10px 12px; border:1px solid var(--line); text-align:left; }
 .markdown-body img { max-width:100%; height:auto; }
+.friends-shell { min-height:100vh; }
+.friends-hero { padding:105px 4.2vw 95px; border-bottom:1px solid var(--ink); }
+.friends-hero h1 { font-size:clamp(86px,13vw,190px); }
+.friends-intro { max-width:760px; margin:42px 0 0; font:400 clamp(19px,1.75vw,27px)/1.5 "Courier New",monospace; }
+.friends-list { padding:95px 4.2vw 120px; }
+.friend-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); border-top:1px solid var(--ink); border-left:1px solid var(--ink); }
+.friend-card { min-height:430px; padding:28px; border-right:1px solid var(--ink); border-bottom:1px solid var(--ink); display:flex; flex-direction:column; transition:.22s; }
+.friend-card:hover { color:#fff; background:var(--blue); transform:translateY(-4px); }
+.friend-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:24px; }
+.friend-index { color:var(--blue); font:300 54px/1 Arial,sans-serif; letter-spacing:-.06em; }
+.friend-card:hover .friend-index { color:#fff; }
+.friend-card img { width:80px; height:80px; padding:8px; border:1px solid var(--ink); background:#fff; object-fit:contain; }
+.friend-card-copy { margin:50px 0 38px; }
+.friend-card-copy h2 { margin:0 0 16px; font-size:clamp(30px,3.2vw,48px); line-height:1; letter-spacing:-.055em; }
+.friend-card-copy>p:last-child { max-width:560px; margin:0; font:400 15px/1.65 "Courier New",monospace; }
+.friend-url { margin-top:auto; padding-top:18px; border-top:1px solid currentColor; display:flex; align-items:center; justify-content:space-between; gap:20px; font:700 13px/1.4 "Courier New",monospace; overflow-wrap:anywhere; }
+.friend-url span:last-child { flex:none; font-size:24px; }
+.friends-footer { padding:28px 4.2vw; display:flex; justify-content:space-between; font:700 12px "Courier New",monospace; }
 footer { padding:105px 4.2vw 28px; background:var(--ink); color:var(--paper); }
 footer .section-kicker span { color:#6688ff; }
 .footer-grid { display:grid; grid-template-columns:1.45fr .55fr; gap:8vw; align-items:end; }
@@ -172,6 +191,10 @@ footer .section-kicker span { color:#6688ff; }
   .blog-grid { grid-template-columns:1fr; }
   .blog-card { min-height:280px; }
   .blog-empty { padding:30px; flex-direction:column; gap:12px; }
+  .friends-hero { padding:75px 5vw 70px; }
+  .friends-list { padding:75px 5vw 90px; }
+  .friend-grid { grid-template-columns:1fr; }
+  .friend-card { min-height:390px; }
   .post-form { grid-template-columns:1fr; }
   .post-form label,.post-form label:nth-of-type(3),.post-form label:nth-of-type(4),.form-row { grid-column:1; }
   .form-row { align-items:stretch; flex-direction:column; }

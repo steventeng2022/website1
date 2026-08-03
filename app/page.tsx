@@ -64,6 +64,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
           <a href="#projects">{en ? "Projects" : "作品"}</a>
           <a href="#skills">{en ? "Skills" : "技能"}</a>
           <a href="#blog">{en ? "Blog" : "部落格"}</a>
+          <a href={en ? "/friends?lang=en" : "/friends"}>Friends</a>
           <a href="#contact">{en ? "Contact" : "聯絡我"}</a>
           <LanguageToggle />
         </nav>
