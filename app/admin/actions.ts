@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "../cloudflare-auth";
 import { createPost, deletePost, updatePost, updatePostStatus } from "../../db/posts";
+import { createFriend, deleteFriend } from "../../db/friends";
 
 function imageValue(formData: FormData) {
   if (formData.get("removeCover") === "yes") return null;
@@ -49,4 +50,37 @@ export async function updatePostStatusAction(formData: FormData) {
   if (!Number.isInteger(id) || id < 1) throw new Error("文章編號無效");
   await updatePostStatus(id, status);
   revalidatePath("/"); revalidatePath("/admin"); revalidatePath(`/blog/${String(formData.get("slug") ?? "")}`);
+}
+
+function webUrl(value: FormDataEntryValue | null, label: string) {
+  const text = String(value ?? "").trim();
+  try {
+    const url = new URL(text);
+    if (url.protocol !== "https:" && url.protocol !== "http:") throw new Error();
+    return url.toString();
+  } catch {
+    throw new Error(`${label}必須是完整的 http 或 https 網址`);
+  }
+}
+
+export async function createFriendAction(formData: FormData) {
+  await requireAdmin();
+  const site_name = String(formData.get("siteName") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  if (!site_name || !description) throw new Error("網站名稱與介紹皆為必填");
+  await createFriend({
+    site_name,
+    site_url: webUrl(formData.get("siteUrl"), "網站網址"),
+    logo_url: webUrl(formData.get("logoUrl"), "Logo 網址"),
+    description,
+  });
+  revalidatePath("/friends"); revalidatePath("/admin");
+}
+
+export async function deleteFriendAction(formData: FormData) {
+  await requireAdmin();
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id) || id < 1) throw new Error("Friends 網站編號無效");
+  await deleteFriend(id);
+  revalidatePath("/friends"); revalidatePath("/admin");
 }

@@ -1,23 +1,7 @@
 import LanguageToggle from "../language-toggle";
+import { listFriends } from "../../db/friends";
 
-type FriendSite = {
-  siteName: string;
-  siteUrl: string;
-  logoUrl: string;
-  description: string;
-  descriptionEn: string;
-};
-
-// Add or edit friend websites here. Copy one object for every new website.
-const friends: FriendSite[] = [
-  {
-    siteName: "Your Friend's Website",
-    siteUrl: "https://example.com",
-    logoUrl: "https://www.google.com/s2/favicons?domain=example.com&sz=256",
-    description: "這是一筆範例資料。把這裡改成朋友網站的簡短介紹。",
-    descriptionEn: "This is an example. Replace it with a short introduction to your friend's website.",
-  },
-];
+export const dynamic = "force-dynamic";
 
 export default async function FriendsPage({
   searchParams,
@@ -26,6 +10,7 @@ export default async function FriendsPage({
 }) {
   const { lang } = await searchParams;
   const en = lang === "en";
+  const friends = await listFriends();
 
   return (
     <main className="friends-shell">
@@ -53,19 +38,19 @@ export default async function FriendsPage({
       <section className="friends-list" aria-label={en ? "Friend websites" : "朋友網站列表"}>
         <div className="section-kicker"><span>01</span> {en ? "WEBSITES" : "合作網站"}</div>
         <div className="friend-grid">
-          {friends.map((friend, index) => (
-            <article className="friend-card" key={friend.siteUrl}>
+          {friends.length === 0 ? <div className="blog-empty"><p>{en ? "No friend websites yet." : "目前還沒有 Friends 網站。"}</p><span>{en ? "New collaborators will appear here." : "新增合作網站後會顯示在這裡。"}</span></div> : friends.map((friend, index) => (
+            <article className="friend-card" key={friend.id}>
               <div className="friend-card-top">
                 <span className="friend-index">{String(index + 1).padStart(2, "0")}</span>
-                <img src={friend.logoUrl} alt={`${friend.siteName} logo`} width="80" height="80" />
+                <img src={friend.logo_url} alt={`${friend.site_name} logo`} width="80" height="80" />
               </div>
               <div className="friend-card-copy">
                 <p className="project-tag">{en ? "COLLABORATE WEBSITE" : "合作網站"}</p>
-                <h2>{friend.siteName}</h2>
-                <p>{en ? friend.descriptionEn : friend.description}</p>
+                <h2>{friend.site_name}</h2>
+                <p>{friend.description}</p>
               </div>
-              <a className="friend-url" href={friend.siteUrl} target="_blank" rel="noopener noreferrer">
-                <span>{friend.siteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}</span>
+              <a className="friend-url" href={friend.site_url} target="_blank" rel="noopener noreferrer">
+                <span>{friend.site_url.replace(/^https?:\/\//, "").replace(/\/$/, "")}</span>
                 <span aria-hidden="true">↗</span>
               </a>
             </article>

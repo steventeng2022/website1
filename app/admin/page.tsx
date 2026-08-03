@@ -1,6 +1,7 @@
 import { requireAdmin } from "../cloudflare-auth";
 import { listAllPosts } from "../../db/posts";
-import { createPostAction, deletePostAction, updatePostAction, updatePostStatusAction } from "./actions";
+import { listFriends } from "../../db/friends";
+import { createFriendAction, createPostAction, deleteFriendAction, deletePostAction, updatePostAction, updatePostStatusAction } from "./actions";
 import CoverImageField from "./cover-image-field";
 import MarkdownEditor from "./markdown-editor";
 
@@ -8,6 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function AdminPage() {
   const email = await requireAdmin();
   const posts = await listAllPosts();
+  const friends = await listFriends();
   return <main className="admin-shell">
     <header className="admin-top"><a className="brand" href="/">STEVEN</a><div><span>{email}</span><a href="/cdn-cgi/access/logout">登出</a></div></header>
     <section className="studio-heading"><p className="eyebrow">私人文章工作室</p><h1>寫下你的<br/>學習歷程。</h1><p>先建立草稿、整理內容，準備好後再發布文章。</p></section>
@@ -24,6 +26,22 @@ export default async function AdminPage() {
         </form>
         <form action={deletePostAction}><input type="hidden" name="id" value={post.id}/><button className="danger-button" type="submit">刪除文章</button></form>
       </details>)}
+    </section>
+    <section className="editor-section friends-admin"><div className="editor-title"><h2>Friends 網站管理</h2><span>共 {friends.length} 個網站</span></div>
+      <form className="post-form" action={createFriendAction}>
+        <label>網站名稱<input required name="siteName" placeholder="Friend's Website"/></label>
+        <label>網站網址<input required type="url" name="siteUrl" placeholder="https://example.com"/></label>
+        <label>Logo 網址<input required type="url" name="logoUrl" placeholder="https://example.com/logo.png"/></label>
+        <label>網站介紹<textarea required name="description" rows={3} placeholder="簡短介紹這個合作網站。"/></label>
+        <button className="primary-button" type="submit">新增 Friends 網站 →</button>
+      </form>
+      <div className="friends-admin-list">
+        {friends.length === 0 ? <p className="empty-state">目前還沒有 Friends 網站。</p> : friends.map(friend => <article className="friends-admin-item" key={friend.id}>
+          <img src={friend.logo_url} alt="" width="52" height="52"/>
+          <div><h3>{friend.site_name}</h3><a href={friend.site_url} target="_blank" rel="noopener noreferrer">{friend.site_url}</a><p>{friend.description}</p></div>
+          <form action={deleteFriendAction}><input type="hidden" name="id" value={friend.id}/><button className="danger-button" type="submit">刪除</button></form>
+        </article>)}
+      </div>
     </section>
   </main>;
 }
