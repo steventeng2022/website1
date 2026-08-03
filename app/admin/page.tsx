@@ -1,6 +1,6 @@
 import { requireAdmin } from "../cloudflare-auth";
 import { listAllPosts } from "../../db/posts";
-import { createPostAction, deletePostAction, updatePostAction } from "./actions";
+import { createPostAction, deletePostAction, updatePostAction, updatePostStatusAction } from "./actions";
 import CoverImageField from "./cover-image-field";
 import MarkdownEditor from "./markdown-editor";
 
@@ -16,6 +16,12 @@ export default async function AdminPage() {
       {posts.length === 0 ? <p className="empty-state">目前還沒有文章，請從上方編輯器開始撰寫。</p> : posts.map(post => <details className="post-editor" key={post.id}>
         <summary><div><span className={`status ${post.status}`}>{post.status === "published" ? "已發布" : "草稿"}</span><h3>{post.title}</h3></div><span>編輯 +</span></summary>
         <PostForm action={updatePostAction} post={post} />
+        <form action={updatePostStatusAction} className="status-toggle-form">
+          <input type="hidden" name="id" value={post.id}/>
+          <input type="hidden" name="slug" value={post.slug}/>
+          <input type="hidden" name="status" value={post.status === "published" ? "draft" : "published"}/>
+          <button className="visibility-button" type="submit">{post.status === "published" ? "改為私人文章" : "重新發布文章"}</button>
+        </form>
         <form action={deletePostAction}><input type="hidden" name="id" value={post.id}/><button className="danger-button" type="submit">刪除文章</button></form>
       </details>)}
     </section>

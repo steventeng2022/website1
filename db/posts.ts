@@ -64,6 +64,12 @@ export async function updatePost(id: number, input: Omit<Post, "id" | "created_a
     .bind(input.title, input.slug, input.excerpt, input.content, input.cover_image, input.status, Date.now(), id).run();
 }
 
+export async function updatePostStatus(id: number, status: Post["status"]) {
+  await ready();
+  await db().prepare("UPDATE posts SET status = ?, updated_at = ? WHERE id = ?")
+    .bind(status, Date.now(), id).run();
+}
+
 export async function deletePost(id: number) {
   await ready();
   await db().prepare("DELETE FROM posts WHERE id = ?").bind(id).run();

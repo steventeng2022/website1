@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "../cloudflare-auth";
-import { createPost, deletePost, updatePost } from "../../db/posts";
+import { createPost, deletePost, updatePost, updatePostStatus } from "../../db/posts";
 
 function imageValue(formData: FormData) {
   if (formData.get("removeCover") === "yes") return null;
@@ -40,4 +40,13 @@ export async function deletePostAction(formData: FormData) {
   await requireAdmin();
   await deletePost(Number(formData.get("id")));
   revalidatePath("/"); revalidatePath("/admin");
+}
+
+export async function updatePostStatusAction(formData: FormData) {
+  await requireAdmin();
+  const id = Number(formData.get("id"));
+  const status = formData.get("status") === "published" ? "published" : "draft";
+  if (!Number.isInteger(id) || id < 1) throw new Error("文章編號無效");
+  await updatePostStatus(id, status);
+  revalidatePath("/"); revalidatePath("/admin"); revalidatePath(`/blog/${String(formData.get("slug") ?? "")}`);
 }

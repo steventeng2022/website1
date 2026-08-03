@@ -1,5 +1,6 @@
 import { listPublishedPosts } from "../db/posts";
 import LanguageToggle from "./language-toggle";
+import HeroCharacterTabs from "./hero-character-tabs";
 
 export const dynamic = "force-dynamic";
 
@@ -79,10 +80,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
           </div>
           <p className="skill-line"><span>C++</span><i>/</i><span>PYTHON</span><i>/</i><span>ARDUINO</span><i>/</i><span>AI</span></p>
         </div>
-        <div className="hero-photo">
-          <img src="/flower.png" alt="Flower, a cheerful tiger character in front of a castle" />
-          <span aria-hidden="true">FLOWER · STEVEN</span>
-        </div>
+        <HeroCharacterTabs />
       </section>
 
       <section className="section about" id="about">
@@ -139,8 +137,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
           <h2>{en ? <>Let’s make<br />something new.</> : <>一起完成<br />新的作品。</>}</h2>
           <div className="footer-note">
             <p>{en ? "I’m always happy to learn, collaborate, and try a new project." : "我很樂意學習新事物、和大家合作，並嘗試新的專案。"}</p>
-            <a href="mailto:hello@example.com">hello@example.com <span aria-hidden="true">↗</span></a>
-            <small>{en ? "Replace this address with your own email before publishing." : "公開網站前，請將這個 Email 改成你自己的信箱。"}</small>
+            <a href="mailto:steventeng2022@gmail.com">steventeng2022@gmail.com <span aria-hidden="true">↗</span></a>
+            <span className="contact-line">DISCORD · steven0925</span>
           </div>
         </div>
         <div className="footer-bottom"><span>© 2026 STEVEN</span><a href="#top">{en ? "BACK TO TOP" : "回到頂端"} ↑</a></div>

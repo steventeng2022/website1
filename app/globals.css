@@ -26,8 +26,13 @@ h1 { margin:0; font-size:clamp(76px,10vw,158px); line-height:.82; letter-spacing
 .primary-button:hover span { transform:translateX(6px); }
 .skill-line { margin:36px 0 0; display:flex; gap:16px; flex-wrap:wrap; font:700 13px "Courier New",monospace; }
 .skill-line i { color:var(--blue); font-style:normal; }
-.hero-photo { position:relative; justify-self:end; width:min(31vw,440px); height:min(72vh,600px); border:18px solid var(--blue); background:var(--blue); overflow:hidden; animation:mark-in .8s .1s ease-out both; }
-.hero-photo img { width:100%; height:100%; display:block; object-fit:cover; object-position:center 44%; }
+.hero-character { justify-self:end; width:min(31vw,440px); animation:mark-in .8s .1s ease-out both; }
+.character-tabs { display:flex; justify-content:flex-end; gap:6px; margin-bottom:8px; }
+.character-tabs button { padding:9px 14px 8px; border:1px solid var(--ink); background:var(--paper); color:var(--ink); font:800 11px/1 "Courier New",monospace; letter-spacing:.06em; cursor:pointer; }
+.character-tabs button:hover,.character-tabs button.active { border-color:var(--blue); background:var(--blue); color:#fff; }
+.hero-photo { position:relative; width:100%; height:min(72vh,600px); border:18px solid var(--blue); background:var(--blue); overflow:hidden; }
+.hero-photo img { width:100%; height:100%; display:block; object-fit:cover; object-position:center 44%; animation:photo-swap .22s ease-out both; }
+.hero-photo img.steven-drawing { object-fit:contain; object-position:center; background:#fff; }
 .hero-photo span { position:absolute; right:0; bottom:0; padding:11px 14px; color:white; background:var(--blue); font:800 12px/1 "Courier New",monospace; letter-spacing:.06em; }
 .section { padding:110px 4.2vw; border-top:1px solid var(--ink); }
 .section-kicker { display:flex; gap:16px; align-items:center; margin:0 0 70px; }
@@ -114,6 +119,9 @@ h1 { margin:0; font-size:clamp(76px,10vw,158px); line-height:.82; letter-spacing
 .status.published { background:var(--blue); color:white; }
 .post-editor .post-form { padding:20px 10px 30px; }
 .danger-button { margin:0 10px 25px; padding:10px 0; border:0; border-bottom:1px solid #a22; background:none; color:#a22; font:700 12px "Courier New",monospace; cursor:pointer; }
+.status-toggle-form { display:inline-block; margin:0 18px 25px 10px; }
+.visibility-button { padding:11px 14px; border:1px solid var(--blue); background:transparent; color:var(--blue); font:700 12px "Courier New",monospace; cursor:pointer; }
+.visibility-button:hover { background:var(--blue); color:#fff; }
 .article { max-width:980px; margin:0 auto; padding:100px 5vw 130px; }
 .article h1 { font-size:clamp(58px,8vw,112px); margin-top:26px; }
 .article-lead { max-width:780px; margin:45px 0; font:400 clamp(20px,2vw,27px)/1.5 "Courier New",monospace; color:#333; }
@@ -140,9 +148,11 @@ footer .section-kicker span { color:#6688ff; }
 .footer-note { font:400 16px/1.6 "Courier New",monospace; }
 .footer-note>a { display:inline-block; margin-top:20px; padding-bottom:7px; border-bottom:1px solid; font-weight:700; }
 .footer-note small { display:block; margin-top:18px; color:#aaa; font-size:11px; }
+.contact-line { display:block; margin-top:16px; font:700 13px/1.5 "Courier New",monospace; }
 .footer-bottom { margin-top:100px; padding-top:22px; border-top:1px solid #444; display:flex; justify-content:space-between; font:700 12px "Courier New",monospace; }
 @keyframes rise { from { opacity:0; transform:translateY(24px); } }
 @keyframes mark-in { from { opacity:0; transform:translateX(45px); } }
+@keyframes photo-swap { from { opacity:.25; transform:scale(.985); } }
 @media (max-width:800px) {
   main { background-size:25vw 100%; }
   .site-header { height:80px; } nav { gap:14px; } nav a:nth-child(2),nav a:nth-child(3),nav a:nth-child(5){ display:none; }
@@ -150,7 +160,8 @@ footer .section-kicker span { color:#6688ff; }
   h1 { font-size:clamp(72px,24vw,118px); }
   .intro { margin-top:32px; }
   .hero-actions { align-items:flex-start; flex-direction:column; gap:18px; }
-  .hero-photo { width:100%; height:min(105vw,540px); margin-top:20px; border-width:14px; }
+  .hero-character { width:100%; margin-top:20px; }
+  .hero-photo { height:min(105vw,540px); border-width:14px; }
   .hero-photo img { object-position:center 42%; }
   .section { padding:78px 5vw; } .section-kicker { margin-bottom:45px; }
   .about-grid,.footer-grid { grid-template-columns:1fr; gap:44px; }

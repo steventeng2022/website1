@@ -36,7 +36,7 @@ Remove old DNS records that pointed the domain at ChatGPT Sites if Cloudflare re
 
 ## 6. Protect `/admin` with Cloudflare Access
 
-Open **Zero Trust → Access → Applications → Add an application → Self-hosted**.
+Open **Zero Trust → Access → Applications → Add an application → Self-hosted**. Protect `/admin/*` so the editor and its image-upload endpoint receive the same verified identity.
 
 - Application domain: `steventeng.uk`
 - Path: `/admin*`
@@ -53,4 +53,4 @@ npm install
 npm run build
 ```
 
-To change the contact email, edit `app/page.tsx` and replace `hello@example.com`.
+The public contact details are `steventeng2022@gmail.com` and Discord `steven0925`.

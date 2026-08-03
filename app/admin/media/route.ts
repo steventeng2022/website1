@@ -1,10 +1,15 @@
-import { requireAdmin } from "../../../cloudflare-auth";
+import { requireAdmin } from "../../cloudflare-auth";
 
 type SiteEnv = { BUCKET?: R2Bucket };
 
 export async function POST(request: Request) {
   try {
     await requireAdmin();
+  } catch {
+    return Response.json({ error: "登入已過期，請重新登入後台" }, { status: 401 });
+  }
+
+  try {
     const bucket = (globalThis as typeof globalThis & { __STEVEN_SITE_ENV__?: SiteEnv }).__STEVEN_SITE_ENV__?.BUCKET;
     if (!bucket) return Response.json({ error: "尚未設定圖片儲存空間" }, { status: 503 });
 

@@ -43,11 +43,11 @@ export default function CoverImageField({ existingCover }: { existingCover: stri
       const uploadFile = await prepareImage(file);
       const body = new FormData();
       body.set("image", uploadFile);
-      const response = await fetch("/api/admin/media", { method: "POST", body });
+      const response = await fetch("/admin/media", { method: "POST", body, credentials: "same-origin" });
       const contentType = response.headers.get("content-type") ?? "";
       const result = contentType.includes("application/json")
         ? await response.json() as { url?: string; error?: string }
-        : { error: response.status === 413 ? "圖片太大，請選擇較小的圖片" : (await response.text()) || "圖片上傳失敗" };
+        : { error: response.status === 401 ? "登入已過期，請重新登入後台" : response.status === 413 ? "圖片太大，請選擇較小的圖片" : (await response.text()) || "圖片上傳失敗" };
       if (!response.ok || !result.url) throw new Error(result.error || "圖片上傳失敗");
       setCoverUrl(result.url);
       setPreview(result.url);
