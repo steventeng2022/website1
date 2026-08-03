@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "../cloudflare-auth";
-import { createPost, deletePost, updatePost, updatePostStatus } from "../../db/posts";
+import { createPost, createTag, deletePost, deleteTag, setPostTags, updatePost, updatePostStatus } from "../../db/posts";
 import { createFriend, deleteFriend } from "../../db/friends";
 
 function imageValue(formData: FormData) {
@@ -21,26 +21,32 @@ async function fields(formData: FormData) {
   const excerpt = String(formData.get("excerpt") ?? "").trim();
   const content = String(formData.get("content") ?? "").trim();
   const status = formData.get("status") === "published" ? "published" as const : "draft" as const;
+  const tagIds = formData.getAll("tagIds").map(value => Number(value)).filter(value => Number.isInteger(value) && value > 0);
   if (!title || !slug || !content) throw new Error("標題、網址代稱與文章內容皆為必填");
-  return { title, slug, excerpt, content, cover_image: imageValue(formData), status };
+  return { post: { title, slug, excerpt, content, cover_image: imageValue(formData), status }, tagIds };
 }
 
 export async function createPostAction(formData: FormData) {
   await requireAdmin();
-  await createPost(await fields(formData));
-  revalidatePath("/"); revalidatePath("/admin");
+  const input = await fields(formData);
+  const post = await createPost(input.post);
+  await setPostTags(post.id, input.tagIds);
+  revalidatePath("/"); revalidatePath("/blog"); revalidatePath("/admin");
 }
 
 export async function updatePostAction(formData: FormData) {
   await requireAdmin();
-  await updatePost(Number(formData.get("id")), await fields(formData));
-  revalidatePath("/"); revalidatePath("/admin");
+  const id = Number(formData.get("id"));
+  const input = await fields(formData);
+  await updatePost(id, input.post);
+  await setPostTags(id, input.tagIds);
+  revalidatePath("/"); revalidatePath("/blog"); revalidatePath("/admin"); revalidatePath(`/blog/${input.post.slug}`);
 }
 
 export async function deletePostAction(formData: FormData) {
   await requireAdmin();
   await deletePost(Number(formData.get("id")));
-  revalidatePath("/"); revalidatePath("/admin");
+  revalidatePath("/"); revalidatePath("/blog"); revalidatePath("/admin");
 }
 
 export async function updatePostStatusAction(formData: FormData) {
@@ -49,7 +55,24 @@ export async function updatePostStatusAction(formData: FormData) {
   const status = formData.get("status") === "published" ? "published" : "draft";
   if (!Number.isInteger(id) || id < 1) throw new Error("文章編號無效");
   await updatePostStatus(id, status);
-  revalidatePath("/"); revalidatePath("/admin"); revalidatePath(`/blog/${String(formData.get("slug") ?? "")}`);
+  revalidatePath("/"); revalidatePath("/blog"); revalidatePath("/admin"); revalidatePath(`/blog/${String(formData.get("slug") ?? "")}`);
+}
+
+export async function createTagAction(formData: FormData) {
+  await requireAdmin();
+  const name = String(formData.get("tagName") ?? "").trim();
+  const slug = String(formData.get("tagSlug") ?? "").trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-|-$/g, "");
+  if (!name || !slug) throw new Error("標籤名稱與英文代稱皆為必填");
+  await createTag(name, slug);
+  revalidatePath("/"); revalidatePath("/blog"); revalidatePath("/admin");
+}
+
+export async function deleteTagAction(formData: FormData) {
+  await requireAdmin();
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id) || id < 1) throw new Error("標籤編號無效");
+  await deleteTag(id);
+  revalidatePath("/"); revalidatePath("/blog"); revalidatePath("/admin");
 }
 
 function webUrl(value: FormDataEntryValue | null, label: string) {

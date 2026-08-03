@@ -17,6 +17,16 @@ test("renders development preview metadata", async () => {
       ASSETS: {
         fetch: async () => new Response("Not found", { status: 404 }),
       },
+      DB: {
+        prepare() {
+          return {
+            bind() { return this; },
+            async run() { return { success: true }; },
+            async all() { return { results: [] }; },
+            async first() { return null; },
+          };
+        },
+      },
     },
     {
       waitUntil() {},
