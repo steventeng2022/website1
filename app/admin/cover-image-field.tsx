@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MAX_UPLOAD_BYTES, prepareImageUpload } from "./image-upload-utils";
+import { MAX_UPLOAD_BYTES, prepareImageUpload, uploadPreparedImage } from "./image-upload-utils";
 
 export default function CoverImageField({ existingCover }: { existingCover: string | null }) {
   const [coverUrl, setCoverUrl] = useState("");
@@ -16,16 +16,9 @@ export default function CoverImageField({ existingCover }: { existingCover: stri
     setMessage(file.size > MAX_UPLOAD_BYTES ? "正在縮小並上傳圖片……" : "正在上傳圖片……");
     try {
       const uploadFile = await prepareImageUpload(file);
-      const body = new FormData();
-      body.set("image", uploadFile);
-      const response = await fetch("/admin/media", { method: "POST", body, credentials: "same-origin" });
-      const contentType = response.headers.get("content-type") ?? "";
-      const result = contentType.includes("application/json")
-        ? await response.json() as { url?: string; error?: string }
-        : { error: response.status === 401 ? "登入已過期，請重新登入後台" : response.status === 413 ? "圖片超過上傳限制；系統支援 A4 300 DPI，單檔上傳需小於 16 MB" : (await response.text()) || "圖片上傳失敗" };
-      if (!response.ok || !result.url) throw new Error(result.error || "圖片上傳失敗");
-      setCoverUrl(result.url);
-      setPreview(result.url);
+      const imageUrl = await uploadPreparedImage(uploadFile);
+      setCoverUrl(imageUrl);
+      setPreview(imageUrl);
       setRemove(false);
       setMessage("圖片已上傳，可以建立或儲存文章。");
     } catch (error) {
@@ -36,7 +29,7 @@ export default function CoverImageField({ existingCover }: { existingCover: stri
   }
 
   return <div className="image-field">
-    <label>封面照片<input disabled={uploading} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => upload(event.target.files?.[0])}/><small>支援 A4 300 DPI（2480×3508 px）；大型 JPG、PNG、WebP 會自動壓縮。GIF 最大 12 MB。</small></label>
+    <label>封面照片<input disabled={uploading} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => upload(event.target.files?.[0])}/><small>支援 A4 300 DPI（2480×3508 px）；JPG、PNG、WebP 原始檔最大 80 MB並會自動壓縮。GIF 最大 20 MB。</small></label>
     <input type="hidden" name="coverUrl" value={coverUrl}/>
     {existingCover && <input type="hidden" name="existingCover" value={existingCover}/>} 
     {remove && <input type="hidden" name="removeCover" value="yes"/>}

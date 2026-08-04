@@ -12,7 +12,7 @@ The app creates the `posts` table automatically on first use.
 
 In Cloudflare Dashboard open **Storage & databases → R2 object storage → Create bucket** and name it `steven-blog-images`.
 
-The `BUCKET` binding is already included in `wrangler.jsonc`. The Blog editor accepts one optional cover photo per post (JPG, PNG, WebP or GIF, maximum 8 MB). Photos are stored in R2 and will not disappear after a GitHub deployment.
+The `BUCKET` binding is already included in `wrangler.jsonc`. The Blog editor accepts a cover photo and a multi-photo gallery. JPG, PNG and WebP source files can be up to 80 MB and are compressed in the browser to an 8 MB upload while retaining up to A4 at 300 DPI (2480×3508 px). GIF files can be up to 20 MB. Uploads use a raw Worker request that streams directly into R2, so they do not pass through the app router's multipart parser. Photos are stored in R2 and will not disappear after a GitHub deployment.
 
 ## 3. Push this folder to GitHub
 

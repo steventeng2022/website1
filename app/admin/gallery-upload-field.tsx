@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { prepareImageUpload } from "./image-upload-utils";
+import { prepareImageUpload, uploadPreparedImage } from "./image-upload-utils";
 
 type Item = { key:string; image_url:string; caption:string };
 type ExistingItem = { id:number; image_url:string; caption:string };
@@ -21,14 +21,8 @@ export default function GalleryUploadField({ existingItems = [] }: { existingIte
     try {
       for (const file of selected) {
         const uploadFile = await prepareImageUpload(file);
-        const body = new FormData(); body.set("image", uploadFile);
-        const response = await fetch("/admin/media", { method:"POST", body, credentials:"same-origin" });
-        const contentType = response.headers.get("content-type") ?? "";
-        const result = contentType.includes("application/json")
-          ? await response.json() as { url?:string; error?:string }
-          : { error:response.status===401 ? "登入已過期，請重新登入後台" : response.status===413 ? "圖片超過上傳限制；系統支援 A4 300 DPI，單檔上傳需小於 16 MB" : (await response.text()) || `${file.name} 上傳失敗` };
-        if (!response.ok || !result.url) throw new Error(result.error || `${file.name} 上傳失敗`);
-        const added = { key:crypto.randomUUID(), image_url:result.url, caption:"" };
+        const imageUrl = await uploadPreparedImage(uploadFile);
+        const added = { key:crypto.randomUUID(), image_url:imageUrl, caption:"" };
         setItems((current) => [...current, added]);
         uploadedCount += 1;
         setMessage(`已上傳 ${uploadedCount} / ${selected.length} 張照片……`);
@@ -44,7 +38,7 @@ export default function GalleryUploadField({ existingItems = [] }: { existingIte
 
   return <fieldset className="gallery-field">
     <legend>文章結尾相簿（選填）</legend>
-    <p>可一次選取多張照片；支援 A4 300 DPI（2480×3508 px），大型圖片會自動壓縮。每張都能寫一句說明並調整順序。</p>
+    <p>可一次選取多張照片；支援 A4 300 DPI（2480×3508 px），原始圖片最大 80 MB，會自動壓縮後直接存入圖片空間。每張都能寫一句說明並調整順序。</p>
     <label className="gallery-picker">加入照片<input disabled={uploading || items.length>=30} type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => { void upload(event.target.files); event.currentTarget.value=""; }}/></label>
     <input type="hidden" name="galleryItems" value={serialized}/>
     {message && <p className="upload-message" role="status">{message}</p>}

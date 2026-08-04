@@ -1,8 +1,8 @@
 const MB = 1024 * 1024;
 
-export const MAX_SOURCE_BYTES = 40 * MB;
-export const MAX_UPLOAD_BYTES = 12 * MB;
-export const MAX_GIF_BYTES = 12 * MB;
+export const MAX_SOURCE_BYTES = 80 * MB;
+export const MAX_UPLOAD_BYTES = 8 * MB;
+export const MAX_GIF_BYTES = 20 * MB;
 export const A4_LONG_EDGE_PX = 3508;
 
 function outputName(file: File) {
@@ -30,12 +30,12 @@ async function renderWebp(
  */
 export async function prepareImageUpload(file: File): Promise<File> {
   if (file.type === "image/gif") {
-    if (file.size > MAX_GIF_BYTES) throw new Error(`${file.name} 的 GIF 必須小於 12 MB`);
+    if (file.size > MAX_GIF_BYTES) throw new Error(`${file.name} 的 GIF 必須小於 20 MB`);
     return file;
   }
 
   if (file.size > MAX_SOURCE_BYTES) {
-    throw new Error(`${file.name} 超過 40 MB，請選擇較小的原始圖片`);
+    throw new Error(`${file.name} 超過 80 MB，請選擇較小的原始圖片`);
   }
   if (file.size <= MAX_UPLOAD_BYTES) return file;
 
@@ -72,5 +72,37 @@ export async function prepareImageUpload(file: File): Promise<File> {
     bitmap.close();
   }
 
-  throw new Error(`${file.name} 壓縮後仍超過 12 MB，請改用 JPG 或 WebP`);
+  throw new Error(`${file.name} 壓縮後仍超過 8 MB，請改用 JPG 或 WebP`);
+}
+
+/** Uploads the image as a raw request body so the app router never parses a
+ * large multipart form before the Worker can stream it into R2. */
+export async function uploadPreparedImage(file: File) {
+  const response = await fetch("/admin/media", {
+    method: "POST",
+    body: file,
+    credentials: "same-origin",
+    headers: {
+      "content-type": file.type,
+      "x-upload-name": encodeURIComponent(file.name),
+    },
+  });
+
+  const contentType = response.headers.get("content-type") ?? "";
+  let result: { url?: string; error?: string };
+  if (contentType.includes("application/json")) {
+    result = await response.json() as { url?: string; error?: string };
+  } else {
+    const detail = (await response.text()).trim();
+    result = {
+      error: response.status === 401
+        ? "登入已過期，請重新登入後台"
+        : detail || `圖片上傳失敗（HTTP ${response.status}）`,
+    };
+  }
+
+  if (!response.ok || !result.url) {
+    throw new Error(result.error || `圖片上傳失敗（HTTP ${response.status}）`);
+  }
+  return result.url;
 }
