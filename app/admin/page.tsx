@@ -6,6 +6,7 @@ import { listTags } from "../../db/tags";
 import { getSiteContent } from "../../db/site-content";
 import { createContactAction, createExperienceAction, createFriendAction, createPostAction, createProjectAction, createSkillAction, createTagAction, deleteContactAction, deleteExperienceAction, deleteFriendAction, deletePostAction, deleteProjectAction, deleteSkillAction, deleteTagAction, moveExperienceAction, moveSiteItemAction, updateContactAction, updateExperienceAction, updatePostAction, updatePostStatusAction, updateProjectAction, updateSiteProfileAction, updateSkillAction } from "./actions";
 import CoverImageField from "./cover-image-field";
+import ProjectCoverField from "./project-cover-field";
 import GalleryUploadField from "./gallery-upload-field";
 import MarkdownEditor from "./markdown-editor";
 import Link from "next/link";
@@ -37,8 +38,8 @@ export default async function AdminPage() {
       </form>
     </section>
     <ContentCollection title="作品管理" count={content.projects.length} kind="project">
-      <ProjectForm action={createProjectAction} nextOrder={content.projects.length}/>
-      {content.projects.map((item,index)=><details className="post-editor" key={item.id}><summary><div><span className="experience-order">{String(index+1).padStart(2,"0")}</span><h3>{item.title_zh}</h3></div><span>編輯 +</span></summary><ProjectForm action={updateProjectAction} item={item}/><ItemControls kind="project" id={item.id} index={index} length={content.projects.length} deleteAction={deleteProjectAction}/></details>)}
+      <ProjectForm action={createProjectAction} posts={posts} nextOrder={content.projects.length}/>
+      {content.projects.map((item,index)=><details className="post-editor" key={item.id}><summary><div><span className="experience-order">{String(index+1).padStart(2,"0")}</span><h3>{item.title_zh}</h3>{item.featured ? <span className="status published">精選</span> : null}</div><span>編輯 +</span></summary><ProjectForm action={updateProjectAction} posts={posts} item={item}/><ItemControls kind="project" id={item.id} index={index} length={content.projects.length} deleteAction={deleteProjectAction}/></details>)}
     </ContentCollection>
     <ContentCollection title="技能管理" count={content.skills.length} kind="skill">
       <SkillForm action={createSkillAction} nextOrder={content.skills.length}/>
@@ -105,8 +106,18 @@ function ContentCollection({title,count,kind,children}:{title:string;count:numbe
 }
 
 type Content = Awaited<ReturnType<typeof getSiteContent>>;
-function ProjectForm({action,item,nextOrder=0}:{action:(formData:FormData)=>Promise<void>;item?:Content["projects"][number];nextOrder?:number}) {
-  return <form className="post-form content-item-form" action={action}>{item&&<input type="hidden" name="id" value={item.id}/>}<label>作品名稱（中文）<input required name="titleZh" defaultValue={item?.title_zh}/></label><label>Project title (English)<input required name="titleEn" defaultValue={item?.title_en}/></label><label>作品介紹（中文）<textarea required name="descriptionZh" rows={4} defaultValue={item?.description_zh}/></label><label>Project description (English)<textarea required name="descriptionEn" rows={4} defaultValue={item?.description_en}/></label><label>分類標籤<input required name="tag" defaultValue={item?.tag} placeholder="WEB DESIGN"/></label><label>作品連結<input type="url" name="linkUrl" defaultValue={item?.link_url??""} placeholder="https://...（可留空）"/></label><div className="form-row"><label>顯示順序<input type="number" required step="1" name="sortOrder" defaultValue={item?.sort_order??nextOrder}/></label><button className="primary-button">{item?"儲存作品":"新增作品"} →</button></div></form>;
+function ProjectForm({action,posts,item,nextOrder=0}:{action:(formData:FormData)=>Promise<void>;posts:Awaited<ReturnType<typeof listAllPosts>>;item?:Content["projects"][number];nextOrder?:number}) {
+  return <form className="post-form content-item-form project-editor-form" action={action}>
+    {item&&<input type="hidden" name="id" value={item.id}/>}<label>作品名稱（中文）<input required name="titleZh" defaultValue={item?.title_zh}/></label><label>Project title (English)<input required name="titleEn" defaultValue={item?.title_en}/></label>
+    <label>作品介紹（中文）<textarea required name="descriptionZh" rows={4} defaultValue={item?.description_zh}/></label><label>Project description (English)<textarea required name="descriptionEn" rows={4} defaultValue={item?.description_en}/></label>
+    <label>作品分類<input required name="tag" defaultValue={item?.tag} placeholder="網站 / AI / 硬體"/></label><label>技術標籤<input name="technologies" defaultValue={item?.technologies} placeholder="Next.js, Cloudflare, D1（用逗號分隔）"/></label>
+    <ProjectCoverField existingCover={item?.cover_image ?? null}/>
+    <label>作品／Demo 網址<input type="url" name="linkUrl" defaultValue={item?.link_url??""} placeholder="https://...（可留空）"/></label><label>GitHub 網址<input type="url" name="githubUrl" defaultValue={item?.github_url??""} placeholder="https://github.com/...（可留空）"/></label>
+    <label>相關 Blog 文章<select name="blogSlug" defaultValue={item?.blog_slug ?? ""}><option value="">不連結文章</option>{posts.map((post)=><option key={post.id} value={post.slug}>{post.title}{post.status === "draft" ? "（草稿）" : ""}</option>)}</select></label>
+    <label>完成日期<input type="month" name="completedAt" defaultValue={item?.completed_at ?? ""}/></label>
+    <label className="featured-check"><input type="checkbox" name="featured" value="yes" defaultChecked={Boolean(item?.featured)}/><span>設為精選作品（顯示在首頁「關於我」下方）</span></label>
+    <div className="form-row"><label>顯示順序<input type="number" required step="1" name="sortOrder" defaultValue={item?.sort_order??nextOrder}/></label><button className="primary-button">{item?"儲存作品":"新增作品"} →</button></div>
+  </form>;
 }
 
 function SkillForm({action,item,nextOrder=0}:{action:(formData:FormData)=>Promise<void>;item?:Content["skills"][number];nextOrder?:number}) {

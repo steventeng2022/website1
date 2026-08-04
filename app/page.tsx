@@ -10,13 +10,15 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
   const en = lang === "en";
   const [posts, content] = await Promise.all([listPublishedPosts(), getSiteContent()]);
   const { profile, projects, skills, contacts } = content;
+  const featuredProjects = projects.filter((project) => project.featured).slice(0, 3);
+  const homeProjects = featuredProjects.length > 0 ? featuredProjects : projects.slice(0, 3);
   return (
     <main>
       <header className="site-header">
         <a className="brand" href="#top" aria-label={en ? "Steven home" : "Steven 首頁"}>STEVEN</a>
         <nav aria-label={en ? "Main navigation" : "主要導覽列"}>
           <a href="#about">{en ? "About" : "關於我"}</a>
-          <a href="#projects">{en ? "Projects" : "作品"}</a>
+          <a href={en ? "/portfolio?lang=en" : "/portfolio"}>{en ? "Portfolio" : "作品集"}</a>
           <a href="#skills">{en ? "Skills" : "技能"}</a>
           <a href={en ? "/experience?lang=en" : "/experience"}>{en ? "Experience" : "經歷"}</a>
           <a href="#blog">{en ? "Blog" : "部落格"}</a>
@@ -32,7 +34,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
           <h1>{en ? <>Hi, I’m<br />Steven.</> : <>嗨，我是<br />Steven。</>}</h1>
           <p className="intro">{en ? "I’m a high school student from Taiwan exploring programming, AI, Arduino, and Raspberry Pi." : "我是一名來自台灣的高中生，正在探索程式設計、AI、Arduino 與 Raspberry Pi。"}</p>
           <div className="hero-actions">
-            <a className="primary-button" href="#projects">{en ? "View my work" : "查看我的作品"} <span aria-hidden="true">→</span></a>
+            <a className="primary-button" href={en ? "/portfolio?lang=en" : "/portfolio"}>{en ? "View my work" : "查看我的作品"} <span aria-hidden="true">→</span></a>
             <a className="text-link" href="#about">{en ? "More about me" : "進一步認識我"}</a>
           </div>
           <p className="skill-line"><span>C++</span><i>/</i><span>PYTHON</span><i>/</i><span>ARDUINO</span><i>/</i><span>AI</span></p>
@@ -44,14 +46,16 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
         <div className="section-kicker"><span>01</span> {en ? "ABOUT ME" : "關於我"}</div>
         <div className="about-grid">
           <h2 className="preserve-lines">{en ? profile.about_heading_en : profile.about_heading_zh}</h2>
-          <div className="about-copy preserve-lines">{en ? profile.about_body_en : profile.about_body_zh}</div>
+          <div className="about-copy preserve-lines">{en ? profile.about_body_en : profile.about_body_zh}
+            <div className="about-portfolio-callout"><strong>{projects.length}</strong><span>{en ? "projects and experiments collected so far" : "個目前整理完成的作品與實驗"}</span><a href={en ? "/portfolio?lang=en" : "/portfolio"}>{en ? "OPEN PORTFOLIO" : "瀏覽完整作品集"} →</a></div>
+          </div>
         </div>
       </section>
 
       <section className="section projects" id="projects">
         <div className="section-kicker"><span>02</span> {en ? "SELECTED PROJECTS" : "精選作品"}</div>
         <div className="project-list">
-          {projects.map((project,index) => (
+          {homeProjects.map((project,index) => (
             <article className="project-card" key={project.id}>
               <span className="project-number">{String(index+1).padStart(2,"0")}</span>
               <div>
@@ -59,10 +63,11 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
                 <h3>{en ? project.title_en : project.title_zh}</h3>
                 <p>{en ? project.description_en : project.description_zh}</p>
               </div>
-              {project.link_url ? <a className="project-arrow" href={project.link_url} target="_blank" rel="noopener noreferrer" aria-label={en ? `Open ${project.title_en}` : `開啟${project.title_zh}`}>↗</a> : <span className="project-arrow muted-arrow" aria-hidden="true">•</span>}
+              <a className="project-arrow" href={en ? "/portfolio?lang=en" : "/portfolio"} aria-label={en ? `View ${project.title_en} in portfolio` : `在作品集查看${project.title_zh}`}>↗</a>
             </article>
           ))}
         </div>
+        <a className="archive-link" href={en ? "/portfolio?lang=en" : "/portfolio"}>{en ? "VIEW COMPLETE PORTFOLIO" : "查看完整作品集"} →</a>
       </section>
 
       <section className="section skills" id="skills">

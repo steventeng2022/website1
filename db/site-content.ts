@@ -20,7 +20,13 @@ export type Project = {
   description_zh: string;
   description_en: string;
   tag: string;
+  technologies: string;
+  cover_image: string | null;
   link_url: string | null;
+  github_url: string | null;
+  blog_slug: string | null;
+  completed_at: string | null;
+  featured: number;
   sort_order: number;
 };
 
@@ -63,7 +69,9 @@ async function ready() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title_zh TEXT NOT NULL, title_en TEXT NOT NULL,
       description_zh TEXT NOT NULL, description_en TEXT NOT NULL,
-      tag TEXT NOT NULL DEFAULT '', link_url TEXT,
+      tag TEXT NOT NULL DEFAULT '', technologies TEXT NOT NULL DEFAULT '', cover_image TEXT,
+      link_url TEXT, github_url TEXT, blog_slug TEXT, completed_at TEXT,
+      featured INTEGER NOT NULL DEFAULT 0,
       sort_order INTEGER NOT NULL DEFAULT 0
     )`),
     d1.prepare(`CREATE TABLE IF NOT EXISTS portfolio_skills (
@@ -79,6 +87,22 @@ async function ready() {
     )`),
     d1.prepare("CREATE TABLE IF NOT EXISTS site_content_meta (id INTEGER PRIMARY KEY CHECK (id = 1), seeded_at INTEGER NOT NULL)"),
   ]);
+
+  // Older versions already have portfolio_projects. Add the richer portfolio
+  // fields at runtime so an existing D1 database upgrades without losing work.
+  const projectColumns = (await d1.prepare("PRAGMA table_info(portfolio_projects)").all<{ name: string }>()).results;
+  const existingColumns = new Set(projectColumns.map((column) => column.name));
+  const additions = [
+    ["technologies", "ALTER TABLE portfolio_projects ADD COLUMN technologies TEXT NOT NULL DEFAULT ''"],
+    ["cover_image", "ALTER TABLE portfolio_projects ADD COLUMN cover_image TEXT"],
+    ["github_url", "ALTER TABLE portfolio_projects ADD COLUMN github_url TEXT"],
+    ["blog_slug", "ALTER TABLE portfolio_projects ADD COLUMN blog_slug TEXT"],
+    ["completed_at", "ALTER TABLE portfolio_projects ADD COLUMN completed_at TEXT"],
+    ["featured", "ALTER TABLE portfolio_projects ADD COLUMN featured INTEGER NOT NULL DEFAULT 0"],
+  ] as const;
+  for (const [name, sql] of additions) {
+    if (!existingColumns.has(name)) await d1.prepare(sql).run();
+  }
 
   await d1.prepare(`INSERT OR IGNORE INTO site_profile VALUES
     (1, '保持好奇。\n持續創作。', 'Stay curious.\nKeep creating.',
@@ -137,8 +161,8 @@ export async function updateSiteProfile(input: Omit<SiteProfile, "id" | "updated
 type ProjectInput = Omit<Project, "id">;
 type SkillInput = Omit<Skill, "id">;
 type ContactInput = Omit<ContactLink, "id">;
-export async function createProject(v: ProjectInput) { await ready(); await db().prepare("INSERT INTO portfolio_projects (title_zh,title_en,description_zh,description_en,tag,link_url,sort_order) VALUES (?,?,?,?,?,?,?)").bind(v.title_zh,v.title_en,v.description_zh,v.description_en,v.tag,v.link_url,v.sort_order).run(); }
-export async function updateProject(id:number,v:ProjectInput) { await ready(); await db().prepare("UPDATE portfolio_projects SET title_zh=?,title_en=?,description_zh=?,description_en=?,tag=?,link_url=?,sort_order=? WHERE id=?").bind(v.title_zh,v.title_en,v.description_zh,v.description_en,v.tag,v.link_url,v.sort_order,id).run(); }
+export async function createProject(v: ProjectInput) { await ready(); await db().prepare("INSERT INTO portfolio_projects (title_zh,title_en,description_zh,description_en,tag,technologies,cover_image,link_url,github_url,blog_slug,completed_at,featured,sort_order) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)").bind(v.title_zh,v.title_en,v.description_zh,v.description_en,v.tag,v.technologies,v.cover_image,v.link_url,v.github_url,v.blog_slug,v.completed_at,v.featured,v.sort_order).run(); }
+export async function updateProject(id:number,v:ProjectInput) { await ready(); await db().prepare("UPDATE portfolio_projects SET title_zh=?,title_en=?,description_zh=?,description_en=?,tag=?,technologies=?,cover_image=?,link_url=?,github_url=?,blog_slug=?,completed_at=?,featured=?,sort_order=? WHERE id=?").bind(v.title_zh,v.title_en,v.description_zh,v.description_en,v.tag,v.technologies,v.cover_image,v.link_url,v.github_url,v.blog_slug,v.completed_at,v.featured,v.sort_order,id).run(); }
 export async function deleteProject(id:number) { await ready(); await db().prepare("DELETE FROM portfolio_projects WHERE id=?").bind(id).run(); }
 export async function createSkill(v:SkillInput) { await ready(); await db().prepare("INSERT INTO portfolio_skills (name_zh,name_en,description_zh,description_en,sort_order) VALUES (?,?,?,?,?)").bind(v.name_zh,v.name_en,v.description_zh,v.description_en,v.sort_order).run(); }
 export async function updateSkill(id:number,v:SkillInput) { await ready(); await db().prepare("UPDATE portfolio_skills SET name_zh=?,name_en=?,description_zh=?,description_en=?,sort_order=? WHERE id=?").bind(v.name_zh,v.name_en,v.description_zh,v.description_en,v.sort_order,id).run(); }

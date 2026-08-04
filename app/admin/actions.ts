@@ -212,18 +212,29 @@ export async function updateSiteProfileAction(formData: FormData) {
 }
 
 function projectFields(formData: FormData) {
+  const blogSlug = String(formData.get("blogSlug") ?? "").trim();
+  if (blogSlug && !/^[a-z0-9-]+$/.test(blogSlug)) throw new Error("相關文章網址代稱無效");
+  const technologies = String(formData.get("technologies") ?? "").trim();
+  if (technologies.length > 240) throw new Error("技術標籤最多 240 個字");
   return {
     title_zh: requiredText(formData,"titleZh","中文作品名稱"),
     title_en: requiredText(formData,"titleEn","英文作品名稱"),
     description_zh: requiredText(formData,"descriptionZh","中文作品介紹"),
     description_en: requiredText(formData,"descriptionEn","英文作品介紹"),
     tag: requiredText(formData,"tag","作品分類"),
-    link_url: optionalWebUrl(formData.get("linkUrl")), sort_order: orderValue(formData),
+    technologies,
+    cover_image: imageValue(formData),
+    link_url: optionalWebUrl(formData.get("linkUrl")),
+    github_url: optionalWebUrl(formData.get("githubUrl")),
+    blog_slug: blogSlug || null,
+    completed_at: String(formData.get("completedAt") ?? "").trim() || null,
+    featured: formData.get("featured") === "yes" ? 1 : 0,
+    sort_order: orderValue(formData),
   };
 }
-export async function createProjectAction(formData:FormData) { await requireAdmin(); await createProject(projectFields(formData)); revalidatePath("/"); revalidatePath("/admin"); }
-export async function updateProjectAction(formData:FormData) { await requireAdmin(); await updateProject(itemId(formData),projectFields(formData)); revalidatePath("/"); revalidatePath("/admin"); }
-export async function deleteProjectAction(formData:FormData) { await requireAdmin(); await deleteProject(itemId(formData)); revalidatePath("/"); revalidatePath("/admin"); }
+export async function createProjectAction(formData:FormData) { await requireAdmin(); await createProject(projectFields(formData)); revalidatePath("/"); revalidatePath("/portfolio"); revalidatePath("/admin"); }
+export async function updateProjectAction(formData:FormData) { await requireAdmin(); await updateProject(itemId(formData),projectFields(formData)); revalidatePath("/"); revalidatePath("/portfolio"); revalidatePath("/admin"); }
+export async function deleteProjectAction(formData:FormData) { await requireAdmin(); await deleteProject(itemId(formData)); revalidatePath("/"); revalidatePath("/portfolio"); revalidatePath("/admin"); }
 
 function skillFields(formData: FormData) {
   return { name_zh:requiredText(formData,"nameZh","中文技能名稱"), name_en:requiredText(formData,"nameEn","英文技能名稱"), description_zh:requiredText(formData,"descriptionZh","中文技能介紹"), description_en:requiredText(formData,"descriptionEn","英文技能介紹"), sort_order:orderValue(formData) };
@@ -242,5 +253,5 @@ export async function moveSiteItemAction(formData:FormData) {
   const rawKind = String(formData.get("kind"));
   if (rawKind !== "project" && rawKind !== "skill" && rawKind !== "contact") throw new Error("資料類型無效");
   await moveSiteItem(rawKind,itemId(formData),formData.get("direction") === "down" ? "down" : "up");
-  revalidatePath("/"); revalidatePath("/admin");
+  revalidatePath("/"); revalidatePath("/portfolio"); revalidatePath("/admin");
 }

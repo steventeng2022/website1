@@ -1,6 +1,10 @@
 # Steven Website — Cloudflare Blog
 
-Cloudflare Workers + D1 version of Steven's personal website. Public visitors can read published posts. The `/admin` writing studio is protected by Cloudflare Access and restricted to `steventeng2022@gmail.com`.
+Cloudflare Workers + D1 version of Steven's personal website. Public visitors can browse the dedicated `/portfolio`, experience timeline, and published posts. The `/admin` writing studio is protected by Cloudflare Access and restricted to `steventeng2022@gmail.com`.
+
+## Portfolio
+
+The homepage shows featured projects beneath About Me, while `/portfolio` presents the complete collection with category filters. Each project can include a bilingual description, cover image, technology tags, completion date, live link, GitHub link, and a related Blog post. Sign in to `/admin` to add, edit, delete, feature, or reorder projects. Existing projects are upgraded automatically without deleting their content.
 
 ## 1. Create the D1 database
 

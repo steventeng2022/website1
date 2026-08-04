@@ -52,6 +52,15 @@ export const siteProfile = sqliteTable("site_profile", {
   aboutBodyZh:text("about_body_zh").notNull(), aboutBodyEn:text("about_body_en").notNull(), skillsHeadingZh:text("skills_heading_zh").notNull(), skillsHeadingEn:text("skills_heading_en").notNull(),
   contactHeadingZh:text("contact_heading_zh").notNull(), contactHeadingEn:text("contact_heading_en").notNull(), contactBodyZh:text("contact_body_zh").notNull(), contactBodyEn:text("contact_body_en").notNull(), updatedAt:integer("updated_at").notNull(),
 });
-export const portfolioProjects = sqliteTable("portfolio_projects", { id:integer("id").primaryKey({autoIncrement:true}), titleZh:text("title_zh").notNull(), titleEn:text("title_en").notNull(), descriptionZh:text("description_zh").notNull(), descriptionEn:text("description_en").notNull(), tag:text("tag").notNull(), linkUrl:text("link_url"), sortOrder:integer("sort_order").notNull().default(0) });
+export const portfolioProjects = sqliteTable("portfolio_projects", {
+  id:integer("id").primaryKey({autoIncrement:true}),
+  titleZh:text("title_zh").notNull(), titleEn:text("title_en").notNull(),
+  descriptionZh:text("description_zh").notNull(), descriptionEn:text("description_en").notNull(),
+  tag:text("tag").notNull(), technologies:text("technologies").notNull().default(""),
+  coverImage:text("cover_image"), linkUrl:text("link_url"), githubUrl:text("github_url"),
+  blogSlug:text("blog_slug"), completedAt:text("completed_at"),
+  featured:integer("featured", { mode:"boolean" }).notNull().default(false),
+  sortOrder:integer("sort_order").notNull().default(0),
+});
 export const portfolioSkills = sqliteTable("portfolio_skills", { id:integer("id").primaryKey({autoIncrement:true}), nameZh:text("name_zh").notNull(), nameEn:text("name_en").notNull(), descriptionZh:text("description_zh").notNull(), descriptionEn:text("description_en").notNull(), sortOrder:integer("sort_order").notNull().default(0) });
 export const contactLinks = sqliteTable("contact_links", { id:integer("id").primaryKey({autoIncrement:true}), label:text("label").notNull(), value:text("value").notNull(), linkUrl:text("link_url"), sortOrder:integer("sort_order").notNull().default(0) });

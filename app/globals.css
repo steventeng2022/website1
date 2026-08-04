@@ -42,6 +42,10 @@ h1 { margin:0; font-size:clamp(76px,10vw,158px); line-height:.82; letter-spacing
 .about h2,.skills h2,footer h2 { margin:0; font-size:clamp(48px,6.2vw,92px); line-height:.95; letter-spacing:-.065em; }
 .about-copy { font:400 18px/1.75 "Courier New",monospace; }
 .about-copy p:first-child { margin-top:0; }
+.about-portfolio-callout { margin-top:36px; padding:22px 0 4px; border-top:1px solid var(--ink); display:grid; grid-template-columns:auto 1fr; gap:4px 16px; align-items:center; white-space:normal; }
+.about-portfolio-callout strong { grid-row:1/3; color:var(--blue); font:300 64px/1 Arial,sans-serif; letter-spacing:-.06em; }
+.about-portfolio-callout span { font:700 12px/1.4 "Courier New",monospace; text-transform:uppercase; }
+.about-portfolio-callout a { width:fit-content; color:var(--blue); font:700 12px/1.4 "Courier New",monospace; border-bottom:1px solid; }
 .preserve-lines { white-space:pre-line; }
 .project-list { border-top:1px solid var(--ink); }
 .project-card { display:grid; grid-template-columns:140px 1fr 70px; gap:30px; align-items:center; padding:34px 24px; border-bottom:1px solid var(--ink); transition:.22s; }
@@ -116,6 +120,7 @@ h1 { margin:0; font-size:clamp(76px,10vw,158px); line-height:.82; letter-spacing
 .upload-message { margin:10px 0 0; font:700 12px/1.5 "Courier New",monospace; color:var(--blue); }
 .current-cover { grid-column:1/-1; display:flex; align-items:center; gap:18px; padding:14px; border:1px solid var(--ink); }
 .current-cover img { width:150px; height:92px; object-fit:cover; }
+.project-cover-preview img { width:auto; max-width:min(100%,420px); height:auto; max-height:360px; object-fit:contain; }
 .current-cover label { flex-direction:row; align-items:center; text-transform:none; }
 .current-cover input[type="checkbox"] { width:auto; }
 .gallery-field { grid-column:1/-1; border:1px solid var(--ink); padding:22px; min-width:0; }
@@ -245,6 +250,41 @@ footer .section-kicker span { color:#6688ff; }
 .content-profile-form,.content-item-form { margin-bottom:45px; }
 .content-profile-form .primary-button,.content-item-form .primary-button { align-self:end; }
 .compact-content-form { grid-template-columns:1fr 1fr; }
+.project-editor-form .featured-check { grid-column:1/-1; flex-direction:row; align-items:center; padding:15px; border:1px solid var(--ink); text-transform:none; }
+.project-editor-form .featured-check input { width:auto; }
+.project-editor-form .project-cover-field { grid-column:1/-1; }
+.portfolio-shell { min-height:100vh; }
+.portfolio-hero { padding:105px 4.2vw 90px; border-bottom:1px solid var(--ink); }
+.portfolio-hero h1 { white-space:pre-line; font-size:clamp(76px,11vw,160px); }
+.portfolio-hero-bottom { margin-top:52px; display:flex; align-items:end; justify-content:space-between; gap:40px; }
+.portfolio-hero-bottom p { max-width:760px; margin:0; font:400 clamp(17px,1.55vw,24px)/1.55 "Courier New",monospace; }
+.portfolio-hero-bottom strong { color:var(--blue); font:300 clamp(70px,10vw,140px)/.75 Arial,sans-serif; letter-spacing:-.08em; }
+.portfolio-index { padding:88px 4.2vw 125px; }
+.portfolio-toolbar { display:flex; align-items:start; justify-content:space-between; gap:30px; margin-bottom:45px; }
+.portfolio-toolbar .section-kicker { margin:10px 0 0; flex:none; }
+.portfolio-filters { display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap; }
+.portfolio-filters a { padding:10px 13px; border:1px solid var(--ink); font:700 11px/1 "Courier New",monospace; text-transform:uppercase; }
+.portfolio-filters a:hover,.portfolio-filters a.active { border-color:var(--blue); background:var(--blue); color:#fff; }
+.portfolio-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); border-top:1px solid var(--ink); border-left:1px solid var(--ink); }
+.portfolio-card { min-width:0; border-right:1px solid var(--ink); border-bottom:1px solid var(--ink); }
+.portfolio-media { position:relative; min-height:280px; display:grid; place-items:center; overflow:hidden; border-bottom:1px solid var(--ink); background:#e8e5dc; }
+.portfolio-media img { display:block; width:100%; height:auto; max-height:560px; object-fit:contain; }
+.portfolio-placeholder { width:100%; min-height:330px; padding:28px; display:flex; flex-direction:column; justify-content:space-between; color:var(--blue); background:linear-gradient(135deg,#e5e0d4,#f8f5ed); }
+.portfolio-placeholder span { font:300 92px/1 Arial,sans-serif; letter-spacing:-.08em; }
+.portfolio-placeholder strong { max-width:80%; font:800 14px/1.4 "Courier New",monospace; text-transform:uppercase; }
+.featured-badge { position:absolute; top:16px; right:16px; padding:8px 10px; color:#fff; background:var(--blue); font:800 10px/1 "Courier New",monospace; }
+.portfolio-card-copy { min-height:360px; padding:30px; display:flex; flex-direction:column; }
+.portfolio-meta { display:flex; justify-content:space-between; gap:20px; color:var(--blue); font:800 11px/1.4 "Courier New",monospace; text-transform:uppercase; }
+.portfolio-card-copy h2 { margin:34px 0 15px; font-size:clamp(31px,3.4vw,52px); line-height:.98; letter-spacing:-.06em; }
+.portfolio-card-copy>p { margin:0; max-width:620px; font:400 14px/1.65 "Courier New",monospace; }
+.technology-list { display:flex; gap:7px; flex-wrap:wrap; margin:24px 0; }
+.technology-list span { padding:6px 8px; border:1px solid var(--line); font:700 10px/1 "Courier New",monospace; text-transform:uppercase; }
+.portfolio-links { margin-top:auto; padding-top:24px; display:flex; gap:18px; flex-wrap:wrap; border-top:1px solid var(--line); }
+.portfolio-links a { padding-bottom:5px; border-bottom:1px solid; color:var(--blue); font:800 11px/1.3 "Courier New",monospace; }
+.portfolio-empty { padding:60px; border:1px solid var(--ink); font:700 14px "Courier New",monospace; }
+.portfolio-footer { padding:70px 4.2vw; display:flex; align-items:end; justify-content:space-between; gap:35px; }
+.portfolio-footer p { max-width:780px; margin:0; font-size:clamp(42px,6vw,88px); line-height:.95; font-weight:900; letter-spacing:-.065em; }
+.portfolio-footer a { flex:none; padding-bottom:8px; border-bottom:1px solid; color:#8aa2ff; font:800 13px "Courier New",monospace; }
 .footer-bottom { margin-top:100px; padding-top:22px; border-top:1px solid #444; display:flex; justify-content:space-between; font:700 12px "Courier New",monospace; }
 @keyframes rise { from { opacity:0; transform:translateY(24px); } }
 @keyframes mark-in { from { opacity:0; transform:translateX(45px); } }
@@ -262,6 +302,14 @@ footer .section-kicker span { color:#6688ff; }
   .hero-photo img { object-position:center 42%; }
   .section { padding:78px 5vw; } .section-kicker { margin-bottom:45px; }
   .about-grid,.footer-grid { grid-template-columns:1fr; gap:44px; }
+  .portfolio-hero { padding:75px 5vw 70px; }
+  .portfolio-hero-bottom { align-items:start; flex-direction:column; }
+  .portfolio-index { padding:70px 5vw 90px; }
+  .portfolio-toolbar { flex-direction:column; }
+  .portfolio-filters { justify-content:flex-start; }
+  .portfolio-grid { grid-template-columns:1fr; }
+  .portfolio-card-copy { min-height:330px; }
+  .portfolio-footer { align-items:start; flex-direction:column; }
   .project-card { grid-template-columns:75px 1fr; padding:25px 10px; gap:18px; }
   .project-number { font-size:45px; } .project-arrow { display:none; }
   .skill-grid { grid-template-columns:1fr 1fr; }
@@ -295,5 +343,5 @@ footer .section-kicker span { color:#6688ff; }
   .admin-top>div span { display:none; }
   footer { padding:78px 5vw 24px; }
 }
-@media (max-width:480px) { .brand{font-size:28px}.skill-grid{grid-template-columns:1fr}.skill-grid article{min-height:220px}.skill-grid h3{margin-top:35px}.skill-line{gap:9px}.footer-bottom{margin-top:70px} }
+@media (max-width:480px) { .brand{font-size:28px}.skill-grid{grid-template-columns:1fr}.skill-grid article{min-height:220px}.skill-grid h3{margin-top:35px}.skill-line{gap:9px}.footer-bottom{margin-top:70px}.about-portfolio-callout{grid-template-columns:1fr}.about-portfolio-callout strong{grid-row:auto}.portfolio-media{min-height:220px}.portfolio-placeholder{min-height:260px}.portfolio-card-copy{padding:24px} }
 @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} *,*::before,*::after{animation:none!important;transition:none!important} }
