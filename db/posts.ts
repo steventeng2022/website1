@@ -1,4 +1,5 @@
 import { ensureTagsReady, setPostTags, tagsByPostIds, type Tag } from "./tags";
+import { ensureGalleryReady, galleryByPostIds, setPostGallery, type GalleryInput, type GalleryItem } from "./gallery";
 
 export type Post = {
   id: number;
@@ -12,7 +13,7 @@ export type Post = {
   updated_at: number;
 };
 
-export type PostWithTags = Post & { tags: Tag[] };
+export type PostWithTags = Post & { tags: Tag[]; gallery: GalleryItem[] };
 
 function db(): D1Database {
   const binding = (globalThis as typeof globalThis & { __STEVEN_SITE_ENV__?: { DB: D1Database } }).__STEVEN_SITE_ENV__?.DB;
@@ -61,23 +62,26 @@ export async function getPublishedPost(slug: string) {
 
 async function attachTags(posts: Post[]): Promise<PostWithTags[]> {
   const tags = await tagsByPostIds(posts.map((post) => post.id));
-  return posts.map((post) => ({ ...post, tags: tags.get(post.id) ?? [] }));
+  const gallery = await galleryByPostIds(posts.map((post) => post.id));
+  return posts.map((post) => ({ ...post, tags: tags.get(post.id) ?? [], gallery: gallery.get(post.id) ?? [] }));
 }
 
-export async function createPost(input: Omit<Post, "id" | "created_at" | "updated_at">, tagIds: number[] = []) {
+export async function createPost(input: Omit<Post, "id" | "created_at" | "updated_at">, tagIds: number[] = [], gallery: GalleryInput[] = []) {
   await ready();
   const now = Date.now();
   const result = await db().prepare("INSERT INTO posts (title, slug, excerpt, content, cover_image, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
     .bind(input.title, input.slug, input.excerpt, input.content, input.cover_image, input.status, now, now).run();
   const insertedId = Number(result.meta.last_row_id) || Number((await db().prepare("SELECT id FROM posts WHERE slug = ?").bind(input.slug).first<{ id: number }>())?.id);
   if (insertedId) await setPostTags(insertedId, tagIds);
+  if (insertedId) await setPostGallery(insertedId, gallery);
 }
 
-export async function updatePost(id: number, input: Omit<Post, "id" | "created_at" | "updated_at">, tagIds: number[] = []) {
+export async function updatePost(id: number, input: Omit<Post, "id" | "created_at" | "updated_at">, tagIds: number[] = [], gallery: GalleryInput[] = []) {
   await ready();
   await db().prepare("UPDATE posts SET title = ?, slug = ?, excerpt = ?, content = ?, cover_image = ?, status = ?, updated_at = ? WHERE id = ?")
     .bind(input.title, input.slug, input.excerpt, input.content, input.cover_image, input.status, Date.now(), id).run();
   await setPostTags(id, tagIds);
+  await setPostGallery(id, gallery);
 }
 
 export async function updatePostStatus(id: number, status: Post["status"]) {
@@ -89,5 +93,6 @@ export async function updatePostStatus(id: number, status: Post["status"]) {
 export async function deletePost(id: number) {
   await ready();
   await ensureTagsReady();
-  await db().batch([db().prepare("DELETE FROM post_tags WHERE post_id = ?").bind(id), db().prepare("DELETE FROM posts WHERE id = ?").bind(id)]);
+  await ensureGalleryReady();
+  await db().batch([db().prepare("DELETE FROM post_tags WHERE post_id = ?").bind(id), db().prepare("DELETE FROM post_gallery_items WHERE post_id = ?").bind(id), db().prepare("DELETE FROM posts WHERE id = ?").bind(id)]);
 }
