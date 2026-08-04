@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     const allowed = new Map([["image/jpeg", "jpg"], ["image/png", "png"], ["image/webp", "webp"], ["image/gif", "gif"]]);
     const extension = allowed.get(image.type);
     if (!extension) return Response.json({ error: "請上傳 JPG、PNG、WebP 或 GIF 圖片" }, { status: 415 });
-    if (image.size > 8 * 1024 * 1024) return Response.json({ error: "圖片大小必須小於 8 MB" }, { status: 413 });
+    if (image.size > 16 * 1024 * 1024) return Response.json({ error: "圖片大小必須小於 16 MB；A4 300 DPI 圖片會在上傳前自動壓縮" }, { status: 413 });
 
     const key = `blog/${crypto.randomUUID()}.${extension}`;
     await bucket.put(key, image.stream(), { httpMetadata: { contentType: image.type } });
