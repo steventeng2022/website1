@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const developmentPreviewMeta =
@@ -56,4 +57,19 @@ test("renders the portfolio route", async () => {
   }, { waitUntil() {}, passThroughOnException() {} });
   assert.equal(response.status, 200);
   assert.match(await response.text(), /我完成的/);
+});
+
+test("portfolio uses linked horizontal project cards", async () => {
+  const [page, styles] = await Promise.all([
+    readFile(new URL("../app/portfolio/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(page, /project\.link_url \|\| project\.github_url/);
+  assert.match(page, /className="portfolio-card-link"/);
+  assert.match(page, /projectTags\.map/);
+  assert.match(styles, /\.portfolio-card \{[^}]*grid-template-columns:minmax\(260px,38%\) 1fr/s);
+  assert.match(styles, /\.portfolio-card-bottom \{[^}]*justify-content:space-between/s);
+  assert.match(styles, /\.portfolio-card-link \{ position:absolute; inset:0;/);
+  assert.match(styles, /@media \(max-width:800px\)[\s\S]*\.portfolio-card \{[^}]*grid-template-columns:1fr/);
 });

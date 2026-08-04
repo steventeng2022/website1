@@ -43,20 +43,26 @@ export default async function PortfolioPage({ searchParams }: { searchParams: Pr
       </div>
 
       {visible.length === 0 ? <div className="portfolio-empty">{en ? "No projects in this category yet." : "這個分類目前還沒有作品。"}</div> : <div className="portfolio-grid">
-        {visible.map((project, index) => <article className="portfolio-card" key={project.id}>
-          <div className="portfolio-media">{project.cover_image ? <img src={project.cover_image} alt={en ? `${project.title_en} project preview` : `${project.title_zh}作品預覽`}/> : <div className="portfolio-placeholder"><span>{String(index + 1).padStart(2,"0")}</span><strong>{project.tag}</strong></div>}{project.featured ? <span className="featured-badge">{en ? "FEATURED" : "精選"}</span> : null}</div>
-          <div className="portfolio-card-copy">
-            <div className="portfolio-meta"><span>{project.tag}</span>{project.completed_at ? <time>{project.completed_at.replace("-", ".")}</time> : null}</div>
-            <h2>{en ? project.title_en : project.title_zh}</h2>
-            <p>{en ? project.description_en : project.description_zh}</p>
-            {tags(project.technologies).length > 0 ? <div className="technology-list">{tags(project.technologies).map((technology) => <span key={technology}>{technology}</span>)}</div> : null}
-            <div className="portfolio-links">
-              {project.link_url ? <a href={project.link_url} target="_blank" rel="noopener noreferrer">{en ? "LIVE / DEMO" : "查看作品"} ↗</a> : null}
-              {project.github_url ? <a href={project.github_url} target="_blank" rel="noopener noreferrer">GITHUB ↗</a> : null}
-              {project.blog_slug ? <a href={`/blog/${project.blog_slug}`}>{en ? "READ THE STORY" : "閱讀相關文章"} →</a> : null}
+        {visible.map((project, index) => {
+          const destination = project.link_url || project.github_url || (project.blog_slug ? `/blog/${project.blog_slug}` : "");
+          const external = destination.startsWith("http://") || destination.startsWith("https://");
+          const projectTags = [...new Set([project.tag, ...tags(project.technologies)].filter(Boolean))];
+          const title = en ? project.title_en : project.title_zh;
+
+          return <article className={`portfolio-card${destination ? " has-link" : ""}`} key={project.id}>
+            <div className="portfolio-media">{project.cover_image ? <img src={project.cover_image} alt={en ? `${title} project preview` : `${title}作品預覽`}/> : <div className="portfolio-placeholder"><span>{String(index + 1).padStart(2,"0")}</span><strong>{project.tag}</strong></div>}{project.featured ? <span className="featured-badge">{en ? "FEATURED" : "精選"}</span> : null}</div>
+            <div className="portfolio-card-copy">
+              <div className="portfolio-meta">{project.completed_at ? <time>{project.completed_at.replace("-", ".")}</time> : <span>{String(index + 1).padStart(2,"0")}</span>}</div>
+              <h2>{title}</h2>
+              <p>{en ? project.description_en : project.description_zh}</p>
+              <div className="portfolio-card-bottom">
+                {destination ? <span className="portfolio-open-label">{en ? "OPEN PROJECT" : "開啟作品"} <span aria-hidden="true">↗</span></span> : null}
+                {projectTags.length > 0 ? <div className="technology-list" aria-label={en ? "Project tags" : "作品標籤"}>{projectTags.map((technology) => <span key={technology}>{technology}</span>)}</div> : null}
+              </div>
             </div>
-          </div>
-        </article>)}
+            {destination ? <a className="portfolio-card-link" href={destination} target={external ? "_blank" : undefined} rel={external ? "noopener noreferrer" : undefined} aria-label={`${en ? "Open" : "開啟"} ${title}`}><span className="sr-only">{en ? `Open ${title}` : `開啟${title}`}</span></a> : null}
+          </article>;
+        })}
       </div>}
     </section>
 

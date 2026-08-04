@@ -4,7 +4,7 @@ Cloudflare Workers + D1 version of Steven's personal website. Public visitors ca
 
 ## Portfolio
 
-The homepage shows featured projects beneath About Me, while `/portfolio` presents the complete collection with category filters. Each project can include a bilingual description, cover image, technology tags, completion date, live link, GitHub link, and a related Blog post. Sign in to `/admin` to add, edit, delete, feature, or reorder projects. Existing projects are upgraded automatically without deleting their content.
+The homepage shows featured projects beneath About Me, while `/portfolio` presents the complete collection with category filters. Projects appear as one horizontal rectangle per row: image on the left, title and description on the right, and tags in the bottom-right corner. The whole card opens the first available destination in this order: live link, GitHub link, then related Blog post. Each project can include a bilingual description, cover image, technology tags, completion date, live link, GitHub link, and a related Blog post. Sign in to `/admin` to add, edit, delete, feature, or reorder projects. Existing projects are upgraded automatically without deleting their content.
 
 ## 1. Create the D1 database
 
