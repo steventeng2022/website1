@@ -2,8 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "../cloudflare-auth";
-import { createPost, createTag, deletePost, deleteTag, setPostTags, updatePost, updatePostStatus } from "../../db/posts";
+import { createPost, deletePost, updatePost, updatePostStatus } from "../../db/posts";
 import { createFriend, deleteFriend } from "../../db/friends";
+import { createExperience, deleteExperience, moveExperience, updateExperience } from "../../db/experiences";
+import { createTag, deleteTag } from "../../db/tags";
 
 function imageValue(formData: FormData) {
   if (formData.get("removeCover") === "yes") return null;
@@ -21,26 +23,23 @@ async function fields(formData: FormData) {
   const excerpt = String(formData.get("excerpt") ?? "").trim();
   const content = String(formData.get("content") ?? "").trim();
   const status = formData.get("status") === "published" ? "published" as const : "draft" as const;
-  const tagIds = formData.getAll("tagIds").map(value => Number(value)).filter(value => Number.isInteger(value) && value > 0);
   if (!title || !slug || !content) throw new Error("標題、網址代稱與文章內容皆為必填");
+  const tagIds = formData.getAll("tagIds").map(Number).filter((id) => Number.isInteger(id) && id > 0);
   return { post: { title, slug, excerpt, content, cover_image: imageValue(formData), status }, tagIds };
 }
 
 export async function createPostAction(formData: FormData) {
   await requireAdmin();
-  const input = await fields(formData);
-  const post = await createPost(input.post);
-  await setPostTags(post.id, input.tagIds);
+  const { post, tagIds } = await fields(formData);
+  await createPost(post, tagIds);
   revalidatePath("/"); revalidatePath("/blog"); revalidatePath("/admin");
 }
 
 export async function updatePostAction(formData: FormData) {
   await requireAdmin();
-  const id = Number(formData.get("id"));
-  const input = await fields(formData);
-  await updatePost(id, input.post);
-  await setPostTags(id, input.tagIds);
-  revalidatePath("/"); revalidatePath("/blog"); revalidatePath("/admin"); revalidatePath(`/blog/${input.post.slug}`);
+  const { post, tagIds } = await fields(formData);
+  await updatePost(Number(formData.get("id")), post, tagIds);
+  revalidatePath("/"); revalidatePath("/blog"); revalidatePath("/admin");
 }
 
 export async function deletePostAction(formData: FormData) {
@@ -49,19 +48,10 @@ export async function deletePostAction(formData: FormData) {
   revalidatePath("/"); revalidatePath("/blog"); revalidatePath("/admin");
 }
 
-export async function updatePostStatusAction(formData: FormData) {
-  await requireAdmin();
-  const id = Number(formData.get("id"));
-  const status = formData.get("status") === "published" ? "published" : "draft";
-  if (!Number.isInteger(id) || id < 1) throw new Error("文章編號無效");
-  await updatePostStatus(id, status);
-  revalidatePath("/"); revalidatePath("/blog"); revalidatePath("/admin"); revalidatePath(`/blog/${String(formData.get("slug") ?? "")}`);
-}
-
 export async function createTagAction(formData: FormData) {
   await requireAdmin();
-  const name = String(formData.get("tagName") ?? "").trim();
-  const slug = String(formData.get("tagSlug") ?? "").trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-|-$/g, "");
+  const name = String(formData.get("name") ?? "").trim();
+  const slug = String(formData.get("slug") ?? "").trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-|-$/g, "");
   if (!name || !slug) throw new Error("標籤名稱與英文代稱皆為必填");
   await createTag(name, slug);
   revalidatePath("/"); revalidatePath("/blog"); revalidatePath("/admin");
@@ -73,6 +63,15 @@ export async function deleteTagAction(formData: FormData) {
   if (!Number.isInteger(id) || id < 1) throw new Error("標籤編號無效");
   await deleteTag(id);
   revalidatePath("/"); revalidatePath("/blog"); revalidatePath("/admin");
+}
+
+export async function updatePostStatusAction(formData: FormData) {
+  await requireAdmin();
+  const id = Number(formData.get("id"));
+  const status = formData.get("status") === "published" ? "published" : "draft";
+  if (!Number.isInteger(id) || id < 1) throw new Error("文章編號無效");
+  await updatePostStatus(id, status);
+  revalidatePath("/"); revalidatePath("/admin"); revalidatePath(`/blog/${String(formData.get("slug") ?? "")}`);
 }
 
 function webUrl(value: FormDataEntryValue | null, label: string) {
@@ -106,4 +105,54 @@ export async function deleteFriendAction(formData: FormData) {
   if (!Number.isInteger(id) || id < 1) throw new Error("Friends 網站編號無效");
   await deleteFriend(id);
   revalidatePath("/friends"); revalidatePath("/admin");
+}
+
+function optionalWebUrl(value: FormDataEntryValue | null) {
+  const text = String(value ?? "").trim();
+  return text ? webUrl(text, "相關連結") : null;
+}
+
+function experienceFields(formData: FormData) {
+  const title = String(formData.get("title") ?? "").trim();
+  const organization = String(formData.get("organization") ?? "").trim();
+  const location = String(formData.get("location") ?? "").trim();
+  const start_date = String(formData.get("startDate") ?? "").trim();
+  const end_date = String(formData.get("endDate") ?? "").trim() || null;
+  const description = String(formData.get("description") ?? "").trim();
+  const sort_order = Number(formData.get("sortOrder") ?? 0);
+  if (!title || !start_date || !description) throw new Error("經歷標題、開始日期與介紹皆為必填");
+  if (end_date && end_date < start_date) throw new Error("結束日期不能早於開始日期");
+  if (!Number.isInteger(sort_order)) throw new Error("排序必須是整數");
+  return { title, organization, location, start_date, end_date, description, link_url: optionalWebUrl(formData.get("linkUrl")), sort_order };
+}
+
+export async function createExperienceAction(formData: FormData) {
+  await requireAdmin();
+  await createExperience(experienceFields(formData));
+  revalidatePath("/experience"); revalidatePath("/admin");
+}
+
+export async function updateExperienceAction(formData: FormData) {
+  await requireAdmin();
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id) || id < 1) throw new Error("經歷編號無效");
+  await updateExperience(id, experienceFields(formData));
+  revalidatePath("/experience"); revalidatePath("/admin");
+}
+
+export async function deleteExperienceAction(formData: FormData) {
+  await requireAdmin();
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id) || id < 1) throw new Error("經歷編號無效");
+  await deleteExperience(id);
+  revalidatePath("/experience"); revalidatePath("/admin");
+}
+
+export async function moveExperienceAction(formData: FormData) {
+  await requireAdmin();
+  const id = Number(formData.get("id"));
+  const direction = formData.get("direction") === "down" ? "down" : "up";
+  if (!Number.isInteger(id) || id < 1) throw new Error("經歷編號無效");
+  await moveExperience(id, direction);
+  revalidatePath("/experience"); revalidatePath("/admin");
 }

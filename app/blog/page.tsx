@@ -1,24 +1,22 @@
-import { listPublishedPosts, listTags } from "../../db/posts";
+import LanguageToggle from "../language-toggle";
+import { listPublishedPosts } from "../../db/posts";
+import { listTags } from "../../db/tags";
 
 export const dynamic = "force-dynamic";
 
-export default async function BlogArchive({ searchParams }: { searchParams: Promise<{ tag?: string; lang?: string }> }) {
-  const { tag, lang } = await searchParams;
+export default async function BlogArchive({ searchParams }: { searchParams: Promise<{ lang?: string; tag?: string }> }) {
+  const { lang, tag } = await searchParams;
   const en = lang === "en";
-  const [allPosts, tags] = await Promise.all([listPublishedPosts(), listTags()]);
-  const selectedTag = tags.find(item => item.slug === tag);
-  const posts = selectedTag ? allPosts.filter(post => post.tags.some(item => item.id === selectedTag.id)) : allPosts;
-
-  return <main className="archive-shell">
-    <header className="site-header"><a className="brand" href={en ? "/?lang=en" : "/"}>STEVEN</a><nav><a href={en ? "/?lang=en#blog" : "/#blog"}>{en ? "Home" : "首頁"}</a><a href="/admin">{en ? "Write" : "撰寫文章"}</a></nav></header>
-    <section className="archive-hero"><p className="eyebrow">{en ? "BLOG ARCHIVE" : "文章封存"}</p><h1>{en ? <>All<br/>posts.</> : <>所有<br/>文章。</>}</h1><p>{en ? "Older posts and notes, organized by topic." : "把較早的文章與學習筆記集中整理，並可依標籤查看。"}</p></section>
-    <section className="archive-content">
-      <div className="archive-toolbar"><h2>{selectedTag ? `#${selectedTag.name}` : (en ? "Latest to oldest" : "由新到舊")}</h2><div className="tag-filter"><a className={!selectedTag ? "active" : ""} href={en ? "/blog?lang=en" : "/blog"}>{en ? "All" : "全部"}</a>{tags.map(item => <a className={selectedTag?.id === item.id ? "active" : ""} key={item.id} href={`/blog?tag=${item.slug}${en ? "&lang=en" : ""}`}>#{item.name}</a>)}</div></div>
-      {posts.length === 0 ? <div className="blog-empty"><p>{en ? "No posts match this tag." : "這個標籤目前沒有文章。"}</p></div> : <div className="archive-list">{posts.map((post, index) => <article className="archive-card" key={post.id}>
-        <span className="archive-number">{String(index + 1).padStart(2, "0")}</span>
-        <div><p className="project-tag">{new Date(post.updated_at).toLocaleDateString(en ? "en-US" : "zh-TW", { year:"numeric", month:"short", day:"2-digit" })}</p><h2><a href={`/blog/${post.slug}`}>{post.title}</a></h2><p>{post.excerpt}</p><div className="tag-list">{post.tags.map(item => <a className="tag-pill" key={item.id} href={`/blog?tag=${item.slug}${en ? "&lang=en" : ""}`}>#{item.name}</a>)}</div></div>
-        <a className="archive-arrow" href={`/blog/${post.slug}`} aria-label={en ? `Read ${post.title}` : `閱讀${post.title}`}>↗</a>
-      </article>)}</div>}
+  const allPosts = await listPublishedPosts();
+  const tags = await listTags();
+  const posts = tag ? allPosts.filter((post) => post.tags.some((item) => item.slug === tag)) : allPosts;
+  return <main className="friends-shell">
+    <header className="site-header"><a className="brand" href={en ? "/?lang=en" : "/"}>STEVEN</a><nav><a href={en ? "/?lang=en" : "/"}>{en ? "Home" : "首頁"}</a><a className="active-nav" href={en ? "/blog?lang=en" : "/blog"}>{en ? "Blog" : "文章"}</a><LanguageToggle /></nav></header>
+    <section className="friends-hero"><p className="eyebrow">{en ? "NOTES · PROJECTS · LEARNING" : "筆記 · 專案 · 學習"}</p><h1>Blog.</h1><p className="friends-intro">{en ? "All my published notes, from newest to oldest." : "所有已發布文章，依照最新到最舊排列。"}</p></section>
+    <section className="friends-list"><div className="section-kicker"><span>01</span> {en ? "ALL POSTS" : "所有文章"}</div>
+      <div className="tag-filter"><a className={!tag ? "active" : ""} href={en ? "/blog?lang=en" : "/blog"}>{en ? "All" : "全部"}</a>{tags.map(item => <a className={tag === item.slug ? "active" : ""} key={item.id} href={`/blog?tag=${item.slug}${en ? "&lang=en" : ""}`}>#{item.name}</a>)}</div>
+      {posts.length === 0 ? <div className="blog-empty"><p>{en ? "No published posts yet." : "目前還沒有已發布文章。"}</p></div> : <div className="blog-grid archive-grid">{posts.map((post, index) => <article className="blog-card" key={post.id}><p className="project-tag">{String(index + 1).padStart(2,"0")} · {new Date(post.updated_at).toLocaleDateString(en ? "en-US" : "zh-TW")}</p><h3><a href={`/blog/${post.slug}`}>{post.title}</a></h3><p>{post.excerpt}</p><a className="read-link" href={`/blog/${post.slug}`}>{en ? "READ POST" : "閱讀文章"} ↗</a></article>)}</div>}
     </section>
+    <footer className="friends-footer"><span>© 2026 STEVEN</span><a href={en ? "/?lang=en" : "/"}>{en ? "BACK HOME" : "回到首頁"} →</a></footer>
   </main>;
 }

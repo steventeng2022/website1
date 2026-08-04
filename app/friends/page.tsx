@@ -20,6 +20,7 @@ export default async function FriendsPage({
         </a>
         <nav aria-label={en ? "Friends page navigation" : "Friends 頁面導覽列"}>
           <a href={en ? "/?lang=en" : "/"}>{en ? "Home" : "首頁"}</a>
+          <a href={en ? "/experience?lang=en" : "/experience"}>{en ? "Experience" : "經歷"}</a>
           <a className="active-nav" href={en ? "/friends?lang=en" : "/friends"}>Friends</a>
           <LanguageToggle />
         </nav>

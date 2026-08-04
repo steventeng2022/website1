@@ -1,7 +1,9 @@
 import { requireAdmin } from "../cloudflare-auth";
-import { listAllPosts, listTags } from "../../db/posts";
+import { listAllPosts } from "../../db/posts";
 import { listFriends } from "../../db/friends";
-import { createFriendAction, createPostAction, createTagAction, deleteFriendAction, deletePostAction, deleteTagAction, updatePostAction, updatePostStatusAction } from "./actions";
+import { listExperiences } from "../../db/experiences";
+import { listTags } from "../../db/tags";
+import { createExperienceAction, createFriendAction, createPostAction, createTagAction, deleteExperienceAction, deleteFriendAction, deletePostAction, deleteTagAction, moveExperienceAction, updateExperienceAction, updatePostAction, updatePostStatusAction } from "./actions";
 import CoverImageField from "./cover-image-field";
 import MarkdownEditor from "./markdown-editor";
 import Link from "next/link";
@@ -10,24 +12,12 @@ export const dynamic = "force-dynamic";
 export default async function AdminPage() {
   const email = await requireAdmin();
   const posts = await listAllPosts();
-  const tags = await listTags();
   const friends = await listFriends();
+  const experiences = await listExperiences();
+  const tags = await listTags();
   return <main className="admin-shell">
     <header className="admin-top"><Link className="brand" href="/">STEVEN</Link><div><span>{email}</span><a href="/cdn-cgi/access/logout">登出</a></div></header>
     <section className="studio-heading"><p className="eyebrow">私人文章工作室</p><h1>寫下你的<br/>學習歷程。</h1><p>先建立草稿、整理內容，準備好後再發布文章。</p></section>
-    <section className="editor-section tag-admin"><div className="editor-title"><h2>文章標籤</h2><span>共 {tags.length} 個</span></div>
-      <form className="tag-create-form" action={createTagAction}>
-        <label>標籤名稱<input required name="tagName" placeholder="Python"/></label>
-        <label>英文代稱<input required name="tagSlug" placeholder="python" pattern="[a-z0-9-]+"/></label>
-        <button className="primary-button" type="submit">建立標籤 →</button>
-      </form>
-      <div className="tag-admin-list">
-        {tags.length === 0 ? <p className="empty-state">目前還沒有標籤，請先建立第一個標籤。</p> : tags.map(tag => <div className="tag-admin-item" key={tag.id}>
-          <span className="tag-pill">#{tag.name}</span><small>{tag.post_count} 篇文章</small>
-          <form action={deleteTagAction}><input type="hidden" name="id" value={tag.id}/><button className="danger-button" type="submit">刪除</button></form>
-        </div>)}
-      </div>
-    </section>
     <section className="editor-section"><h2>新增文章</h2><PostForm action={createPostAction} tags={tags} /></section>
     <section className="editor-section"><div className="editor-title"><h2>我的文章</h2><span>共 {posts.length} 篇</span></div>
       {posts.length === 0 ? <p className="empty-state">目前還沒有文章，請從上方編輯器開始撰寫。</p> : posts.map(post => <details className="post-editor" key={post.id}>
@@ -41,6 +31,25 @@ export default async function AdminPage() {
         </form>
         <form action={deletePostAction}><input type="hidden" name="id" value={post.id}/><button className="danger-button" type="submit">刪除文章</button></form>
       </details>)}
+    </section>
+    <section className="editor-section tag-admin"><div className="editor-title"><h2>Blog 標籤管理</h2><span>共 {tags.length} 個標籤</span></div>
+      <form className="tag-create-form" action={createTagAction}><label>標籤名稱<input required name="name" placeholder="Python"/></label><label>英文代稱<input required name="slug" pattern="[a-z0-9-]+" placeholder="python"/></label><button className="primary-button">建立標籤 →</button></form>
+      <div className="tag-admin-list">{tags.length === 0 ? <p className="empty-state">目前還沒有標籤。</p> : tags.map(tag => <article key={tag.id}><span className="tag-chip">#{tag.name}</span><code>{tag.slug}</code><form action={deleteTagAction}><input type="hidden" name="id" value={tag.id}/><button className="danger-button">刪除</button></form></article>)}</div>
+    </section>
+    <section className="editor-section experience-admin"><div className="editor-title"><h2>Experience 經歷管理</h2><span>共 {experiences.length} 筆</span></div>
+      <p className="editor-note">數字越小會排得越前面，也可以使用每筆資料的上移／下移按鈕。</p>
+      <ExperienceForm action={createExperienceAction} nextOrder={experiences.length} />
+      <div className="experience-admin-list">
+        {experiences.length === 0 ? <p className="empty-state">目前還沒有經歷，請從上方表單新增。</p> : experiences.map((experience, index) => <details className="post-editor experience-editor" key={experience.id}>
+          <summary><div><span className="experience-order">{String(index + 1).padStart(2, "0")}</span><h3>{experience.title}</h3></div><span>編輯 +</span></summary>
+          <ExperienceForm action={updateExperienceAction} experience={experience} />
+          <div className="experience-controls">
+            <form action={moveExperienceAction}><input type="hidden" name="id" value={experience.id}/><input type="hidden" name="direction" value="up"/><button className="visibility-button" disabled={index === 0}>↑ 上移</button></form>
+            <form action={moveExperienceAction}><input type="hidden" name="id" value={experience.id}/><input type="hidden" name="direction" value="down"/><button className="visibility-button" disabled={index === experiences.length - 1}>↓ 下移</button></form>
+            <form action={deleteExperienceAction}><input type="hidden" name="id" value={experience.id}/><button className="danger-button" type="submit">刪除經歷</button></form>
+          </div>
+        </details>)}
+      </div>
     </section>
     <section className="editor-section friends-admin"><div className="editor-title"><h2>Friends 網站管理</h2><span>共 {friends.length} 個網站</span></div>
       <form className="post-form" action={createFriendAction}>
@@ -61,16 +70,28 @@ export default async function AdminPage() {
   </main>;
 }
 
+function ExperienceForm({ action, experience, nextOrder = 0 }: { action: (formData: FormData) => Promise<void>; experience?: Awaited<ReturnType<typeof listExperiences>>[number]; nextOrder?: number }) {
+  return <form className="post-form experience-form" action={action}>
+    {experience && <input type="hidden" name="id" value={experience.id}/>} 
+    <label>經歷標題<input required name="title" defaultValue={experience?.title} placeholder="例如：SITCON 開發組"/></label>
+    <label>單位／組織<input name="organization" defaultValue={experience?.organization} placeholder="學校、社團或活動名稱"/></label>
+    <label>開始日期<input required type="date" name="startDate" defaultValue={experience?.start_date}/></label>
+    <label>結束日期<input type="date" name="endDate" defaultValue={experience?.end_date ?? ""}/><small>進行中可留空</small></label>
+    <label>地點<input name="location" defaultValue={experience?.location} placeholder="Taipei, Taiwan 或 Remote"/></label>
+    <label>相關連結<input type="url" name="linkUrl" defaultValue={experience?.link_url ?? ""} placeholder="https://example.com（可留空）"/></label>
+    <label className="wide-field">經歷介紹<textarea required name="description" defaultValue={experience?.description} rows={5} placeholder="簡短說明你做了什麼、學到什麼。"/></label>
+    <div className="form-row"><label>顯示順序<input required type="number" name="sortOrder" defaultValue={experience?.sort_order ?? nextOrder} step="1"/></label><button className="primary-button" type="submit">{experience ? "儲存經歷" : "新增經歷"} →</button></div>
+  </form>;
+}
+
 function PostForm({ action, post, tags }: { action: (formData: FormData) => Promise<void>; post?: Awaited<ReturnType<typeof listAllPosts>>[number]; tags: Awaited<ReturnType<typeof listTags>> }) {
   return <form className="post-form" action={action}>
     {post && <input type="hidden" name="id" value={post.id}/>}<label>文章標題<input required name="title" defaultValue={post?.title} placeholder="我從第一個專案學到的事"/></label>
     <label>網址代稱（英文）<input required name="slug" defaultValue={post?.slug} placeholder="my-first-project" pattern="[a-z0-9-]+"/></label>
     <label>簡短介紹<textarea name="excerpt" defaultValue={post?.excerpt} rows={2} placeholder="顯示在首頁的文章簡介。"/></label>
-    <fieldset className="tag-picker"><legend>文章標籤（可複選）</legend>
-      {tags.length === 0 ? <p>尚未建立標籤。請先在上方建立。</p> : tags.map(tag => <label key={tag.id}><input type="checkbox" name="tagIds" value={tag.id} defaultChecked={post?.tags.some(current => current.id === tag.id)}/><span>#{tag.name}</span></label>)}
-    </fieldset>
     <label className="content-label">文章內容（Markdown）<MarkdownEditor defaultValue={post?.content ?? ""}/></label>
     <CoverImageField existingCover={post?.cover_image ?? null}/>
+    <fieldset className="tag-picker"><legend>文章標籤（可複選）</legend>{tags.length === 0 ? <p>請先在下方建立標籤。</p> : tags.map(tag => <label key={tag.id}><input type="checkbox" name="tagIds" value={tag.id} defaultChecked={post?.tags.some(selected => selected.id === tag.id)}/><span>#{tag.name}</span></label>)}</fieldset>
     <div className="form-row"><label>文章狀態<select name="status" defaultValue={post?.status ?? "draft"}><option value="draft">草稿</option><option value="published">已發布</option></select></label><button className="primary-button" type="submit">{post ? "儲存變更" : "建立文章"} →</button></div>
   </form>;
 }

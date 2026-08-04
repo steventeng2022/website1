@@ -8,7 +8,7 @@ a { color:inherit; text-decoration:none; }
 main { overflow:hidden; background-image:repeating-linear-gradient(90deg, transparent 0, transparent calc(8.333vw - 1px), rgba(17,17,17,.075) calc(8.333vw - 1px), rgba(17,17,17,.075) 8.333vw); }
 .site-header { height:104px; margin:0 4.2vw; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line); position:relative; z-index:5; }
 .brand { font-size:34px; font-weight:900; letter-spacing:-.055em; }
-nav { display:flex; gap:clamp(24px,5vw,76px); }
+nav { display:flex; gap:clamp(18px,3vw,52px); }
 nav a,.text-link { font:700 14px/1.2 "Courier New",monospace; text-transform:uppercase; padding:10px 0 7px; border-bottom:1px solid; transition:.2s; }
 .language-toggle { min-width:42px; padding:9px 11px 7px; border:1px solid var(--ink); text-align:center; line-height:1; }
 .language-toggle:hover { border-color:var(--blue); background:var(--blue); color:white; }
@@ -66,11 +66,14 @@ h1 { margin:0; font-size:clamp(76px,10vw,158px); line-height:.82; letter-spacing
 .blog-card h3 { margin:40px 0 16px; font-size:30px; letter-spacing:-.045em; }
 .blog-card>p:not(.project-tag) { font:400 14px/1.65 "Courier New",monospace; }
 .read-link { margin-top:auto; font:700 13px "Courier New",monospace; text-transform:uppercase; }
-.blog-archive-link { margin-top:34px; display:flex; justify-content:flex-end; }
-.tag-list { display:flex; flex-wrap:wrap; gap:7px; }
-.tag-pill { display:inline-flex; align-items:center; width:max-content; padding:6px 9px; border:1px solid var(--ink); background:transparent; font:700 11px/1 "Courier New",monospace; }
-a.tag-pill:hover { border-color:var(--blue); background:var(--blue); color:#fff; }
-.blog-card .tag-list { margin-top:16px; }
+.archive-link { display:inline-block; margin-top:30px; padding-bottom:8px; border-bottom:1px solid; color:var(--blue); font:700 13px "Courier New",monospace; }
+.archive-grid { margin-top:0; }
+.post-tags { display:flex; gap:7px; flex-wrap:wrap; margin:0 0 16px; }
+.post-tags a,.tag-chip { padding:6px 9px; border:1px solid var(--blue); color:var(--blue); font:700 11px/1 "Courier New",monospace; }
+.article-tags { margin:28px 0 0; }
+.tag-filter { display:flex; gap:8px; flex-wrap:wrap; margin:-35px 0 42px; }
+.tag-filter a { padding:9px 12px; border:1px solid var(--ink); font:700 12px "Courier New",monospace; }
+.tag-filter a:hover,.tag-filter a.active { border-color:var(--blue); background:var(--blue); color:#fff; }
 .blog-empty { margin-top:70px; padding:55px; border:1px solid var(--ink); display:flex; justify-content:space-between; font:700 15px "Courier New",monospace; }
 .blog-empty span { color:#777; }
 .admin-shell,.article-shell { min-height:100vh; background:var(--paper); }
@@ -91,11 +94,6 @@ a.tag-pill:hover { border-color:var(--blue); background:var(--blue); color:#fff;
 .post-form input,.post-form textarea,.post-form select { width:100%; border:1px solid var(--ink); background:#faf8f1; color:var(--ink); padding:15px; border-radius:0; font:400 15px/1.55 "Courier New",monospace; }
 .post-form textarea { resize:vertical; }
 .post-form .content-label { grid-column:1/-1; }
-.tag-picker { grid-column:1/-1; margin:0; padding:18px; border:1px solid var(--ink); display:flex; flex-wrap:wrap; gap:9px; }
-.tag-picker legend { padding:0 8px; font:700 12px "Courier New",monospace; text-transform:uppercase; }
-.tag-picker label { display:inline-flex; flex-direction:row; align-items:center; gap:7px; padding:9px 11px; border:1px solid var(--line); background:#faf8f1; cursor:pointer; text-transform:none; }
-.tag-picker input { width:auto; accent-color:var(--blue); }
-.tag-picker p { margin:0; font:400 12px "Courier New",monospace; }
 .markdown-editor { border:1px solid var(--ink); background:#fff; text-transform:none; }
 .markdown-topbar { min-height:50px; padding:8px 10px; display:flex; align-items:center; justify-content:space-between; gap:12px; border-bottom:1px solid var(--ink); background:#ece9df; }
 .markdown-tools,.markdown-modes { display:flex; gap:5px; flex-wrap:wrap; }
@@ -133,18 +131,8 @@ a.tag-pill:hover { border-color:var(--blue); background:var(--blue); color:#fff;
 .status-toggle-form { display:inline-block; margin:0 18px 25px 10px; }
 .visibility-button { padding:11px 14px; border:1px solid var(--blue); background:transparent; color:var(--blue); font:700 12px "Courier New",monospace; cursor:pointer; }
 .visibility-button:hover { background:var(--blue); color:#fff; }
-.tag-create-form { max-width:920px; display:grid; grid-template-columns:1fr 1fr auto; align-items:end; gap:18px; }
-.tag-create-form label { display:flex; flex-direction:column; gap:9px; font:700 12px "Courier New",monospace; text-transform:uppercase; }
-.tag-create-form input { width:100%; padding:15px; border:1px solid var(--ink); background:#faf8f1; font:400 15px "Courier New",monospace; }
-.tag-create-form .primary-button { width:auto; min-width:190px; }
-.tag-admin-list { max-width:920px; margin-top:24px; display:flex; flex-wrap:wrap; gap:10px; }
-.tag-admin-item { display:flex; align-items:center; gap:10px; padding:8px 8px 8px 10px; border:1px solid var(--line); }
-.tag-admin-item small { color:#666; font:700 10px "Courier New",monospace; }
-.tag-admin-item form { display:flex; }
-.tag-admin-item .danger-button { margin:0; padding:6px 3px; }
 .article { max-width:980px; margin:0 auto; padding:100px 5vw 130px; }
 .article h1 { font-size:clamp(58px,8vw,112px); margin-top:26px; }
-.article-tags { margin:0 0 28px; }
 .article-lead { max-width:780px; margin:45px 0; font:400 clamp(20px,2vw,27px)/1.5 "Courier New",monospace; color:#333; }
 .article-cover { width:100%; max-height:620px; margin:25px 0 55px; border:1px solid var(--ink); object-fit:cover; }
 .article-body { max-width:760px; margin:60px 0; font:400 18px/1.85 Georgia,serif; }
@@ -187,23 +175,42 @@ a.tag-pill:hover { border-color:var(--blue); background:var(--blue); color:#fff;
 .friends-admin-item h3 { margin:0 0 5px; }
 .friends-admin-item p { margin:8px 0 0; }
 .friends-admin-item a { overflow-wrap:anywhere; }
-.archive-shell { min-height:100vh; }
-.archive-hero { padding:95px 4.2vw 90px; border-bottom:1px solid var(--ink); }
-.archive-hero h1 { font-size:clamp(82px,12vw,175px); }
-.archive-hero>p:last-child { max-width:720px; margin:40px 0 0; font:400 clamp(18px,1.8vw,25px)/1.55 "Courier New",monospace; }
-.archive-content { padding:85px 4.2vw 125px; }
-.archive-toolbar { display:flex; align-items:flex-start; justify-content:space-between; gap:30px; margin-bottom:45px; }
-.archive-toolbar h2 { margin:0; font-size:clamp(32px,4vw,56px); letter-spacing:-.05em; }
-.tag-filter { max-width:650px; display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; }
-.tag-filter a { padding:9px 12px; border:1px solid var(--ink); font:700 11px "Courier New",monospace; }
-.tag-filter a:hover,.tag-filter a.active { background:var(--blue); border-color:var(--blue); color:#fff; }
-.archive-list { border-top:1px solid var(--ink); }
-.archive-card { display:grid; grid-template-columns:100px 1fr 70px; gap:28px; align-items:center; padding:34px 18px; border-bottom:1px solid var(--ink); }
-.archive-number { color:var(--blue); font-size:54px; font-weight:300; letter-spacing:-.06em; }
-.archive-card h2 { margin:8px 0 12px; font-size:clamp(28px,3.5vw,52px); letter-spacing:-.05em; }
-.archive-card h2 a:hover { color:var(--blue); }
-.archive-card>div>p:not(.project-tag) { max-width:760px; margin:0 0 18px; font:400 14px/1.65 "Courier New",monospace; }
-.archive-arrow { justify-self:end; font-size:34px; }
+.experience-shell { min-height:100vh; }
+.experience-hero { padding:105px 4.2vw 95px; border-bottom:1px solid var(--ink); }
+.experience-hero h1 { max-width:1100px; font-size:clamp(76px,11vw,160px); }
+.experience-hero>p:last-child { max-width:780px; margin:42px 0 0; font:400 clamp(19px,1.75vw,27px)/1.5 "Courier New",monospace; }
+.experience-list { padding:95px 4.2vw 120px; }
+.timeline { position:relative; max-width:1180px; }
+.timeline::before { content:""; position:absolute; left:39px; top:40px; bottom:40px; width:2px; background:var(--blue); }
+.timeline-item { position:relative; display:grid; grid-template-columns:80px minmax(155px,.42fr) 1fr; gap:34px; padding:0 0 72px; }
+.timeline-item:last-child { padding-bottom:0; }
+.timeline-marker { position:relative; z-index:1; display:grid; place-items:center; width:80px; height:80px; border:2px solid var(--blue); border-radius:50%; background:var(--paper); color:var(--blue); font:800 13px "Courier New",monospace; }
+.timeline-date { display:flex; gap:8px; flex-wrap:wrap; align-content:start; padding-top:25px; font:700 13px/1.5 "Courier New",monospace; text-transform:uppercase; }
+.timeline-content { min-height:180px; padding:24px 28px 30px; border-top:1px solid var(--ink); }
+.timeline-content h2 { margin:8px 0 16px; font-size:clamp(30px,3.5vw,52px); line-height:1; letter-spacing:-.055em; }
+.timeline-content>p:not(.project-tag) { max-width:700px; margin:0 0 24px; white-space:pre-line; font:400 15px/1.7 "Courier New",monospace; }
+.editor-note { margin:-24px 0 32px; font:400 13px/1.6 "Courier New",monospace; }
+.experience-form { margin-bottom:48px; }
+.experience-form .wide-field { grid-column:1/-1; }
+.experience-form small { color:#666; font:400 11px "Courier New",monospace; text-transform:none; }
+.experience-admin-list { margin-top:22px; }
+.experience-order { color:var(--blue); font:800 12px "Courier New",monospace; }
+.experience-controls { display:flex; align-items:center; gap:10px; padding:0 10px 25px; }
+.experience-controls form { margin:0; }
+.experience-controls .danger-button { margin:0 0 0 10px; }
+.visibility-button:disabled { opacity:.35; cursor:not-allowed; }
+.tag-picker { grid-column:1/-1; display:flex; gap:10px; flex-wrap:wrap; margin:0; padding:18px; border:1px solid var(--ink); }
+.tag-picker legend { padding:0 8px; font:700 12px "Courier New",monospace; text-transform:uppercase; }
+.tag-picker label { display:flex; flex-direction:row; align-items:center; gap:7px; padding:8px 10px; border:1px solid var(--line); text-transform:none; cursor:pointer; }
+.tag-picker input { width:auto; }
+.tag-picker p { margin:0; font:400 12px "Courier New",monospace; }
+.tag-create-form { max-width:920px; display:grid; grid-template-columns:1fr 1fr auto; gap:16px; align-items:end; }
+.tag-create-form label { display:flex; flex-direction:column; gap:9px; font:700 12px "Courier New",monospace; text-transform:uppercase; }
+.tag-create-form input { padding:15px; border:1px solid var(--ink); background:#faf8f1; font:400 15px "Courier New",monospace; }
+.tag-create-form .primary-button { width:auto; min-width:190px; }
+.tag-admin-list { display:grid; gap:10px; max-width:920px; margin-top:28px; }
+.tag-admin-list article { display:grid; grid-template-columns:auto 1fr auto; gap:18px; align-items:center; padding:14px; border-top:1px solid var(--ink); }
+.tag-admin-list .danger-button { margin:0; }
 footer { padding:105px 4.2vw 28px; background:var(--ink); color:var(--paper); }
 footer .section-kicker span { color:#6688ff; }
 .footer-grid { display:grid; grid-template-columns:1.45fr .55fr; gap:8vw; align-items:end; }
@@ -234,8 +241,17 @@ footer .section-kicker span { color:#6688ff; }
   .blog-grid { grid-template-columns:1fr; }
   .blog-card { min-height:280px; }
   .blog-empty { padding:30px; flex-direction:column; gap:12px; }
-  .blog-archive-link { justify-content:flex-start; }
   .friends-hero { padding:75px 5vw 70px; }
+  .experience-hero { padding:75px 5vw 70px; }
+  .experience-list { padding:75px 5vw 90px; }
+  .timeline::before { left:24px; }
+  .timeline-item { grid-template-columns:50px 1fr; gap:18px; padding-bottom:55px; }
+  .timeline-marker { width:50px; height:50px; }
+  .timeline-date { padding-top:13px; }
+  .timeline-content { grid-column:2; padding:20px 0 26px; }
+  .experience-controls { flex-wrap:wrap; }
+  .tag-create-form { grid-template-columns:1fr; }
+  .tag-create-form .primary-button { width:100%; }
   .friends-list { padding:75px 5vw 90px; }
   .friends-admin-item { grid-template-columns:52px 1fr; }
   .friends-admin-item form { grid-column:1 / -1; }
@@ -243,21 +259,12 @@ footer .section-kicker span { color:#6688ff; }
   .friend-card { min-height:390px; }
   .post-form { grid-template-columns:1fr; }
   .post-form label,.post-form label:nth-of-type(3),.post-form label:nth-of-type(4),.form-row { grid-column:1; }
-  .tag-picker { grid-column:1; }
-  .tag-create-form { grid-template-columns:1fr; }
-  .tag-create-form .primary-button { width:100%; }
+  .experience-form .wide-field { grid-column:1; }
   .form-row { align-items:stretch; flex-direction:column; }
   .markdown-workspace { grid-template-columns:1fr; }
   .markdown-workspace.mode-split .markdown-pane:first-child { border-right:0; border-bottom:1px solid var(--ink); }
   .markdown-topbar { align-items:flex-start; flex-direction:column; }
   .admin-top>div span { display:none; }
-  .archive-hero { padding:70px 5vw; }
-  .archive-content { padding:65px 5vw 90px; }
-  .archive-toolbar { flex-direction:column; }
-  .tag-filter { justify-content:flex-start; }
-  .archive-card { grid-template-columns:58px 1fr; gap:16px; padding:26px 5px; }
-  .archive-number { font-size:38px; }
-  .archive-arrow { display:none; }
   footer { padding:78px 5vw 24px; }
 }
 @media (max-width:480px) { .brand{font-size:28px}.skill-grid{grid-template-columns:1fr}.skill-grid article{min-height:220px}.skill-grid h3{margin-top:35px}.skill-line{gap:9px}.footer-bottom{margin-top:70px} }

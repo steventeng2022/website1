@@ -14,18 +14,19 @@ test("renders development preview metadata", async () => {
       headers: { accept: "text/html" },
     }),
     {
-      ASSETS: {
-        fetch: async () => new Response("Not found", { status: 404 }),
-      },
       DB: {
         prepare() {
           return {
             bind() { return this; },
-            async run() { return { success: true }; },
+            async run() { return { success: true, meta: {} }; },
             async all() { return { results: [] }; },
             async first() { return null; },
           };
         },
+        async batch(statements) { return Promise.all(statements.map((statement) => statement.run())); },
+      },
+      ASSETS: {
+        fetch: async () => new Response("Not found", { status: 404 }),
       },
     },
     {
