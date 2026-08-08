@@ -9,6 +9,8 @@ export type Post = {
   content: string;
   cover_image: string | null;
   status: "draft" | "published";
+  password_hash: string | null;
+  is_locked?: number;
   created_at: number;
   updated_at: number;
 };
@@ -38,12 +40,18 @@ async function ready() {
   } catch (error) {
     if (!String(error).toLowerCase().includes("duplicate column")) throw error;
   }
+  try {
+    await db().prepare("ALTER TABLE posts ADD COLUMN password_hash TEXT").run();
+  } catch (error) {
+    if (!String(error).toLowerCase().includes("duplicate column")) throw error;
+  }
   await db().prepare("CREATE INDEX IF NOT EXISTS posts_status_updated_idx ON posts(status, updated_at DESC)").run();
+  await db().prepare("UPDATE posts SET title = replace(title, '。', '') WHERE instr(title, '。') > 0").run();
 }
 
 export async function listPublishedPosts() {
   await ready();
-  const posts = (await db().prepare("SELECT * FROM posts WHERE status = 'published' ORDER BY updated_at DESC").all<Post>()).results;
+  const posts = (await db().prepare("SELECT id, title, slug, excerpt, content, cover_image, status, created_at, updated_at, NULL AS password_hash, CASE WHEN password_hash IS NOT NULL AND password_hash <> '' THEN 1 ELSE 0 END AS is_locked FROM posts WHERE status = 'published' ORDER BY updated_at DESC").all<Post>()).results;
   return attachTags(posts);
 }
 
@@ -60,26 +68,43 @@ export async function getPublishedPost(slug: string) {
   return (await attachTags([post]))[0];
 }
 
+export async function getPublishedPostAccess(slug: string) {
+  await ready();
+  return db().prepare("SELECT id, slug, password_hash FROM posts WHERE slug = ? AND status = 'published'").bind(slug).first<Pick<Post, "id" | "slug" | "password_hash">>();
+}
+
+export async function publishedPostExists(slug: string) {
+  await ready();
+  return Boolean(await db().prepare("SELECT id FROM posts WHERE slug = ? AND status = 'published'").bind(slug).first<{ id: number }>());
+}
+
 async function attachTags(posts: Post[]): Promise<PostWithTags[]> {
   const tags = await tagsByPostIds(posts.map((post) => post.id));
   const gallery = await galleryByPostIds(posts.map((post) => post.id));
   return posts.map((post) => ({ ...post, tags: tags.get(post.id) ?? [], gallery: gallery.get(post.id) ?? [] }));
 }
 
-export async function createPost(input: Omit<Post, "id" | "created_at" | "updated_at">, tagIds: number[] = [], gallery: GalleryInput[] = []) {
+type PostInput = Omit<Post, "id" | "created_at" | "updated_at" | "is_locked">;
+
+export async function createPost(input: PostInput, tagIds: number[] = [], gallery: GalleryInput[] = []) {
   await ready();
   const now = Date.now();
-  const result = await db().prepare("INSERT INTO posts (title, slug, excerpt, content, cover_image, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
-    .bind(input.title, input.slug, input.excerpt, input.content, input.cover_image, input.status, now, now).run();
+  const result = await db().prepare("INSERT INTO posts (title, slug, excerpt, content, cover_image, status, password_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+    .bind(input.title, input.slug, input.excerpt, input.content, input.cover_image, input.status, input.password_hash, now, now).run();
   const insertedId = Number(result.meta.last_row_id) || Number((await db().prepare("SELECT id FROM posts WHERE slug = ?").bind(input.slug).first<{ id: number }>())?.id);
   if (insertedId) await setPostTags(insertedId, tagIds);
   if (insertedId) await setPostGallery(insertedId, gallery);
 }
 
-export async function updatePost(id: number, input: Omit<Post, "id" | "created_at" | "updated_at">, tagIds: number[] = [], gallery: GalleryInput[] = []) {
+export async function updatePost(id: number, input: Omit<PostInput, "password_hash">, tagIds: number[] = [], gallery: GalleryInput[] = [], passwordHash?: string | null) {
   await ready();
-  await db().prepare("UPDATE posts SET title = ?, slug = ?, excerpt = ?, content = ?, cover_image = ?, status = ?, updated_at = ? WHERE id = ?")
-    .bind(input.title, input.slug, input.excerpt, input.content, input.cover_image, input.status, Date.now(), id).run();
+  const passwordSql = passwordHash === undefined ? "" : ", password_hash = ?";
+  const statement = db().prepare(`UPDATE posts SET title = ?, slug = ?, excerpt = ?, content = ?, cover_image = ?, status = ?, updated_at = ?${passwordSql} WHERE id = ?`);
+  const values: unknown[] = [input.title, input.slug, input.excerpt, input.content, input.cover_image, input.status, Date.now()];
+  if (passwordHash !== undefined) values.push(passwordHash);
+  values.push(id);
+  const result = await statement.bind(...values).run();
+  if (!result.meta.changes) throw new Error("找不到要編輯的文章，請重新整理後再試");
   await setPostTags(id, tagIds);
   await setPostGallery(id, gallery);
 }

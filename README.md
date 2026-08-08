@@ -2,6 +2,10 @@
 
 Cloudflare Workers + D1 version of Steven's personal website. Public visitors can browse the dedicated `/portfolio`, experience timeline, and published posts. The `/admin` writing studio is protected by Cloudflare Access and restricted to `steventeng2022@gmail.com`.
 
+## Blog password locks
+
+Each published post can optionally be password protected from the admin editor. Passwords are salted and hashed with PBKDF2-SHA-256 before storage. A successful unlock is kept in an HttpOnly, Secure, SameSite cookie for 24 hours and is invalidated automatically when the post password changes.
+
 ## Portfolio
 
 The homepage shows featured projects beneath About Me, while `/portfolio` presents the complete collection with category filters. Projects appear as one horizontal rectangle per row: image on the left, title and description on the right, and tags in the bottom-right corner. The whole card opens the first available destination in this order: live link, GitHub link, then related Blog post. Each project can include a bilingual description, cover image, technology tags, completion date, live link, GitHub link, and a related Blog post. Sign in to `/admin` to add, edit, delete, feature, or reorder projects. Existing projects are upgraded automatically without deleting their content.

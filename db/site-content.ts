@@ -105,11 +105,11 @@ async function ready() {
   }
 
   await d1.prepare(`INSERT OR IGNORE INTO site_profile VALUES
-    (1, '保持好奇。\n持續創作。', 'Stay curious.\nKeep creating.',
+    (1, '保持好奇\n持續創作', 'Stay curious.\nKeep creating.',
     '我喜歡了解事物如何運作，從程式內部的邏輯，到感測器、硬體與網路之間的連結。對我來說，科技最有趣的地方，就是能把想法變成大家看得到或用得到的成果。\n\n目前我正在透過 C++ 與 Python 提升程式能力，並探索 AI、Arduino 與 Raspberry Pi。',
     'I enjoy learning how things work, from the logic inside software to the connection between sensors, hardware, and networks. Technology is most exciting to me when it turns an idea into something people can see or use.\n\nRight now, I’m improving my programming through C++ and Python while exploring AI, Arduino, and Raspberry Pi.',
-    '我現在正在學習的事。', 'What I’m learning now.',
-    '一起完成\n新的作品。', 'Let’s make\nsomething new.',
+    '我現在正在學習的事', 'What I’m learning now.',
+    '一起完成\n新的作品', 'Let’s make\nsomething new.',
     '我很樂意學習新事物、和大家合作，並嘗試新的專案。',
     'I’m always happy to learn, collaborate, and try a new project.', ?)`)
     .bind(Date.now()).run();
@@ -133,6 +133,13 @@ async function ready() {
       d1.prepare("INSERT INTO site_content_meta (id, seeded_at) VALUES (1, ?)").bind(Date.now()),
     ]);
   }
+
+  // Upgrade titles created by older versions to the punctuation-free style.
+  await d1.batch([
+    d1.prepare("UPDATE site_profile SET about_heading_zh=replace(about_heading_zh,'。',''),about_heading_en=replace(about_heading_en,'。',''),skills_heading_zh=replace(skills_heading_zh,'。',''),skills_heading_en=replace(skills_heading_en,'。',''),contact_heading_zh=replace(contact_heading_zh,'。',''),contact_heading_en=replace(contact_heading_en,'。','') WHERE instr(about_heading_zh,'。')>0 OR instr(about_heading_en,'。')>0 OR instr(skills_heading_zh,'。')>0 OR instr(skills_heading_en,'。')>0 OR instr(contact_heading_zh,'。')>0 OR instr(contact_heading_en,'。')>0"),
+    d1.prepare("UPDATE portfolio_projects SET title_zh=replace(title_zh,'。',''),title_en=replace(title_en,'。','') WHERE instr(title_zh,'。')>0 OR instr(title_en,'。')>0"),
+    d1.prepare("UPDATE portfolio_skills SET name_zh=replace(name_zh,'。',''),name_en=replace(name_en,'。','') WHERE instr(name_zh,'。')>0 OR instr(name_en,'。')>0"),
+  ]);
 }
 
 export async function getSiteContent() {
@@ -144,9 +151,9 @@ export async function getSiteContent() {
     db().prepare("SELECT * FROM contact_links ORDER BY sort_order ASC, id ASC").all<ContactLink>(),
   ]);
   const fallback: SiteProfile = {
-    id:1, about_heading_zh:"保持好奇。\n持續創作。", about_heading_en:"Stay curious.\nKeep creating.",
+    id:1, about_heading_zh:"保持好奇\n持續創作", about_heading_en:"Stay curious.\nKeep creating.",
     about_body_zh:"我喜歡了解事物如何運作，並把想法變成大家看得到或用得到的成果。", about_body_en:"I enjoy learning how things work and turning ideas into things people can see or use.",
-    skills_heading_zh:"我現在正在學習的事。", skills_heading_en:"What I’m learning now.", contact_heading_zh:"一起完成\n新的作品。", contact_heading_en:"Let’s make\nsomething new.",
+    skills_heading_zh:"我現在正在學習的事", skills_heading_en:"What I’m learning now.", contact_heading_zh:"一起完成\n新的作品", contact_heading_en:"Let’s make\nsomething new.",
     contact_body_zh:"我很樂意學習新事物、和大家合作，並嘗試新的專案。", contact_body_en:"I’m always happy to learn, collaborate, and try a new project.", updated_at:Date.now(),
   };
   return { profile: profile ?? fallback, projects: projects.results, skills: skills.results, contacts: contacts.results };
@@ -162,8 +169,8 @@ type ProjectInput = Omit<Project, "id">;
 type SkillInput = Omit<Skill, "id">;
 type ContactInput = Omit<ContactLink, "id">;
 export async function createProject(v: ProjectInput) { await ready(); await db().prepare("INSERT INTO portfolio_projects (title_zh,title_en,description_zh,description_en,tag,technologies,cover_image,link_url,github_url,blog_slug,completed_at,featured,sort_order) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)").bind(v.title_zh,v.title_en,v.description_zh,v.description_en,v.tag,v.technologies,v.cover_image,v.link_url,v.github_url,v.blog_slug,v.completed_at,v.featured,v.sort_order).run(); }
-export async function updateProject(id:number,v:ProjectInput) { await ready(); await db().prepare("UPDATE portfolio_projects SET title_zh=?,title_en=?,description_zh=?,description_en=?,tag=?,technologies=?,cover_image=?,link_url=?,github_url=?,blog_slug=?,completed_at=?,featured=?,sort_order=? WHERE id=?").bind(v.title_zh,v.title_en,v.description_zh,v.description_en,v.tag,v.technologies,v.cover_image,v.link_url,v.github_url,v.blog_slug,v.completed_at,v.featured,v.sort_order,id).run(); }
-export async function deleteProject(id:number) { await ready(); await db().prepare("DELETE FROM portfolio_projects WHERE id=?").bind(id).run(); }
+export async function updateProject(id:number,v:ProjectInput) { await ready(); const result = await db().prepare("UPDATE portfolio_projects SET title_zh=?,title_en=?,description_zh=?,description_en=?,tag=?,technologies=?,cover_image=?,link_url=?,github_url=?,blog_slug=?,completed_at=?,featured=?,sort_order=? WHERE id=?").bind(v.title_zh,v.title_en,v.description_zh,v.description_en,v.tag,v.technologies,v.cover_image,v.link_url,v.github_url,v.blog_slug,v.completed_at,v.featured,v.sort_order,id).run(); if (!result.meta.changes) throw new Error("找不到要編輯的作品，請重新整理後再試"); }
+export async function deleteProject(id:number) { await ready(); const result = await db().prepare("DELETE FROM portfolio_projects WHERE id=?").bind(id).run(); if (!result.meta.changes) throw new Error("找不到要刪除的作品，請重新整理後再試"); }
 export async function createSkill(v:SkillInput) { await ready(); await db().prepare("INSERT INTO portfolio_skills (name_zh,name_en,description_zh,description_en,sort_order) VALUES (?,?,?,?,?)").bind(v.name_zh,v.name_en,v.description_zh,v.description_en,v.sort_order).run(); }
 export async function updateSkill(id:number,v:SkillInput) { await ready(); await db().prepare("UPDATE portfolio_skills SET name_zh=?,name_en=?,description_zh=?,description_en=?,sort_order=? WHERE id=?").bind(v.name_zh,v.name_en,v.description_zh,v.description_en,v.sort_order,id).run(); }
 export async function deleteSkill(id:number) { await ready(); await db().prepare("DELETE FROM portfolio_skills WHERE id=?").bind(id).run(); }

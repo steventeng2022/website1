@@ -73,3 +73,42 @@ test("portfolio uses linked horizontal project cards", async () => {
   assert.match(styles, /\.portfolio-card-link \{ position:absolute; inset:0;/);
   assert.match(styles, /@media \(max-width:800px\)[\s\S]*\.portfolio-card \{[^}]*grid-template-columns:1fr/);
 });
+
+test("project management keeps every operation wired", async () => {
+  const [admin, actions, database, upload] = await Promise.all([
+    readFile(new URL("../app/admin/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/admin/actions.ts", import.meta.url), "utf8"),
+    readFile(new URL("../db/site-content.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/admin/project-cover-field.tsx", import.meta.url), "utf8"),
+  ]);
+
+  for (const action of ["createProjectAction", "updateProjectAction", "deleteProjectAction", "moveSiteItemAction"]) {
+    assert.match(admin, new RegExp(action));
+    assert.match(actions, new RegExp(`export async function ${action}`));
+  }
+  assert.match(admin, /name="featured"/);
+  assert.match(admin, /name="sortOrder"/);
+  assert.match(admin, /post\.status === "published"/);
+  assert.match(actions, /publishedPostExists/);
+  assert.match(database, /if \(!result\.meta\.changes\) throw new Error\("找不到要編輯的作品/);
+  assert.match(database, /if \(!result\.meta\.changes\) throw new Error\("找不到要刪除的作品/);
+  assert.match(upload, /uploadPreparedImage/);
+});
+
+test("Chinese titles remove full-width periods", async () => {
+  const [home, portfolio, experience, admin, actions, database] = await Promise.all([
+    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/portfolio/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/experience/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/admin/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/admin/actions.ts", import.meta.url), "utf8"),
+    readFile(new URL("../db/site-content.ts", import.meta.url), "utf8"),
+  ]);
+
+  assert.doesNotMatch(home, /Steven。|創作過程。/);
+  assert.doesNotMatch(portfolio, /我完成的\\n作品。/);
+  assert.doesNotMatch(experience, /"我的經歷。"/);
+  assert.doesNotMatch(admin, /個人網站。<\/h1>/);
+  assert.match(actions, /replace\(\/。\+\/g, ""\)/);
+  assert.match(database, /UPDATE portfolio_projects SET title_zh=replace/);
+});

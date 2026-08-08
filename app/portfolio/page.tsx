@@ -29,7 +29,7 @@ export default async function PortfolioPage({ searchParams }: { searchParams: Pr
 
     <section className="portfolio-hero">
       <p className="eyebrow">{en ? "PROJECTS · BUILDS · EXPERIMENTS" : "專案 · 實作 · 學習實驗"}</p>
-      <h1>{en ? "Things I’ve\nbuilt." : "我完成的\n作品。"}</h1>
+      <h1>{en ? "Things I’ve\nbuilt." : "我完成的\n作品"}</h1>
       <div className="portfolio-hero-bottom"><p>{en ? "A growing collection of websites, software, AI explorations, and hardware projects. Some include a longer blog post about the process." : "這裡整理了我做過的網站、程式、AI 探索與硬體實作；部分作品也附有完整 Blog 記錄。"}</p><strong>{String(projects.length).padStart(2,"0")}</strong></div>
     </section>
 

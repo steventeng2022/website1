@@ -35,6 +35,7 @@ async function ready() {
       updated_at INTEGER NOT NULL
     )`),
     d1.prepare("CREATE INDEX IF NOT EXISTS experiences_order_idx ON experiences(sort_order ASC, start_date DESC)"),
+    d1.prepare("UPDATE experiences SET title = replace(title, '。', '') WHERE instr(title, '。') > 0"),
   ]);
 }
 

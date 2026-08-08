@@ -2,11 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "../cloudflare-auth";
-import { createPost, deletePost, updatePost, updatePostStatus } from "../../db/posts";
+import { createPost, deletePost, publishedPostExists, updatePost, updatePostStatus } from "../../db/posts";
 import { createFriend, deleteFriend } from "../../db/friends";
 import { createExperience, deleteExperience, moveExperience, updateExperience } from "../../db/experiences";
 import { createTag, deleteTag } from "../../db/tags";
 import { createContact, createProject, createSkill, deleteContact, deleteProject, deleteSkill, moveSiteItem, updateContact, updateProject, updateSiteProfile, updateSkill } from "../../db/site-content";
+import { hashBlogPassword } from "../blog-lock";
 
 function imageValue(formData: FormData) {
   if (formData.get("removeCover") === "yes") return null;
@@ -19,7 +20,7 @@ function imageValue(formData: FormData) {
 }
 
 async function fields(formData: FormData) {
-  const title = String(formData.get("title") ?? "").trim();
+  const title = String(formData.get("title") ?? "").replace(/。+/g, "").trim();
   const slug = String(formData.get("slug") ?? "").trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-|-$/g, "");
   const excerpt = String(formData.get("excerpt") ?? "").trim();
   const content = String(formData.get("content") ?? "").trim();
@@ -37,20 +38,24 @@ async function fields(formData: FormData) {
     if (caption.length > 300) throw new Error("每張照片的說明最多 300 個字");
     return { image_url, caption, sort_order: index };
   });
-  return { post: { title, slug, excerpt, content, cover_image: imageValue(formData), status }, tagIds, gallery };
+  const password = String(formData.get("blogPassword") ?? "");
+  if (password && (password.length < 4 || password.length > 128)) throw new Error("文章密碼需為 4～128 個字元");
+  const removePassword = formData.get("removeBlogPassword") === "yes";
+  return { post: { title, slug, excerpt, content, cover_image: imageValue(formData), status }, tagIds, gallery, password, removePassword };
 }
 
 export async function createPostAction(formData: FormData) {
   await requireAdmin();
-  const { post, tagIds, gallery } = await fields(formData);
-  await createPost(post, tagIds, gallery);
+  const { post, tagIds, gallery, password } = await fields(formData);
+  await createPost({ ...post, password_hash: password ? await hashBlogPassword(password) : null }, tagIds, gallery);
   revalidatePath("/"); revalidatePath("/blog"); revalidatePath("/admin");
 }
 
 export async function updatePostAction(formData: FormData) {
   await requireAdmin();
-  const { post, tagIds, gallery } = await fields(formData);
-  await updatePost(Number(formData.get("id")), post, tagIds, gallery);
+  const { post, tagIds, gallery, password, removePassword } = await fields(formData);
+  const passwordHash = removePassword ? null : password ? await hashBlogPassword(password) : undefined;
+  await updatePost(Number(formData.get("id")), post, tagIds, gallery, passwordHash);
   revalidatePath("/"); revalidatePath("/blog"); revalidatePath("/admin");
 }
 
@@ -99,7 +104,7 @@ function webUrl(value: FormDataEntryValue | null, label: string) {
 
 export async function createFriendAction(formData: FormData) {
   await requireAdmin();
-  const site_name = String(formData.get("siteName") ?? "").trim();
+  const site_name = String(formData.get("siteName") ?? "").replace(/。+/g, "").trim();
   const description = String(formData.get("description") ?? "").trim();
   if (!site_name || !description) throw new Error("網站名稱與介紹皆為必填");
   await createFriend({
@@ -125,7 +130,7 @@ function optionalWebUrl(value: FormDataEntryValue | null) {
 }
 
 function experienceFields(formData: FormData) {
-  const title = String(formData.get("title") ?? "").trim();
+  const title = String(formData.get("title") ?? "").replace(/。+/g, "").trim();
   const organization = String(formData.get("organization") ?? "").trim();
   const location = String(formData.get("location") ?? "").trim();
   const start_date = String(formData.get("startDate") ?? "").trim();
@@ -175,6 +180,12 @@ function requiredText(formData: FormData, name: string, label: string) {
   return value;
 }
 
+function titleText(formData: FormData, name: string, label: string) {
+  const value = requiredText(formData, name, label).replace(/。+/g, "").trim();
+  if (!value) throw new Error(`${label}不能只包含句號`);
+  return value;
+}
+
 function itemId(formData: FormData) {
   const id = Number(formData.get("id"));
   if (!Number.isInteger(id) || id < 1) throw new Error("資料編號無效");
@@ -197,28 +208,31 @@ function flexibleUrl(value: FormDataEntryValue | null) {
 export async function updateSiteProfileAction(formData: FormData) {
   await requireAdmin();
   await updateSiteProfile({
-    about_heading_zh: requiredText(formData,"aboutHeadingZh","關於我中文標題"),
-    about_heading_en: requiredText(formData,"aboutHeadingEn","About 英文標題"),
+    about_heading_zh: titleText(formData,"aboutHeadingZh","關於我中文標題"),
+    about_heading_en: titleText(formData,"aboutHeadingEn","About 英文標題"),
     about_body_zh: requiredText(formData,"aboutBodyZh","關於我中文內容"),
     about_body_en: requiredText(formData,"aboutBodyEn","About 英文內容"),
-    skills_heading_zh: requiredText(formData,"skillsHeadingZh","技能中文標題"),
-    skills_heading_en: requiredText(formData,"skillsHeadingEn","Skills 英文標題"),
-    contact_heading_zh: requiredText(formData,"contactHeadingZh","聯絡中文標題"),
-    contact_heading_en: requiredText(formData,"contactHeadingEn","Contact 英文標題"),
+    skills_heading_zh: titleText(formData,"skillsHeadingZh","技能中文標題"),
+    skills_heading_en: titleText(formData,"skillsHeadingEn","Skills 英文標題"),
+    contact_heading_zh: titleText(formData,"contactHeadingZh","聯絡中文標題"),
+    contact_heading_en: titleText(formData,"contactHeadingEn","Contact 英文標題"),
     contact_body_zh: requiredText(formData,"contactBodyZh","聯絡中文內容"),
     contact_body_en: requiredText(formData,"contactBodyEn","Contact 英文內容"),
   });
   revalidatePath("/"); revalidatePath("/admin");
 }
 
-function projectFields(formData: FormData) {
+async function projectFields(formData: FormData) {
   const blogSlug = String(formData.get("blogSlug") ?? "").trim();
   if (blogSlug && !/^[a-z0-9-]+$/.test(blogSlug)) throw new Error("相關文章網址代稱無效");
+  if (blogSlug && !(await publishedPostExists(blogSlug))) throw new Error("相關 Blog 文章必須先發布");
   const technologies = String(formData.get("technologies") ?? "").trim();
   if (technologies.length > 240) throw new Error("技術標籤最多 240 個字");
+  const completedAt = String(formData.get("completedAt") ?? "").trim();
+  if (completedAt && !/^\d{4}-(0[1-9]|1[0-2])$/.test(completedAt)) throw new Error("完成日期格式無效");
   return {
-    title_zh: requiredText(formData,"titleZh","中文作品名稱"),
-    title_en: requiredText(formData,"titleEn","英文作品名稱"),
+    title_zh: titleText(formData,"titleZh","中文作品名稱"),
+    title_en: titleText(formData,"titleEn","英文作品名稱"),
     description_zh: requiredText(formData,"descriptionZh","中文作品介紹"),
     description_en: requiredText(formData,"descriptionEn","英文作品介紹"),
     tag: requiredText(formData,"tag","作品分類"),
@@ -227,17 +241,17 @@ function projectFields(formData: FormData) {
     link_url: optionalWebUrl(formData.get("linkUrl")),
     github_url: optionalWebUrl(formData.get("githubUrl")),
     blog_slug: blogSlug || null,
-    completed_at: String(formData.get("completedAt") ?? "").trim() || null,
+    completed_at: completedAt || null,
     featured: formData.get("featured") === "yes" ? 1 : 0,
     sort_order: orderValue(formData),
   };
 }
-export async function createProjectAction(formData:FormData) { await requireAdmin(); await createProject(projectFields(formData)); revalidatePath("/"); revalidatePath("/portfolio"); revalidatePath("/admin"); }
-export async function updateProjectAction(formData:FormData) { await requireAdmin(); await updateProject(itemId(formData),projectFields(formData)); revalidatePath("/"); revalidatePath("/portfolio"); revalidatePath("/admin"); }
+export async function createProjectAction(formData:FormData) { await requireAdmin(); await createProject(await projectFields(formData)); revalidatePath("/"); revalidatePath("/portfolio"); revalidatePath("/admin"); }
+export async function updateProjectAction(formData:FormData) { await requireAdmin(); await updateProject(itemId(formData),await projectFields(formData)); revalidatePath("/"); revalidatePath("/portfolio"); revalidatePath("/admin"); }
 export async function deleteProjectAction(formData:FormData) { await requireAdmin(); await deleteProject(itemId(formData)); revalidatePath("/"); revalidatePath("/portfolio"); revalidatePath("/admin"); }
 
 function skillFields(formData: FormData) {
-  return { name_zh:requiredText(formData,"nameZh","中文技能名稱"), name_en:requiredText(formData,"nameEn","英文技能名稱"), description_zh:requiredText(formData,"descriptionZh","中文技能介紹"), description_en:requiredText(formData,"descriptionEn","英文技能介紹"), sort_order:orderValue(formData) };
+  return { name_zh:titleText(formData,"nameZh","中文技能名稱"), name_en:titleText(formData,"nameEn","英文技能名稱"), description_zh:requiredText(formData,"descriptionZh","中文技能介紹"), description_en:requiredText(formData,"descriptionEn","英文技能介紹"), sort_order:orderValue(formData) };
 }
 export async function createSkillAction(formData:FormData) { await requireAdmin(); await createSkill(skillFields(formData)); revalidatePath("/"); revalidatePath("/admin"); }
 export async function updateSkillAction(formData:FormData) { await requireAdmin(); await updateSkill(itemId(formData),skillFields(formData)); revalidatePath("/"); revalidatePath("/admin"); }

@@ -21,7 +21,7 @@ export default async function AdminPage() {
   const content = await getSiteContent();
   return <main className="admin-shell">
     <header className="admin-top"><Link className="brand" href="/">STEVEN</Link><div><span>{email}</span><a href="/cdn-cgi/access/logout">登出</a></div></header>
-    <section className="studio-heading"><p className="eyebrow">STEVEN CONTENT STUDIO</p><h1>管理你的<br/>個人網站。</h1><p>在這裡編輯關於我、作品、技能、聯絡方式、經歷與文章；儲存後公開網站會直接更新。</p></section>
+    <section className="studio-heading"><p className="eyebrow">STEVEN CONTENT STUDIO</p><h1>管理你的<br/>個人網站</h1><p>在這裡編輯關於我、作品、技能、聯絡方式、經歷與文章；儲存後公開網站會直接更新。</p></section>
     <section className="editor-section content-profile-admin"><div className="editor-title"><h2>關於我與頁面文案</h2><span>繁中＋英文</span></div>
       <form className="post-form content-profile-form" action={updateSiteProfileAction}>
         <label>關於我標題（中文）<textarea required name="aboutHeadingZh" rows={2} defaultValue={content.profile.about_heading_zh}/></label>
@@ -113,7 +113,7 @@ function ProjectForm({action,posts,item,nextOrder=0}:{action:(formData:FormData)
     <label>作品分類<input required name="tag" defaultValue={item?.tag} placeholder="網站 / AI / 硬體"/></label><label>技術標籤<input name="technologies" defaultValue={item?.technologies} placeholder="Next.js, Cloudflare, D1（用逗號分隔）"/></label>
     <ProjectCoverField existingCover={item?.cover_image ?? null}/>
     <label>作品／Demo 網址<input type="url" name="linkUrl" defaultValue={item?.link_url??""} placeholder="https://...（可留空）"/></label><label>GitHub 網址<input type="url" name="githubUrl" defaultValue={item?.github_url??""} placeholder="https://github.com/...（可留空）"/></label>
-    <label>相關 Blog 文章<select name="blogSlug" defaultValue={item?.blog_slug ?? ""}><option value="">不連結文章</option>{posts.map((post)=><option key={post.id} value={post.slug}>{post.title}{post.status === "draft" ? "（草稿）" : ""}</option>)}</select></label>
+    <label>相關 Blog 文章<select name="blogSlug" defaultValue={item?.blog_slug ?? ""}><option value="">不連結文章</option>{posts.filter((post) => post.status === "published" || post.slug === item?.blog_slug).map((post)=><option key={post.id} value={post.slug} disabled={post.status === "draft"}>{post.title}{post.status === "draft" ? "（草稿，公開前無法連結）" : ""}</option>)}</select><small>只連結已發布文章，避免訪客看到找不到頁面。</small></label>
     <label>完成日期<input type="month" name="completedAt" defaultValue={item?.completed_at ?? ""}/></label>
     <label className="featured-check"><input type="checkbox" name="featured" value="yes" defaultChecked={Boolean(item?.featured)}/><span>設為精選作品（顯示在首頁「關於我」下方）</span></label>
     <div className="form-row"><label>顯示順序<input type="number" required step="1" name="sortOrder" defaultValue={item?.sort_order??nextOrder}/></label><button className="primary-button">{item?"儲存作品":"新增作品"} →</button></div>
@@ -154,6 +154,7 @@ function PostForm({ action, post, tags }: { action: (formData: FormData) => Prom
     <label className="content-label">文章內容（Markdown）<MarkdownEditor defaultValue={post?.content ?? ""}/></label>
     <CoverImageField existingCover={post?.cover_image ?? null}/>
     <GalleryUploadField existingItems={post?.gallery ?? []}/>
+    <fieldset className="lock-field"><legend>文章密碼鎖（選填）</legend><label>設定新密碼<input name="blogPassword" type="password" minLength={4} maxLength={128} autoComplete="new-password" placeholder={post?.password_hash ? "留空即保留目前密碼" : "留空即不鎖定"}/><small>密碼不會明文儲存。訪客解鎖後可閱讀 24 小時。</small></label>{post?.password_hash && <label className="remove-lock"><input type="checkbox" name="removeBlogPassword" value="yes"/> 移除這篇文章的密碼鎖</label>}</fieldset>
     <fieldset className="tag-picker"><legend>文章標籤（可複選）</legend>{tags.length === 0 ? <p>請先在下方建立標籤。</p> : tags.map(tag => <label key={tag.id}><input type="checkbox" name="tagIds" value={tag.id} defaultChecked={post?.tags.some(selected => selected.id === tag.id)}/><span>#{tag.name}</span></label>)}</fieldset>
     <div className="form-row"><label>文章狀態<select name="status" defaultValue={post?.status ?? "draft"}><option value="draft">草稿</option><option value="published">已發布</option></select></label><button className="primary-button" type="submit">{post ? "儲存變更" : "建立文章"} →</button></div>
   </form>;

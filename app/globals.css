@@ -150,6 +150,19 @@ h1 { margin:0; font-size:clamp(76px,10vw,158px); line-height:.82; letter-spacing
 .status-toggle-form { display:inline-block; margin:0 18px 25px 10px; }
 .visibility-button { padding:11px 14px; border:1px solid var(--blue); background:transparent; color:var(--blue); font:700 12px "Courier New",monospace; cursor:pointer; }
 .visibility-button:hover { background:var(--blue); color:#fff; }
+.lock-field { grid-column:1/-1; border:1px solid var(--ink); padding:20px; }
+.lock-field legend { padding:0 8px; font:700 13px "Courier New",monospace; }
+.lock-field .remove-lock { display:flex; flex-direction:row; align-items:center; gap:9px; margin-top:16px; }
+.lock-field .remove-lock input { width:auto; }
+.blog-lock { max-width:720px; margin:80px auto; border:1px solid var(--ink); padding:clamp(28px,6vw,64px); }
+.blog-lock h1 { margin:18px 0; font-size:clamp(42px,7vw,76px); line-height:.95; letter-spacing:-.06em; }
+.blog-lock>p:not(.eyebrow) { font:400 15px/1.7 "Courier New",monospace; max-width:580px; }
+.blog-lock form { display:grid; gap:12px; margin:34px 0; }
+.blog-lock form label { font:700 12px "Courier New",monospace; text-transform:uppercase; }
+.blog-lock form input { width:100%; border:1px solid var(--ink); padding:14px; font:400 16px "Courier New",monospace; background:#fff; }
+.blog-lock .primary-button { justify-self:start; }
+.lock-icon { display:inline-block; margin-top:26px; padding:8px 11px; background:var(--ink); color:#fff; font:700 12px "Courier New",monospace; letter-spacing:.12em; }
+.lock-error { margin:0; color:#a21b12; font:700 13px "Courier New",monospace!important; }
 .article { max-width:980px; margin:0 auto; padding:100px 5vw 130px; }
 .article h1 { font-size:clamp(58px,8vw,112px); margin-top:26px; }
 .article-lead { max-width:780px; margin:45px 0; font:400 clamp(20px,2vw,27px)/1.5 "Courier New",monospace; color:#333; }

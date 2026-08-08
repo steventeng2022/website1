@@ -27,7 +27,7 @@ export default async function ExperiencePage({ searchParams }: { searchParams: P
 
     <section className="experience-hero">
       <p className="eyebrow">{en ? "LEARNING · BUILDING · GROWING" : "學習 · 實作 · 成長"}</p>
-      <h1>{en ? "Experience." : "我的經歷。"}</h1>
+      <h1>{en ? "Experience." : "我的經歷"}</h1>
       <p>{en ? "A timeline of projects, communities, events, and the things I learned along the way." : "依時間整理我參與的專案、社群與活動，以及一路上學到的事。"}</p>
     </section>
 

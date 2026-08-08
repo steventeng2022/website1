@@ -23,6 +23,7 @@ async function ready() {
     created_at INTEGER NOT NULL
   )`).run();
   await db().prepare("CREATE INDEX IF NOT EXISTS friends_created_idx ON friends(created_at DESC)").run();
+  await db().prepare("UPDATE friends SET site_name = replace(site_name, '。', '') WHERE instr(site_name, '。') > 0").run();
 }
 
 export async function listFriends() {
