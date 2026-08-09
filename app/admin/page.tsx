@@ -15,12 +15,15 @@ import PostSaveForm from "./post-save-form";
 import MusicUploadField from "./music-upload-field";
 import { listAllMusicTracks, listSongRequests } from "../../db/music";
 import { createMusicTrackAction, deleteMusicTrackAction, deleteSongRequestAction, moveMusicTrackAction, setSongRequestStatusAction, updateMusicTrackAction } from "./actions";
+import { getAnalyticsSummary, listAdminLogs, logAdminActivity } from "../../db/analytics";
+import SiteUptime from "./site-uptime";
 
 export const dynamic = "force-dynamic";
-type AdminSection = "overview" | "blog" | "portfolio" | "site" | "experience" | "music" | "friends";
+type AdminSection = "overview" | "analytics" | "blog" | "portfolio" | "site" | "experience" | "music" | "friends";
 
 const adminSections: { id: AdminSection; label: string; hint: string }[] = [
   { id: "overview", label: "總覽", hint: "Dashboard" },
+  { id: "analytics", label: "網站狀態", hint: "Visits & logs" },
   { id: "blog", label: "文章", hint: "Posts & tags" },
   { id: "portfolio", label: "作品集", hint: "Projects" },
   { id: "site", label: "網站內容", hint: "About & skills" },
@@ -31,15 +34,16 @@ const adminSections: { id: AdminSection; label: string; hint: string }[] = [
 
 export default async function AdminPage({ searchParams }: { searchParams: Promise<{ saved?: string; section?: string }> }) {
   const email = await requireAdmin();
+  const params = await searchParams;
+  const requestedSection = params.section as AdminSection | undefined;
+  const activeSection = adminSections.some(item => item.id === requestedSection) ? requestedSection! : "overview";
   const posts = await listAllPosts();
   const friends = await listFriends();
   const experiences = await listExperiences();
   const tags = await listTags();
   const content = await getSiteContent();
-  const [musicTracks,songRequests]=await Promise.all([listAllMusicTracks(),listSongRequests()]);
-  const params = await searchParams;
-  const requestedSection = params.section as AdminSection | undefined;
-  const activeSection = adminSections.some(item => item.id === requestedSection) ? requestedSection! : "overview";
+  const [musicTracks,songRequests,analytics,adminLogs]=await Promise.all([listAllMusicTracks(),listSongRequests(),getAnalyticsSummary(),listAdminLogs()]);
+  await logAdminActivity(email, "開啟後台", adminSections.find(item=>item.id===activeSection)?.label ?? activeSection);
   const newRequests = songRequests.filter(item=>item.status==="new").length;
   return <main className="admin-shell">
     <header className="admin-top"><Link className="brand" href="/">STEVEN</Link><div><span>{email}</span><a href="/cdn-cgi/access/logout">登出</a></div></header>
@@ -55,6 +59,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     {activeSection === "overview" && <section className="admin-overview">
       <div className="admin-page-heading"><p className="eyebrow">DASHBOARD</p><h1>網站管理總覽</h1><p>選擇一個區域開始編輯，不需要再從整頁內容中尋找。</p></div>
       <div className="admin-stat-grid">
+        <AdminCard href="analytics" label="目前在線" value={analytics.onlineNow} note={`累積 ${analytics.totalViews.toLocaleString("zh-TW")} 次瀏覽`} alert={analytics.onlineNow>0}/>
         <AdminCard href="blog" label="文章" value={posts.length} note={`${posts.filter(post=>post.status==="draft").length} 篇草稿`}/>
         <AdminCard href="portfolio" label="作品" value={content.projects.length} note={`${content.projects.filter(item=>item.featured).length} 個精選`}/>
         <AdminCard href="experience" label="經歷" value={experiences.length} note="時間軸項目"/>
@@ -62,7 +67,31 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         <AdminCard href="site" label="技能" value={content.skills.length} note={`${content.contacts.length} 種聯絡方式`}/>
         <AdminCard href="friends" label="Friends" value={friends.length} note="合作網站"/>
       </div>
-      <div className="admin-quick-actions"><h2>快速開始</h2><div><Link href="/admin?section=blog#new-post">＋ 撰寫新文章</Link><Link href="/admin?section=portfolio#new-project">＋ 新增作品</Link><Link href="/admin?section=music#new-track">＋ 上傳歌曲</Link></div></div>
+      <div className="admin-quick-actions"><h2>快速開始</h2><div><Link href="/admin?section=analytics">查看網站狀態</Link><Link href="/admin?section=blog#new-post">＋ 撰寫新文章</Link><Link href="/admin?section=portfolio#new-project">＋ 新增作品</Link><Link href="/admin?section=music#new-track">＋ 上傳歌曲</Link></div></div>
+    </section>}
+
+    {activeSection === "analytics" && <section className="analytics-admin">
+      <div className="admin-page-heading"><p className="eyebrow">SITE STATUS</p><h1>網站狀態與紀錄</h1><p>查看匿名流量、Blog 閱讀情況、目前在線人數與管理員操作紀錄。</p></div>
+      <div className="analytics-metrics">
+        <Metric label="目前在線" value={analytics.onlineNow} note="最近 2 分鐘有活動" live/>
+        <Metric label="總瀏覽量" value={analytics.totalViews} note="所有公開頁面"/>
+        <Metric label="今日瀏覽" value={analytics.todayViews} note="以 UTC 日期統計"/>
+        <Metric label="獨立訪客" value={analytics.uniqueVisitors} note="匿名瀏覽器估算"/>
+        <Metric label="Blog 閱讀" value={analytics.blogViews} note="所有文章合計"/>
+      </div>
+      <section className="uptime-panel"><div><p className="eyebrow">UPTIME</p><h2>網站已上線</h2><p>自 2026 年 7 月 31 日起</p></div><SiteUptime/></section>
+      <div className="analytics-columns">
+        <section className="analytics-panel"><div className="editor-title"><h2>最近 7 天</h2><span>瀏覽趨勢</span></div>
+          {analytics.daily.length===0?<p className="empty-state">部署新版後，這裡會開始累積瀏覽資料。</p>:<div className="daily-bars">{analytics.daily.map(day=>{const max=Math.max(...analytics.daily.map(item=>item.views),1);return <article key={day.day}><div><time>{day.day.slice(5)}</time><span>{day.visitors} 位訪客</span><strong>{day.views}</strong></div><i style={{width:`${Math.max(5,day.views/max*100)}%`}}/></article>})}</div>}
+        </section>
+        <section className="analytics-panel"><div className="editor-title"><h2>熱門頁面</h2><span>TOP 10</span></div>
+          {analytics.popular.length===0?<p className="empty-state">目前還沒有瀏覽紀錄。</p>:<div className="popular-pages">{analytics.popular.map((item,index)=><article key={item.path}><b>{String(index+1).padStart(2,"0")}</b><div><strong>{item.blog_slug?`Blog：${item.blog_slug}`:pageLabel(item.path)}</strong><code>{item.path}</code></div><span>{item.views} 次<br/><small>{item.visitors} 人</small></span></article>)}</div>}
+        </section>
+      </div>
+      <section className="analytics-panel admin-log-panel"><div className="editor-title"><h2>管理員紀錄</h2><span>最近 {adminLogs.length} 筆</span></div>
+        <p className="editor-note">記錄後台登入與內容管理操作，不會顯示或保存密碼。</p>
+        <div className="admin-log-list">{adminLogs.map(log=><article key={log.id}><time>{new Date(log.created_at).toLocaleString("zh-TW",{timeZone:"Asia/Taipei"})}</time><strong>{log.action}</strong><span>{log.detail}</span><small>{log.admin_email}</small></article>)}</div>
+      </section>
     </section>}
 
     {activeSection === "site" && <div className="admin-section-stack"><section className="editor-section content-profile-admin"><div className="editor-title"><h2>關於我與頁面文案</h2><span>繁中＋英文</span></div>
@@ -164,6 +193,15 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
 
 function AdminCard({href,label,value,note,alert=false}:{href:AdminSection;label:string;value:number;note:string;alert?:boolean}) {
   return <Link href={`/admin?section=${href}`} className={`admin-stat-card${alert?" has-alert":""}`}><span>{label}</span><strong>{value}</strong><small>{note}</small><b aria-hidden="true">↗</b></Link>;
+}
+
+function Metric({label,value,note,live=false}:{label:string;value:number;note:string;live?:boolean}) {
+  return <article className="analytics-metric"><span>{live?<i/>:null}{label}</span><strong>{value.toLocaleString("zh-TW")}</strong><small>{note}</small></article>;
+}
+
+function pageLabel(path:string) {
+  const labels:Record<string,string>={"/":"首頁","/blog":"Blog 列表","/portfolio":"作品集","/experience":"經歷","/friends":"Friends"};
+  return labels[path]??path;
 }
 
 function ContentCollection({title,count,kind,children}:{title:string;count:number;kind:string;children:React.ReactNode}) {

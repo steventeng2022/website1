@@ -9,6 +9,12 @@ import { createTag, deleteTag } from "../../db/tags";
 import { createContact, createProject, createSkill, deleteContact, deleteProject, deleteSkill, moveSiteItem, updateContact, updateProject, updateSiteProfile, updateSkill } from "../../db/site-content";
 import { saveExistingPost, saveNewPost } from "./post-save";
 import { createMusicTrack, deleteMusicTrack, deleteSongRequest, moveMusicTrack, setSongRequestStatus, updateMusicTrack } from "../../db/music";
+import { logAdminActivity } from "../../db/analytics";
+
+async function auditedAdmin(action: string, detail = "") {
+  const email = await requireAdmin();
+  await logAdminActivity(email, action, detail);
+}
 
 function imageValue(formData: FormData) {
   if (formData.get("removeCover") === "yes") return null;
@@ -33,13 +39,13 @@ export async function updatePostAction(formData: FormData) {
 }
 
 export async function deletePostAction(formData: FormData) {
-  await requireAdmin();
+  await auditedAdmin("刪除文章", `文章 #${formData.get("id")}`);
   await deletePost(Number(formData.get("id")));
   revalidatePath("/"); revalidatePath("/blog"); revalidatePath("/admin");
 }
 
 export async function createTagAction(formData: FormData) {
-  await requireAdmin();
+  await auditedAdmin("建立標籤", String(formData.get("name") ?? ""));
   const name = String(formData.get("name") ?? "").trim();
   const slug = String(formData.get("slug") ?? "").trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-|-$/g, "");
   if (!name || !slug) throw new Error("標籤名稱與英文代稱皆為必填");
@@ -48,7 +54,7 @@ export async function createTagAction(formData: FormData) {
 }
 
 export async function deleteTagAction(formData: FormData) {
-  await requireAdmin();
+  await auditedAdmin("刪除標籤", `標籤 #${formData.get("id")}`);
   const id = Number(formData.get("id"));
   if (!Number.isInteger(id) || id < 1) throw new Error("標籤編號無效");
   await deleteTag(id);
@@ -56,7 +62,7 @@ export async function deleteTagAction(formData: FormData) {
 }
 
 export async function updatePostStatusAction(formData: FormData) {
-  await requireAdmin();
+  await auditedAdmin("變更文章狀態", `${formData.get("slug")} → ${formData.get("status")}`);
   const id = Number(formData.get("id"));
   const status = formData.get("status") === "published" ? "published" : "draft";
   if (!Number.isInteger(id) || id < 1) throw new Error("文章編號無效");
@@ -76,7 +82,7 @@ function webUrl(value: FormDataEntryValue | null, label: string) {
 }
 
 export async function createFriendAction(formData: FormData) {
-  await requireAdmin();
+  await auditedAdmin("新增 Friends 網站", String(formData.get("siteName") ?? ""));
   const site_name = String(formData.get("siteName") ?? "").replace(/。+/g, "").trim();
   const description = String(formData.get("description") ?? "").trim();
   if (!site_name || !description) throw new Error("網站名稱與介紹皆為必填");
@@ -90,7 +96,7 @@ export async function createFriendAction(formData: FormData) {
 }
 
 export async function deleteFriendAction(formData: FormData) {
-  await requireAdmin();
+  await auditedAdmin("刪除 Friends 網站", `網站 #${formData.get("id")}`);
   const id = Number(formData.get("id"));
   if (!Number.isInteger(id) || id < 1) throw new Error("Friends 網站編號無效");
   await deleteFriend(id);
@@ -117,13 +123,13 @@ function experienceFields(formData: FormData) {
 }
 
 export async function createExperienceAction(formData: FormData) {
-  await requireAdmin();
+  await auditedAdmin("新增經歷", String(formData.get("title") ?? ""));
   await createExperience(experienceFields(formData));
   revalidatePath("/experience"); revalidatePath("/admin");
 }
 
 export async function updateExperienceAction(formData: FormData) {
-  await requireAdmin();
+  await auditedAdmin("更新經歷", String(formData.get("title") ?? ""));
   const id = Number(formData.get("id"));
   if (!Number.isInteger(id) || id < 1) throw new Error("經歷編號無效");
   await updateExperience(id, experienceFields(formData));
@@ -131,7 +137,7 @@ export async function updateExperienceAction(formData: FormData) {
 }
 
 export async function deleteExperienceAction(formData: FormData) {
-  await requireAdmin();
+  await auditedAdmin("刪除經歷", `經歷 #${formData.get("id")}`);
   const id = Number(formData.get("id"));
   if (!Number.isInteger(id) || id < 1) throw new Error("經歷編號無效");
   await deleteExperience(id);
@@ -139,7 +145,7 @@ export async function deleteExperienceAction(formData: FormData) {
 }
 
 export async function moveExperienceAction(formData: FormData) {
-  await requireAdmin();
+  await auditedAdmin("調整經歷順序", `經歷 #${formData.get("id")}`);
   const id = Number(formData.get("id"));
   const direction = formData.get("direction") === "down" ? "down" : "up";
   if (!Number.isInteger(id) || id < 1) throw new Error("經歷編號無效");
@@ -179,7 +185,7 @@ function flexibleUrl(value: FormDataEntryValue | null) {
 }
 
 export async function updateSiteProfileAction(formData: FormData) {
-  await requireAdmin();
+  await auditedAdmin("更新網站內容", "關於我與頁面文案");
   await updateSiteProfile({
     about_heading_zh: titleText(formData,"aboutHeadingZh","關於我中文標題"),
     about_heading_en: titleText(formData,"aboutHeadingEn","About 英文標題"),
@@ -219,24 +225,24 @@ async function projectFields(formData: FormData) {
     sort_order: orderValue(formData),
   };
 }
-export async function createProjectAction(formData:FormData) { await requireAdmin(); await createProject(await projectFields(formData)); revalidatePath("/"); revalidatePath("/portfolio"); revalidatePath("/admin"); }
-export async function updateProjectAction(formData:FormData) { await requireAdmin(); await updateProject(itemId(formData),await projectFields(formData)); revalidatePath("/"); revalidatePath("/portfolio"); revalidatePath("/admin"); }
-export async function deleteProjectAction(formData:FormData) { await requireAdmin(); await deleteProject(itemId(formData)); revalidatePath("/"); revalidatePath("/portfolio"); revalidatePath("/admin"); }
+export async function createProjectAction(formData:FormData) { await auditedAdmin("新增作品",String(formData.get("titleZh")??"")); await createProject(await projectFields(formData)); revalidatePath("/"); revalidatePath("/portfolio"); revalidatePath("/admin"); }
+export async function updateProjectAction(formData:FormData) { await auditedAdmin("更新作品",String(formData.get("titleZh")??"")); await updateProject(itemId(formData),await projectFields(formData)); revalidatePath("/"); revalidatePath("/portfolio"); revalidatePath("/admin"); }
+export async function deleteProjectAction(formData:FormData) { await auditedAdmin("刪除作品",`作品 #${formData.get("id")}`); await deleteProject(itemId(formData)); revalidatePath("/"); revalidatePath("/portfolio"); revalidatePath("/admin"); }
 
 function skillFields(formData: FormData) {
   return { name_zh:titleText(formData,"nameZh","中文技能名稱"), name_en:titleText(formData,"nameEn","英文技能名稱"), description_zh:requiredText(formData,"descriptionZh","中文技能介紹"), description_en:requiredText(formData,"descriptionEn","英文技能介紹"), sort_order:orderValue(formData) };
 }
-export async function createSkillAction(formData:FormData) { await requireAdmin(); await createSkill(skillFields(formData)); revalidatePath("/"); revalidatePath("/admin"); }
-export async function updateSkillAction(formData:FormData) { await requireAdmin(); await updateSkill(itemId(formData),skillFields(formData)); revalidatePath("/"); revalidatePath("/admin"); }
-export async function deleteSkillAction(formData:FormData) { await requireAdmin(); await deleteSkill(itemId(formData)); revalidatePath("/"); revalidatePath("/admin"); }
+export async function createSkillAction(formData:FormData) { await auditedAdmin("新增技能",String(formData.get("nameZh")??"")); await createSkill(skillFields(formData)); revalidatePath("/"); revalidatePath("/admin"); }
+export async function updateSkillAction(formData:FormData) { await auditedAdmin("更新技能",String(formData.get("nameZh")??"")); await updateSkill(itemId(formData),skillFields(formData)); revalidatePath("/"); revalidatePath("/admin"); }
+export async function deleteSkillAction(formData:FormData) { await auditedAdmin("刪除技能",`技能 #${formData.get("id")}`); await deleteSkill(itemId(formData)); revalidatePath("/"); revalidatePath("/admin"); }
 
 function contactFields(formData:FormData) { return { label:requiredText(formData,"label","聯絡方式名稱"), value:requiredText(formData,"value","顯示內容"), link_url:flexibleUrl(formData.get("linkUrl")), sort_order:orderValue(formData) }; }
-export async function createContactAction(formData:FormData) { await requireAdmin(); await createContact(contactFields(formData)); revalidatePath("/"); revalidatePath("/admin"); }
-export async function updateContactAction(formData:FormData) { await requireAdmin(); await updateContact(itemId(formData),contactFields(formData)); revalidatePath("/"); revalidatePath("/admin"); }
-export async function deleteContactAction(formData:FormData) { await requireAdmin(); await deleteContact(itemId(formData)); revalidatePath("/"); revalidatePath("/admin"); }
+export async function createContactAction(formData:FormData) { await auditedAdmin("新增聯絡方式",String(formData.get("label")??"")); await createContact(contactFields(formData)); revalidatePath("/"); revalidatePath("/admin"); }
+export async function updateContactAction(formData:FormData) { await auditedAdmin("更新聯絡方式",String(formData.get("label")??"")); await updateContact(itemId(formData),contactFields(formData)); revalidatePath("/"); revalidatePath("/admin"); }
+export async function deleteContactAction(formData:FormData) { await auditedAdmin("刪除聯絡方式",`項目 #${formData.get("id")}`); await deleteContact(itemId(formData)); revalidatePath("/"); revalidatePath("/admin"); }
 
 export async function moveSiteItemAction(formData:FormData) {
-  await requireAdmin();
+  await auditedAdmin("調整內容順序", `${formData.get("kind")} #${formData.get("id")}`);
   const rawKind = String(formData.get("kind"));
   if (rawKind !== "project" && rawKind !== "skill" && rawKind !== "contact") throw new Error("資料類型無效");
   await moveSiteItem(rawKind,itemId(formData),formData.get("direction") === "down" ? "down" : "up");
@@ -253,9 +259,9 @@ function musicFields(formData:FormData) {
   if(cover_url&&!/^\/media\/blog\/[a-f0-9-]+\.(?:jpg|png|webp|gif)$/.test(cover_url))throw new Error("歌曲封面網址無效");
   return {title,artist,audio_url,cover_url,enabled:formData.get("enabled")==="yes"?1:0,sort_order:orderValue(formData)};
 }
-export async function createMusicTrackAction(formData:FormData){await requireAdmin();await createMusicTrack(musicFields(formData));revalidatePath("/");revalidatePath("/admin");}
-export async function updateMusicTrackAction(formData:FormData){await requireAdmin();await updateMusicTrack(itemId(formData),musicFields(formData));revalidatePath("/");revalidatePath("/admin");}
-export async function deleteMusicTrackAction(formData:FormData){await requireAdmin();const track=await deleteMusicTrack(itemId(formData));const key=track.audio_url.startsWith("/media/music/")?track.audio_url.slice("/media/".length):"";const bucket=(globalThis as typeof globalThis&{__STEVEN_SITE_ENV__?:{BUCKET:R2Bucket}}).__STEVEN_SITE_ENV__?.BUCKET;if(key&&bucket)await bucket.delete(key);revalidatePath("/");revalidatePath("/admin");}
-export async function moveMusicTrackAction(formData:FormData){await requireAdmin();await moveMusicTrack(itemId(formData),formData.get("direction")==="down"?"down":"up");revalidatePath("/");revalidatePath("/admin");}
-export async function setSongRequestStatusAction(formData:FormData){await requireAdmin();await setSongRequestStatus(itemId(formData),formData.get("status")==="reviewed"?"reviewed":"new");revalidatePath("/admin");}
-export async function deleteSongRequestAction(formData:FormData){await requireAdmin();await deleteSongRequest(itemId(formData));revalidatePath("/admin");}
+export async function createMusicTrackAction(formData:FormData){await auditedAdmin("新增網站歌曲",String(formData.get("title")??""));await createMusicTrack(musicFields(formData));revalidatePath("/");revalidatePath("/admin");}
+export async function updateMusicTrackAction(formData:FormData){await auditedAdmin("更新網站歌曲",String(formData.get("title")??""));await updateMusicTrack(itemId(formData),musicFields(formData));revalidatePath("/");revalidatePath("/admin");}
+export async function deleteMusicTrackAction(formData:FormData){await auditedAdmin("刪除網站歌曲",`歌曲 #${formData.get("id")}`);const track=await deleteMusicTrack(itemId(formData));const key=track.audio_url.startsWith("/media/music/")?track.audio_url.slice("/media/".length):"";const bucket=(globalThis as typeof globalThis&{__STEVEN_SITE_ENV__?:{BUCKET:R2Bucket}}).__STEVEN_SITE_ENV__?.BUCKET;if(key&&bucket)await bucket.delete(key);revalidatePath("/");revalidatePath("/admin");}
+export async function moveMusicTrackAction(formData:FormData){await auditedAdmin("調整歌曲順序",`歌曲 #${formData.get("id")}`);await moveMusicTrack(itemId(formData),formData.get("direction")==="down"?"down":"up");revalidatePath("/");revalidatePath("/admin");}
+export async function setSongRequestStatusAction(formData:FormData){await auditedAdmin("處理歌曲推薦",`推薦 #${formData.get("id")}`);await setSongRequestStatus(itemId(formData),formData.get("status")==="reviewed"?"reviewed":"new");revalidatePath("/admin");}
+export async function deleteSongRequestAction(formData:FormData){await auditedAdmin("刪除歌曲推薦",`推薦 #${formData.get("id")}`);await deleteSongRequest(itemId(formData));revalidatePath("/admin");}

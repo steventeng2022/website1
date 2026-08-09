@@ -1,10 +1,12 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "../../cloudflare-auth";
 import { saveExistingPost, saveNewPost } from "../post-save";
+import { logAdminActivity } from "../../../db/analytics";
 
 export async function POST(request: Request) {
+  let email = "";
   try {
-    await requireAdmin();
+    email = await requireAdmin();
   } catch {
     return Response.json({ ok: false, error: "登入已過期，請重新登入後台" }, { status: 401 });
   }
@@ -14,6 +16,7 @@ export async function POST(request: Request) {
     const mode = formData.get("saveMode") === "update" ? "update" : "create";
     if (mode === "update") await saveExistingPost(formData);
     else await saveNewPost(formData);
+    await logAdminActivity(email, mode === "update" ? "更新文章" : "建立文章", String(formData.get("title") ?? ""));
     revalidatePath("/");
     revalidatePath("/blog");
     revalidatePath("/admin");

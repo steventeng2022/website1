@@ -1,9 +1,11 @@
 # Steven Website — Cloudflare Blog
 
-## v28
+## v30
 
-- 修正播放器收合時的透明區域遮住後方連結、按鈕與表單欄位
-- 播放器圖示維持可點擊，展開後的控制面板維持完整操作
+- 後台新增「網站狀態」分頁：總瀏覽、今日瀏覽、匿名獨立訪客、目前在線與 Blog 閱讀量
+- 顯示最近 7 天流量、熱門頁面及最近 50 筆管理員操作紀錄
+- 網站上線時間會以天、時、分、秒即時更新
+- 訪客統計只使用隨機匿名瀏覽器代碼的 SHA-256 雜湊，不保存 IP
 
 Cloudflare Workers + D1 version of Steven's personal website. Public visitors can browse the dedicated `/portfolio`, experience timeline, and published posts. The `/admin` writing studio is protected by Cloudflare Access and restricted to `steventeng2022@gmail.com`.
 

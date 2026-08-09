@@ -95,3 +95,26 @@ export const songRequests = sqliteTable("song_requests", {
   status: text("status").notNull().default("new"),
   createdAt: integer("created_at").notNull(),
 });
+
+export const siteVisits = sqliteTable("site_visits", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  visitorHash: text("visitor_hash").notNull(),
+  path: text("path").notNull(),
+  blogSlug: text("blog_slug"),
+  visitedAt: integer("visited_at").notNull(),
+  visitDay: text("visit_day").notNull(),
+});
+
+export const onlineSessions = sqliteTable("online_sessions", {
+  visitorHash: text("visitor_hash").primaryKey(),
+  path: text("path").notNull(),
+  lastSeen: integer("last_seen").notNull(),
+});
+
+export const adminActivityLogs = sqliteTable("admin_activity_logs", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  adminEmail: text("admin_email").notNull(),
+  action: text("action").notNull(),
+  detail: text("detail").notNull().default(""),
+  createdAt: integer("created_at").notNull(),
+});
