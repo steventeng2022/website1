@@ -1,5 +1,6 @@
 import LanguageToggle from "../language-toggle";
 import { getSiteContent } from "../../db/site-content";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -17,12 +18,12 @@ export default async function PortfolioPage({ searchParams }: { searchParams: Pr
 
   return <main className="portfolio-shell">
     <header className="site-header">
-      <a className="brand" href={withLang("/")}>STEVEN</a>
+      <Link className="brand" href={withLang("/")}>STEVEN</Link>
       <nav aria-label={en ? "Main navigation" : "主要導覽列"}>
-        <a href={withLang("/")}>{en ? "Home" : "首頁"}</a>
-        <a className="active-nav" href={withLang("/portfolio")}>{en ? "Portfolio" : "作品集"}</a>
-        <a href={withLang("/experience")}>{en ? "Experience" : "經歷"}</a>
-        <a href={withLang("/blog")}>{en ? "Blog" : "部落格"}</a>
+        <Link href={withLang("/")}>{en ? "Home" : "首頁"}</Link>
+        <Link className="active-nav" href={withLang("/portfolio")}>{en ? "Portfolio" : "作品集"}</Link>
+        <Link href={withLang("/experience")}>{en ? "Experience" : "經歷"}</Link>
+        <Link href={withLang("/blog")}>{en ? "Blog" : "部落格"}</Link>
         <LanguageToggle />
       </nav>
     </header>
@@ -37,8 +38,8 @@ export default async function PortfolioPage({ searchParams }: { searchParams: Pr
       <div className="portfolio-toolbar">
         <p className="section-kicker"><span>01</span> {en ? "ALL WORK" : "所有作品"}</p>
         <div className="portfolio-filters" aria-label={en ? "Project categories" : "作品分類"}>
-          <a className={!category ? "active" : ""} href={withLang("/portfolio")}>{en ? "ALL" : "全部"}</a>
-          {categories.map((item) => <a className={category === item ? "active" : ""} key={item} href={withLang(`/portfolio?category=${encodeURIComponent(item)}`)}>{item}</a>)}
+          <Link className={!category ? "active" : ""} href={withLang("/portfolio")}>{en ? "ALL" : "全部"}</Link>
+          {categories.map((item) => <Link className={category === item ? "active" : ""} key={item} href={withLang(`/portfolio?category=${encodeURIComponent(item)}`)}>{item}</Link>)}
         </div>
       </div>
 
@@ -60,12 +61,12 @@ export default async function PortfolioPage({ searchParams }: { searchParams: Pr
                 {projectTags.length > 0 ? <div className="technology-list" aria-label={en ? "Project tags" : "作品標籤"}>{projectTags.map((technology) => <span key={technology}>{technology}</span>)}</div> : null}
               </div>
             </div>
-            {destination ? <a className="portfolio-card-link" href={destination} target={external ? "_blank" : undefined} rel={external ? "noopener noreferrer" : undefined} aria-label={`${en ? "Open" : "開啟"} ${title}`}><span className="sr-only">{en ? `Open ${title}` : `開啟${title}`}</span></a> : null}
+            {destination ? external ? <a className="portfolio-card-link" href={destination} target="_blank" rel="noopener noreferrer" aria-label={`${en ? "Open" : "開啟"} ${title}`}><span className="sr-only">{en ? `Open ${title}` : `開啟${title}`}</span></a> : <Link className="portfolio-card-link" href={destination} aria-label={`${en ? "Open" : "開啟"} ${title}`}><span className="sr-only">{en ? `Open ${title}` : `開啟${title}`}</span></Link> : null}
           </article>;
         })}
       </div>}
     </section>
 
-    <footer className="portfolio-footer"><p>{en ? "Want the story behind the projects?" : "想看作品背後的學習過程？"}</p><a href={withLang("/blog")}>{en ? "VISIT THE BLOG" : "前往 Blog"} →</a></footer>
+    <footer className="portfolio-footer"><p>{en ? "Want the story behind the projects?" : "想看作品背後的學習過程？"}</p><Link href={withLang("/blog")}>{en ? "VISIT THE BLOG" : "前往 Blog"} →</Link></footer>
   </main>;
 }

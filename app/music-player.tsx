@@ -4,7 +4,7 @@ export default function MusicPlayer({tracks}:{tracks:Track[]}) {
     <>
       <aside className="music-player" id="site-music-player" aria-label="網站音樂播放器" data-site-tracks={JSON.stringify(tracks)}>
         <button className="music-player__toggle" type="button" data-music-toggle aria-label="開啟或關閉音樂播放器">
-          <img className="music-player__cover" data-music-cover alt="音樂播放器" />
+          <img className="music-player__cover" data-music-cover src="/music-default-cover.svg" alt="" aria-hidden="true" />
         </button>
         <section className="music-player__panel" aria-label="播放控制與播放清單">
           <div className="music-player__now">

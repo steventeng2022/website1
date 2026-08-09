@@ -40,6 +40,21 @@ test("player includes complete controls and responsive styling", () => {
   assert.match(styles, /prefers-reduced-motion/);
 });
 
+test("player keeps running across client-side internal navigation", async () => {
+  const pages = await Promise.all([
+    "../app/page.tsx",
+    "../app/portfolio/page.tsx",
+    "../app/experience/page.tsx",
+    "../app/friends/page.tsx",
+    "../app/blog/page.tsx",
+    "../app/language-toggle.tsx",
+  ].map(path => readFile(new URL(path, import.meta.url), "utf8")));
+  for (const page of pages) assert.match(page, /from "next\/link"/);
+  assert.match(component, /src="\/music-default-cover\.svg"/);
+  assert.match(player, /this\.cover\.addEventListener\("error"/);
+  assert.match(player, /return "\/music-default-cover\.svg"/);
+});
+
 test("no third-party demo audio ships with the site", () => {
   assert.doesNotMatch(component + player, /soundhelix|picsum\.photos/i);
 });

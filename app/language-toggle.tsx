@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 export default function LanguageToggle() {
   const pathname = usePathname();
@@ -12,12 +13,12 @@ export default function LanguageToggle() {
   const query = params.toString();
 
   return (
-    <a
+    <Link
       className="language-toggle"
       href={`${pathname}${query ? `?${query}` : ""}`}
       aria-label={isEnglish ? "切換為繁體中文" : "Switch to English"}
     >
       {isEnglish ? "繁中" : "EN"}
-    </a>
+    </Link>
   );
 }

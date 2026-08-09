@@ -1,5 +1,6 @@
 import LanguageToggle from "../language-toggle";
 import { listFriends } from "../../db/friends";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -15,13 +16,13 @@ export default async function FriendsPage({
   return (
     <main className="friends-shell">
       <header className="site-header">
-        <a className="brand" href={en ? "/?lang=en" : "/"} aria-label={en ? "Steven home" : "Steven 首頁"}>
+        <Link className="brand" href={en ? "/?lang=en" : "/"} aria-label={en ? "Steven home" : "Steven 首頁"}>
           STEVEN
-        </a>
+        </Link>
         <nav aria-label={en ? "Friends page navigation" : "Friends 頁面導覽列"}>
-          <a href={en ? "/?lang=en" : "/"}>{en ? "Home" : "首頁"}</a>
-          <a href={en ? "/experience?lang=en" : "/experience"}>{en ? "Experience" : "經歷"}</a>
-          <a className="active-nav" href={en ? "/friends?lang=en" : "/friends"}>Friends</a>
+          <Link href={en ? "/?lang=en" : "/"}>{en ? "Home" : "首頁"}</Link>
+          <Link href={en ? "/experience?lang=en" : "/experience"}>{en ? "Experience" : "經歷"}</Link>
+          <Link className="active-nav" href={en ? "/friends?lang=en" : "/friends"}>Friends</Link>
           <LanguageToggle />
         </nav>
       </header>
@@ -61,7 +62,7 @@ export default async function FriendsPage({
 
       <footer className="friends-footer">
         <span>© 2026 STEVEN</span>
-        <a href={en ? "/?lang=en" : "/"}>{en ? "BACK HOME" : "回到首頁"} →</a>
+        <Link href={en ? "/?lang=en" : "/"}>{en ? "BACK HOME" : "回到首頁"} →</Link>
       </footer>
     </main>
   );

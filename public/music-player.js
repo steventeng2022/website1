@@ -12,6 +12,13 @@ class FloatingMusicPlayer {
     this.title = root.querySelector("[data-music-title]");
     this.artist = root.querySelector("[data-music-artist]");
     this.cover = root.querySelector("[data-music-cover]");
+    this.cover.addEventListener("error", () => {
+      if (!this.cover.src.endsWith("/music-default-cover.svg")) {
+        this.cover.src = this.defaultCover();
+      } else {
+        this.cover.hidden = true;
+      }
+    });
     this.progress = root.querySelector("[data-music-progress]");
     this.volume = root.querySelector("[data-music-volume]");
     this.volumeOutput = root.querySelector("[data-music-volume-output]");
@@ -160,8 +167,9 @@ class FloatingMusicPlayer {
     this.audio.src = track.src;
     this.title.textContent = track.title;
     this.artist.textContent = track.artist;
-    this.cover.src = track.cover;
-    this.cover.alt = `${track.title} cover`;
+    this.cover.hidden = false;
+    this.cover.src = track.cover || this.defaultCover();
+    this.cover.alt = "";
     this.progress.value = 0;
     this.playlist.querySelectorAll("[data-track-index]").forEach((item, itemIndex) => {
       item.classList.toggle("is-current", itemIndex === this.index);
@@ -313,13 +321,14 @@ class FloatingMusicPlayer {
     this.title.textContent = "尚未加入音樂";
     this.artist.textContent = "按＋新增你有權使用的音訊連結";
     this.cover.src = this.defaultCover();
-    this.cover.alt = "音樂播放器";
+    this.cover.hidden = false;
+    this.cover.alt = "";
     this.progress.value = 0;
     this.setPlaying(false);
   }
 
   defaultCover() {
-    return "data:image/svg+xml," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"><rect width="300" height="300" fill="#252530"/><circle cx="150" cy="150" r="95" fill="#ff5d73"/><circle cx="150" cy="150" r="30" fill="#252530"/><text x="150" y="270" text-anchor="middle" fill="white" font-family="sans-serif" font-size="25">Music</text></svg>`);
+    return "/music-default-cover.svg";
   }
 }
 

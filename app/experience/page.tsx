@@ -1,5 +1,6 @@
 import LanguageToggle from "../language-toggle";
 import { listExperiences } from "../../db/experiences";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -16,11 +17,11 @@ export default async function ExperiencePage({ searchParams }: { searchParams: P
 
   return <main className="experience-shell">
     <header className="site-header">
-      <a className="brand" href={en ? "/?lang=en" : "/"}>STEVEN</a>
+      <Link className="brand" href={en ? "/?lang=en" : "/"}>STEVEN</Link>
       <nav aria-label={en ? "Experience page navigation" : "經歷頁面導覽列"}>
-        <a href={en ? "/?lang=en" : "/"}>{en ? "Home" : "首頁"}</a>
-        <a className="active-nav" href={en ? "/experience?lang=en" : "/experience"}>{en ? "Experience" : "經歷"}</a>
-        <a href={en ? "/friends?lang=en" : "/friends"}>Friends</a>
+        <Link href={en ? "/?lang=en" : "/"}>{en ? "Home" : "首頁"}</Link>
+        <Link className="active-nav" href={en ? "/experience?lang=en" : "/experience"}>{en ? "Experience" : "經歷"}</Link>
+        <Link href={en ? "/friends?lang=en" : "/friends"}>Friends</Link>
         <LanguageToggle />
       </nav>
     </header>
@@ -51,6 +52,6 @@ export default async function ExperiencePage({ searchParams }: { searchParams: P
       </div>}
     </section>
 
-    <footer className="friends-footer"><span>© 2026 STEVEN</span><a href={en ? "/?lang=en" : "/"}>{en ? "BACK HOME" : "回到首頁"} →</a></footer>
+    <footer className="friends-footer"><span>© 2026 STEVEN</span><Link href={en ? "/?lang=en" : "/"}>{en ? "BACK HOME" : "回到首頁"} →</Link></footer>
   </main>;
 }
