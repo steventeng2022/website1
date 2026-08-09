@@ -4,7 +4,11 @@ Cloudflare Workers + D1 version of Steven's personal website. Public visitors ca
 
 ## Blog password locks
 
-Each published post can optionally be password protected from the admin editor. Passwords are salted and hashed with PBKDF2-SHA-256 before storage. A successful unlock is kept in an HttpOnly, Secure, SameSite cookie for 24 hours and is invalidated automatically when the post password changes.
+Each published post can optionally be password protected from the admin editor. Passwords are salted and hashed with Cloudflare-compatible scrypt before storage, while old PBKDF2 hashes remain readable. A successful unlock is kept in an HttpOnly, Secure, SameSite cookie for 24 hours and is invalidated automatically when the post password changes.
+
+## Floating music player
+
+The global bottom-left player supports site-wide tracks managed in `/admin` plus device-local tracks added by each visitor. Admin audio is stored in R2 with metadata in D1 and appears for everyone; visitor tracks stay in that visitor's browser. The player also includes a song recommendation form whose submissions appear in the admin inbox. No third-party demo music is included; upload only audio you own or have permission to use.
 
 ## Portfolio
 

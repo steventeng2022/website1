@@ -8,6 +8,7 @@ import { createExperience, deleteExperience, moveExperience, updateExperience } 
 import { createTag, deleteTag } from "../../db/tags";
 import { createContact, createProject, createSkill, deleteContact, deleteProject, deleteSkill, moveSiteItem, updateContact, updateProject, updateSiteProfile, updateSkill } from "../../db/site-content";
 import { saveExistingPost, saveNewPost } from "./post-save";
+import { createMusicTrack, deleteMusicTrack, deleteSongRequest, moveMusicTrack, setSongRequestStatus, updateMusicTrack } from "../../db/music";
 
 function imageValue(formData: FormData) {
   if (formData.get("removeCover") === "yes") return null;
@@ -241,3 +242,20 @@ export async function moveSiteItemAction(formData:FormData) {
   await moveSiteItem(rawKind,itemId(formData),formData.get("direction") === "down" ? "down" : "up");
   revalidatePath("/"); revalidatePath("/portfolio"); revalidatePath("/admin");
 }
+
+function musicFields(formData:FormData) {
+  const title=String(formData.get("title")??"").replace(/。+/g,"").trim();
+  const artist=String(formData.get("artist")??"").trim();
+  const audio_url=String(formData.get("audioUrl")??"").trim();
+  const cover_url=String(formData.get("coverUrl")??"").trim()||null;
+  if(!title||!artist)throw new Error("歌名與歌手皆為必填");
+  if(!/^\/media\/music\/[a-f0-9-]+\.(?:mp3|ogg|wav|m4a|aac|webm)$/.test(audio_url))throw new Error("請先上傳有效的歌曲音訊");
+  if(cover_url&&!/^\/media\/blog\/[a-f0-9-]+\.(?:jpg|png|webp|gif)$/.test(cover_url))throw new Error("歌曲封面網址無效");
+  return {title,artist,audio_url,cover_url,enabled:formData.get("enabled")==="yes"?1:0,sort_order:orderValue(formData)};
+}
+export async function createMusicTrackAction(formData:FormData){await requireAdmin();await createMusicTrack(musicFields(formData));revalidatePath("/");revalidatePath("/admin");}
+export async function updateMusicTrackAction(formData:FormData){await requireAdmin();await updateMusicTrack(itemId(formData),musicFields(formData));revalidatePath("/");revalidatePath("/admin");}
+export async function deleteMusicTrackAction(formData:FormData){await requireAdmin();const track=await deleteMusicTrack(itemId(formData));const key=track.audio_url.startsWith("/media/music/")?track.audio_url.slice("/media/".length):"";const bucket=(globalThis as typeof globalThis&{__STEVEN_SITE_ENV__?:{BUCKET:R2Bucket}}).__STEVEN_SITE_ENV__?.BUCKET;if(key&&bucket)await bucket.delete(key);revalidatePath("/");revalidatePath("/admin");}
+export async function moveMusicTrackAction(formData:FormData){await requireAdmin();await moveMusicTrack(itemId(formData),formData.get("direction")==="down"?"down":"up");revalidatePath("/");revalidatePath("/admin");}
+export async function setSongRequestStatusAction(formData:FormData){await requireAdmin();await setSongRequestStatus(itemId(formData),formData.get("status")==="reviewed"?"reviewed":"new");revalidatePath("/admin");}
+export async function deleteSongRequestAction(formData:FormData){await requireAdmin();await deleteSongRequest(itemId(formData));revalidatePath("/admin");}

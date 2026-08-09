@@ -375,3 +375,20 @@ footer .section-kicker span { color:#6688ff; }
 }
 @media (max-width:480px) { .brand{font-size:28px}.skill-grid{grid-template-columns:1fr}.skill-grid article{min-height:220px}.skill-grid h3{margin-top:35px}.skill-line{gap:9px}.footer-bottom{margin-top:70px}.about-portfolio-callout{grid-template-columns:1fr}.about-portfolio-callout strong{grid-row:auto}.portfolio-media{min-height:200px}.portfolio-placeholder{min-height:200px}.portfolio-card-copy{padding:24px}.portfolio-card-bottom{align-items:flex-start;flex-direction:column}.technology-list{justify-content:flex-start} }
 @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} *,*::before,*::after{animation:none!important;transition:none!important} }
+
+.music-track-form { margin-bottom:22px; }
+.music-media-fields { display:grid; gap:14px; grid-column:1 / -1; padding:16px; border:1px dashed #999; background:#faf8f1; }
+.music-file-ready { margin:0; color:#185d2d; font:700 12px "Courier New",monospace; }
+.music-cover-preview { display:flex; gap:12px; align-items:flex-end; }
+.music-cover-preview img { width:96px; height:96px; object-fit:cover; border:1px solid var(--ink); }
+.music-cover-preview button { border:1px solid #9d1c12; background:transparent; color:#9d1c12; padding:8px 10px; cursor:pointer; }
+.music-admin-list { display:grid; gap:12px; }
+.song-request-list { display:grid; gap:12px; margin-top:22px; }
+.song-request-list article { padding:18px; border:1px solid var(--ink); background:var(--paper); }
+.song-request-list article.is-reviewed { opacity:.62; }
+.song-request-list article>div:first-child { display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center; }
+.song-request-list article h3 { margin:0; }
+.song-request-list article time,.song-request-list article>div:first-child>span { font:700 11px "Courier New",monospace; }
+.song-request-list article>div:first-child>span { padding:4px 7px; background:var(--blue); color:white; }
+.song-request-list article a { display:inline-block; margin-top:12px; overflow-wrap:anywhere; }
+.song-request-list article p { margin:12px 0 0; white-space:pre-wrap; }

@@ -12,6 +12,9 @@ import BlogPasswordField from "./blog-password-field";
 import MarkdownEditor from "./markdown-editor";
 import Link from "next/link";
 import PostSaveForm from "./post-save-form";
+import MusicUploadField from "./music-upload-field";
+import { listAllMusicTracks, listSongRequests } from "../../db/music";
+import { createMusicTrackAction, deleteMusicTrackAction, deleteSongRequestAction, moveMusicTrackAction, setSongRequestStatusAction, updateMusicTrackAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 export default async function AdminPage({ searchParams }: { searchParams: Promise<{ saved?: string }> }) {
@@ -21,6 +24,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const experiences = await listExperiences();
   const tags = await listTags();
   const content = await getSiteContent();
+  const [musicTracks,songRequests]=await Promise.all([listAllMusicTracks(),listSongRequests()]);
   return <main className="admin-shell">
     <header className="admin-top"><Link className="brand" href="/">STEVEN</Link><div><span>{email}</span><a href="/cdn-cgi/access/logout">登出</a></div></header>
     <section className="studio-heading"><p className="eyebrow">STEVEN CONTENT STUDIO</p><h1>管理你的<br/>個人網站</h1><p>在這裡編輯關於我、作品、技能、聯絡方式、經歷與文章；儲存後公開網站會直接更新。</p></section>
@@ -52,6 +56,17 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       <ContactForm action={createContactAction} nextOrder={content.contacts.length}/>
       {content.contacts.map((item,index)=><details className="post-editor" key={item.id}><summary><div><span className="experience-order">{String(index+1).padStart(2,"0")}</span><h3>{item.label} · {item.value}</h3></div><span>編輯 +</span></summary><ContactForm action={updateContactAction} item={item}/><ItemControls kind="contact" id={item.id} index={index} length={content.contacts.length} deleteAction={deleteContactAction}/></details>)}
     </ContentCollection>
+    <section className="editor-section music-admin"><div className="editor-title"><h2>網站歌曲設定</h2><span>共 {musicTracks.length} 首</span></div>
+      <p className="editor-note">這裡上傳的歌曲會顯示給所有訪客；訪客自行加入的歌曲只會留在他們自己的裝置。</p>
+      <MusicTrackForm action={createMusicTrackAction} nextOrder={musicTracks.length}/>
+      <div className="music-admin-list">{musicTracks.map((track,index)=><details className="post-editor" key={track.id}><summary><div><span className="experience-order">{String(index+1).padStart(2,"0")}</span><h3>{track.title} — {track.artist}</h3><span className={`status ${track.enabled?"published":"draft"}`}>{track.enabled?"公開":"停用"}</span></div><span>編輯 +</span></summary>
+        <MusicTrackForm action={updateMusicTrackAction} track={track}/><div className="experience-controls"><form action={moveMusicTrackAction}><input type="hidden" name="id" value={track.id}/><input type="hidden" name="direction" value="up"/><button className="visibility-button" disabled={index===0}>↑ 上移</button></form><form action={moveMusicTrackAction}><input type="hidden" name="id" value={track.id}/><input type="hidden" name="direction" value="down"/><button className="visibility-button" disabled={index===musicTracks.length-1}>↓ 下移</button></form><form action={deleteMusicTrackAction}><input type="hidden" name="id" value={track.id}/><button className="danger-button">刪除歌曲</button></form></div>
+      </details>)}</div>
+    </section>
+    <section className="editor-section song-request-admin"><div className="editor-title"><h2>歌曲推薦收件匣</h2><span>{songRequests.filter(item=>item.status==="new").length} 則未處理</span></div>
+      <p className="editor-note">訪客只能推薦歌名與連結，不能直接修改網站共用歌單。</p>
+      <div className="song-request-list">{songRequests.length===0?<p className="empty-state">目前還沒有歌曲推薦。</p>:songRequests.map(item=><article className={item.status==="reviewed"?"is-reviewed":""} key={item.id}><div><span>{item.status==="new"?"NEW":"已處理"}</span><h3>{item.title} — {item.artist}</h3><time>{new Date(item.created_at).toLocaleDateString("zh-TW")}</time></div>{item.link_url&&<a href={item.link_url} target="_blank" rel="noopener noreferrer">開啟歌曲連結 ↗</a>}{item.message&&<p>{item.message}</p>}<div className="experience-controls"><form action={setSongRequestStatusAction}><input type="hidden" name="id" value={item.id}/><input type="hidden" name="status" value={item.status==="new"?"reviewed":"new"}/><button className="visibility-button">{item.status==="new"?"標記已處理":"標記未處理"}</button></form><form action={deleteSongRequestAction}><input type="hidden" name="id" value={item.id}/><button className="danger-button">刪除</button></form></div></article>)}</div>
+    </section>
     <section className="editor-section"><h2>新增文章</h2><PostForm mode="create" tags={tags} /></section>
     <section className="editor-section"><div className="editor-title"><h2>我的文章</h2><span>共 {posts.length} 篇</span></div>
       {posts.length === 0 ? <p className="empty-state">目前還沒有文章，請從上方編輯器開始撰寫。</p> : posts.map(post => <details className="post-editor" key={post.id}>
@@ -106,6 +121,11 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
 
 function ContentCollection({title,count,kind,children}:{title:string;count:number;kind:string;children:React.ReactNode}) {
   return <section className={`editor-section site-content-admin ${kind}-admin`}><div className="editor-title"><h2>{title}</h2><span>共 {count} 筆</span></div><p className="editor-note">可編輯繁中與英文內容；使用排序數字或上移／下移調整公開頁顯示順序。</p>{children}</section>;
+}
+
+type MusicTrack=Awaited<ReturnType<typeof listAllMusicTracks>>[number];
+function MusicTrackForm({action,track,nextOrder=0}:{action:(formData:FormData)=>Promise<void>;track?:MusicTrack;nextOrder?:number}){
+  return <form className="post-form music-track-form" action={action}>{track&&<input type="hidden" name="id" value={track.id}/>}<label>歌名<input required name="title" defaultValue={track?.title}/></label><label>歌手／作者<input required name="artist" defaultValue={track?.artist}/></label><MusicUploadField existingAudio={track?.audio_url} existingCover={track?.cover_url??""}/><label className="featured-check"><input type="checkbox" name="enabled" value="yes" defaultChecked={track?Boolean(track.enabled):true}/><span>在所有訪客的網站歌單中啟用</span></label><div className="form-row"><label>播放順序<input type="number" required step="1" name="sortOrder" defaultValue={track?.sort_order??nextOrder}/></label><button className="primary-button">{track?"儲存歌曲":"新增至網站歌單"} →</button></div></form>;
 }
 
 type Content = Awaited<ReturnType<typeof getSiteContent>>;

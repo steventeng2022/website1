@@ -73,3 +73,25 @@ export const portfolioProjects = sqliteTable("portfolio_projects", {
 });
 export const portfolioSkills = sqliteTable("portfolio_skills", { id:integer("id").primaryKey({autoIncrement:true}), nameZh:text("name_zh").notNull(), nameEn:text("name_en").notNull(), descriptionZh:text("description_zh").notNull(), descriptionEn:text("description_en").notNull(), sortOrder:integer("sort_order").notNull().default(0) });
 export const contactLinks = sqliteTable("contact_links", { id:integer("id").primaryKey({autoIncrement:true}), label:text("label").notNull(), value:text("value").notNull(), linkUrl:text("link_url"), sortOrder:integer("sort_order").notNull().default(0) });
+
+export const musicTracks = sqliteTable("music_tracks", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  title: text("title").notNull(),
+  artist: text("artist").notNull(),
+  audioUrl: text("audio_url").notNull(),
+  coverUrl: text("cover_url"),
+  enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: integer("created_at").notNull(),
+});
+
+export const songRequests = sqliteTable("song_requests", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  title: text("title").notNull(),
+  artist: text("artist").notNull(),
+  linkUrl: text("link_url"),
+  message: text("message").notNull().default(""),
+  requesterHash: text("requester_hash").notNull(),
+  status: text("status").notNull().default("new"),
+  createdAt: integer("created_at").notNull(),
+});
