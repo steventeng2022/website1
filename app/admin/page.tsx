@@ -4,7 +4,7 @@ import { listFriends } from "../../db/friends";
 import { listExperiences } from "../../db/experiences";
 import { listTags } from "../../db/tags";
 import { getSiteContent } from "../../db/site-content";
-import { createContactAction, createExperienceAction, createFriendAction, createPostAction, createProjectAction, createSkillAction, createTagAction, deleteContactAction, deleteExperienceAction, deleteFriendAction, deletePostAction, deleteProjectAction, deleteSkillAction, deleteTagAction, moveExperienceAction, moveSiteItemAction, updateContactAction, updateExperienceAction, updatePostAction, updatePostStatusAction, updateProjectAction, updateSiteProfileAction, updateSkillAction } from "./actions";
+import { createContactAction, createExperienceAction, createFriendAction, createProjectAction, createSkillAction, createTagAction, deleteContactAction, deleteExperienceAction, deleteFriendAction, deletePostAction, deleteProjectAction, deleteSkillAction, deleteTagAction, moveExperienceAction, moveSiteItemAction, updateContactAction, updateExperienceAction, updatePostStatusAction, updateProjectAction, updateSiteProfileAction, updateSkillAction } from "./actions";
 import CoverImageField from "./cover-image-field";
 import ProjectCoverField from "./project-cover-field";
 import GalleryUploadField from "./gallery-upload-field";
@@ -17,7 +17,19 @@ import { listAllMusicTracks, listSongRequests } from "../../db/music";
 import { createMusicTrackAction, deleteMusicTrackAction, deleteSongRequestAction, moveMusicTrackAction, setSongRequestStatusAction, updateMusicTrackAction } from "./actions";
 
 export const dynamic = "force-dynamic";
-export default async function AdminPage({ searchParams }: { searchParams: Promise<{ saved?: string }> }) {
+type AdminSection = "overview" | "blog" | "portfolio" | "site" | "experience" | "music" | "friends";
+
+const adminSections: { id: AdminSection; label: string; hint: string }[] = [
+  { id: "overview", label: "總覽", hint: "Dashboard" },
+  { id: "blog", label: "文章", hint: "Posts & tags" },
+  { id: "portfolio", label: "作品集", hint: "Projects" },
+  { id: "site", label: "網站內容", hint: "About & skills" },
+  { id: "experience", label: "經歷", hint: "Timeline" },
+  { id: "music", label: "音樂", hint: "Tracks & requests" },
+  { id: "friends", label: "Friends", hint: "Links" },
+];
+
+export default async function AdminPage({ searchParams }: { searchParams: Promise<{ saved?: string; section?: string }> }) {
   const email = await requireAdmin();
   const posts = await listAllPosts();
   const friends = await listFriends();
@@ -25,11 +37,35 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const tags = await listTags();
   const content = await getSiteContent();
   const [musicTracks,songRequests]=await Promise.all([listAllMusicTracks(),listSongRequests()]);
+  const params = await searchParams;
+  const requestedSection = params.section as AdminSection | undefined;
+  const activeSection = adminSections.some(item => item.id === requestedSection) ? requestedSection! : "overview";
+  const newRequests = songRequests.filter(item=>item.status==="new").length;
   return <main className="admin-shell">
     <header className="admin-top"><Link className="brand" href="/">STEVEN</Link><div><span>{email}</span><a href="/cdn-cgi/access/logout">登出</a></div></header>
-    <section className="studio-heading"><p className="eyebrow">STEVEN CONTENT STUDIO</p><h1>管理你的<br/>個人網站</h1><p>在這裡編輯關於我、作品、技能、聯絡方式、經歷與文章；儲存後公開網站會直接更新。</p></section>
-    {(await searchParams).saved === "post" && <p className="admin-save-success" role="status">文章已成功儲存，公開頁面已更新。</p>}
-    <section className="editor-section content-profile-admin"><div className="editor-title"><h2>關於我與頁面文案</h2><span>繁中＋英文</span></div>
+    <div className="admin-workspace">
+      <aside className="admin-sidebar" aria-label="後台分類">
+        <div className="admin-sidebar-title"><span>CONTENT STUDIO</span><strong>管理中心</strong></div>
+        <nav className="admin-nav">{adminSections.map(item=><Link key={item.id} href={`/admin?section=${item.id}`} className={activeSection===item.id?"active":""} aria-current={activeSection===item.id?"page":undefined}><span>{item.label}</span><small>{item.hint}</small>{item.id==="music"&&newRequests>0?<b>{newRequests}</b>:null}</Link>)}</nav>
+        <Link className="admin-view-site" href="/">查看公開網站 ↗</Link>
+      </aside>
+      <div className="admin-content">
+        {(params.saved === "post") && <p className="admin-save-success" role="status">文章已成功儲存，公開頁面已更新。</p>}
+
+    {activeSection === "overview" && <section className="admin-overview">
+      <div className="admin-page-heading"><p className="eyebrow">DASHBOARD</p><h1>網站管理總覽</h1><p>選擇一個區域開始編輯，不需要再從整頁內容中尋找。</p></div>
+      <div className="admin-stat-grid">
+        <AdminCard href="blog" label="文章" value={posts.length} note={`${posts.filter(post=>post.status==="draft").length} 篇草稿`}/>
+        <AdminCard href="portfolio" label="作品" value={content.projects.length} note={`${content.projects.filter(item=>item.featured).length} 個精選`}/>
+        <AdminCard href="experience" label="經歷" value={experiences.length} note="時間軸項目"/>
+        <AdminCard href="music" label="網站歌曲" value={musicTracks.length} note={`${newRequests} 則推薦待處理`} alert={newRequests>0}/>
+        <AdminCard href="site" label="技能" value={content.skills.length} note={`${content.contacts.length} 種聯絡方式`}/>
+        <AdminCard href="friends" label="Friends" value={friends.length} note="合作網站"/>
+      </div>
+      <div className="admin-quick-actions"><h2>快速開始</h2><div><Link href="/admin?section=blog#new-post">＋ 撰寫新文章</Link><Link href="/admin?section=portfolio#new-project">＋ 新增作品</Link><Link href="/admin?section=music#new-track">＋ 上傳歌曲</Link></div></div>
+    </section>}
+
+    {activeSection === "site" && <div className="admin-section-stack"><section className="editor-section content-profile-admin"><div className="editor-title"><h2>關於我與頁面文案</h2><span>繁中＋英文</span></div>
       <form className="post-form content-profile-form" action={updateSiteProfileAction}>
         <label>關於我標題（中文）<textarea required name="aboutHeadingZh" rows={2} defaultValue={content.profile.about_heading_zh}/></label>
         <label>About heading (English)<textarea required name="aboutHeadingEn" rows={2} defaultValue={content.profile.about_heading_en}/></label>
@@ -44,10 +80,6 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         <button className="primary-button" type="submit">儲存頁面文案 →</button>
       </form>
     </section>
-    <ContentCollection title="作品管理" count={content.projects.length} kind="project">
-      <ProjectForm action={createProjectAction} posts={posts} nextOrder={content.projects.length}/>
-      {content.projects.map((item,index)=><details className="post-editor" key={item.id}><summary><div><span className="experience-order">{String(index+1).padStart(2,"0")}</span><h3>{item.title_zh}</h3>{item.featured ? <span className="status published">精選</span> : null}</div><span>編輯 +</span></summary><ProjectForm action={updateProjectAction} posts={posts} item={item}/><ItemControls kind="project" id={item.id} index={index} length={content.projects.length} deleteAction={deleteProjectAction}/></details>)}
-    </ContentCollection>
     <ContentCollection title="技能管理" count={content.skills.length} kind="skill">
       <SkillForm action={createSkillAction} nextOrder={content.skills.length}/>
       {content.skills.map((item,index)=><details className="post-editor" key={item.id}><summary><div><span className="experience-order">{String(index+1).padStart(2,"0")}</span><h3>{item.name_zh}</h3></div><span>編輯 +</span></summary><SkillForm action={updateSkillAction} item={item}/><ItemControls kind="skill" id={item.id} index={index} length={content.skills.length} deleteAction={deleteSkillAction}/></details>)}
@@ -55,8 +87,14 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     <ContentCollection title="聯絡方式管理" count={content.contacts.length} kind="contact">
       <ContactForm action={createContactAction} nextOrder={content.contacts.length}/>
       {content.contacts.map((item,index)=><details className="post-editor" key={item.id}><summary><div><span className="experience-order">{String(index+1).padStart(2,"0")}</span><h3>{item.label} · {item.value}</h3></div><span>編輯 +</span></summary><ContactForm action={updateContactAction} item={item}/><ItemControls kind="contact" id={item.id} index={index} length={content.contacts.length} deleteAction={deleteContactAction}/></details>)}
-    </ContentCollection>
-    <section className="editor-section music-admin"><div className="editor-title"><h2>網站歌曲設定</h2><span>共 {musicTracks.length} 首</span></div>
+    </ContentCollection></div>}
+
+    {activeSection === "portfolio" && <div className="admin-section-stack" id="new-project"><ContentCollection title="作品管理" count={content.projects.length} kind="project">
+      <ProjectForm action={createProjectAction} posts={posts} nextOrder={content.projects.length}/>
+      {content.projects.map((item,index)=><details className="post-editor" key={item.id}><summary><div><span className="experience-order">{String(index+1).padStart(2,"0")}</span><h3>{item.title_zh}</h3>{item.featured ? <span className="status published">精選</span> : null}</div><span>編輯 +</span></summary><ProjectForm action={updateProjectAction} posts={posts} item={item}/><ItemControls kind="project" id={item.id} index={index} length={content.projects.length} deleteAction={deleteProjectAction}/></details>)}
+    </ContentCollection></div>}
+
+    {activeSection === "music" && <div className="admin-section-stack"><section className="editor-section music-admin" id="new-track"><div className="editor-title"><h2>網站歌曲設定</h2><span>共 {musicTracks.length} 首</span></div>
       <p className="editor-note">這裡上傳的歌曲會顯示給所有訪客；訪客自行加入的歌曲只會留在他們自己的裝置。</p>
       <MusicTrackForm action={createMusicTrackAction} nextOrder={musicTracks.length}/>
       <div className="music-admin-list">{musicTracks.map((track,index)=><details className="post-editor" key={track.id}><summary><div><span className="experience-order">{String(index+1).padStart(2,"0")}</span><h3>{track.title} — {track.artist}</h3><span className={`status ${track.enabled?"published":"draft"}`}>{track.enabled?"公開":"停用"}</span></div><span>編輯 +</span></summary>
@@ -66,8 +104,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     <section className="editor-section song-request-admin"><div className="editor-title"><h2>歌曲推薦收件匣</h2><span>{songRequests.filter(item=>item.status==="new").length} 則未處理</span></div>
       <p className="editor-note">訪客只能推薦歌名與連結，不能直接修改網站共用歌單。</p>
       <div className="song-request-list">{songRequests.length===0?<p className="empty-state">目前還沒有歌曲推薦。</p>:songRequests.map(item=><article className={item.status==="reviewed"?"is-reviewed":""} key={item.id}><div><span>{item.status==="new"?"NEW":"已處理"}</span><h3>{item.title} — {item.artist}</h3><time>{new Date(item.created_at).toLocaleDateString("zh-TW")}</time></div>{item.link_url&&<a href={item.link_url} target="_blank" rel="noopener noreferrer">開啟歌曲連結 ↗</a>}{item.message&&<p>{item.message}</p>}<div className="experience-controls"><form action={setSongRequestStatusAction}><input type="hidden" name="id" value={item.id}/><input type="hidden" name="status" value={item.status==="new"?"reviewed":"new"}/><button className="visibility-button">{item.status==="new"?"標記已處理":"標記未處理"}</button></form><form action={deleteSongRequestAction}><input type="hidden" name="id" value={item.id}/><button className="danger-button">刪除</button></form></div></article>)}</div>
-    </section>
-    <section className="editor-section"><h2>新增文章</h2><PostForm mode="create" tags={tags} /></section>
+    </section></div>}
+
+    {activeSection === "blog" && <div className="admin-section-stack"><section className="editor-section" id="new-post"><h2>新增文章</h2><PostForm mode="create" tags={tags} /></section>
     <section className="editor-section"><div className="editor-title"><h2>我的文章</h2><span>共 {posts.length} 篇</span></div>
       {posts.length === 0 ? <p className="empty-state">目前還沒有文章，請從上方編輯器開始撰寫。</p> : posts.map(post => <details className="post-editor" key={post.id}>
         <summary><div><span className={`status ${post.status}`}>{post.status === "published" ? "已發布" : "草稿"}</span><h3>{post.title}</h3></div><span>編輯 +</span></summary>
@@ -84,8 +123,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     <section className="editor-section tag-admin"><div className="editor-title"><h2>Blog 標籤管理</h2><span>共 {tags.length} 個標籤</span></div>
       <form className="tag-create-form" action={createTagAction}><label>標籤名稱<input required name="name" placeholder="Python"/></label><label>英文代稱<input required name="slug" pattern="[a-z0-9-]+" placeholder="python"/></label><button className="primary-button">建立標籤 →</button></form>
       <div className="tag-admin-list">{tags.length === 0 ? <p className="empty-state">目前還沒有標籤。</p> : tags.map(tag => <article key={tag.id}><span className="tag-chip">#{tag.name}</span><code>{tag.slug}</code><form action={deleteTagAction}><input type="hidden" name="id" value={tag.id}/><button className="danger-button">刪除</button></form></article>)}</div>
-    </section>
-    <section className="editor-section experience-admin"><div className="editor-title"><h2>Experience 經歷管理</h2><span>共 {experiences.length} 筆</span></div>
+    </section></div>}
+
+    {activeSection === "experience" && <section className="editor-section experience-admin"><div className="editor-title"><h2>Experience 經歷管理</h2><span>共 {experiences.length} 筆</span></div>
       <p className="editor-note">數字越小會排得越前面，也可以使用每筆資料的上移／下移按鈕。</p>
       <ExperienceForm action={createExperienceAction} nextOrder={experiences.length} />
       <div className="experience-admin-list">
@@ -99,8 +139,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           </div>
         </details>)}
       </div>
-    </section>
-    <section className="editor-section friends-admin"><div className="editor-title"><h2>Friends 網站管理</h2><span>共 {friends.length} 個網站</span></div>
+    </section>}
+
+    {activeSection === "friends" && <section className="editor-section friends-admin"><div className="editor-title"><h2>Friends 網站管理</h2><span>共 {friends.length} 個網站</span></div>
       <form className="post-form" action={createFriendAction}>
         <label>網站名稱<input required name="siteName" placeholder="Friend's Website"/></label>
         <label>網站網址<input required type="url" name="siteUrl" placeholder="https://example.com"/></label>
@@ -115,8 +156,14 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           <form action={deleteFriendAction}><input type="hidden" name="id" value={friend.id}/><button className="danger-button" type="submit">刪除</button></form>
         </article>)}
       </div>
-    </section>
+    </section>}
+      </div>
+    </div>
   </main>;
+}
+
+function AdminCard({href,label,value,note,alert=false}:{href:AdminSection;label:string;value:number;note:string;alert?:boolean}) {
+  return <Link href={`/admin?section=${href}`} className={`admin-stat-card${alert?" has-alert":""}`}><span>{label}</span><strong>{value}</strong><small>{note}</small><b aria-hidden="true">↗</b></Link>;
 }
 
 function ContentCollection({title,count,kind,children}:{title:string;count:number;kind:string;children:React.ReactNode}) {
