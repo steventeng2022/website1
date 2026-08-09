@@ -1,12 +1,31 @@
+"use client";
+
+import Script from "next/script";
+import { useCallback, useEffect, useState } from "react";
+
 type Track={id:number;title:string;artist:string;src:string;cover:string|null};
+
+declare global {
+  interface Window {
+    initFloatingMusicPlayer?: (selector:string, tracks:Track[]) => unknown;
+  }
+}
+
 export default function MusicPlayer({tracks}:{tracks:Track[]}) {
+  const [isOpen,setIsOpen]=useState(false);
+  const initialize=useCallback(()=>{
+    window.initFloatingMusicPlayer?.("#site-music-player",tracks);
+  },[tracks]);
+
+  useEffect(()=>{ initialize(); },[initialize]);
+
   return (
     <>
-      <aside className="music-player" id="site-music-player" aria-label="網站音樂播放器" data-site-tracks={JSON.stringify(tracks)}>
-        <button className="music-player__toggle" type="button" data-music-toggle aria-label="開啟或關閉音樂播放器">
+      <aside className={`music-player${isOpen?" is-open":""}`} id="site-music-player" aria-label="網站音樂播放器" data-site-tracks={JSON.stringify(tracks)}>
+        <button className="music-player__toggle" type="button" data-music-toggle aria-label={isOpen?"關閉音樂播放器":"開啟音樂播放器"} aria-expanded={isOpen} aria-controls="site-music-player-panel" onClick={()=>setIsOpen(open=>!open)}>
           <img className="music-player__cover" data-music-cover src="/music-default-cover.svg" alt="" aria-hidden="true" />
         </button>
-        <section className="music-player__panel" aria-label="播放控制與播放清單">
+        <section className="music-player__panel" id="site-music-player-panel" aria-label="播放控制與播放清單" aria-hidden={!isOpen}>
           <div className="music-player__now">
             <div>
               <div className="music-player__title" data-music-title>尚未加入音樂</div>
@@ -53,7 +72,7 @@ export default function MusicPlayer({tracks}:{tracks:Track[]}) {
           </form>
         </section>
       </aside>
-      <script src="/music-player.js" defer />
+      <Script id="site-music-player-script-v27" src="/music-player-v27.js" strategy="afterInteractive" onLoad={initialize} onReady={initialize} />
     </>
   );
 }

@@ -5,14 +5,23 @@ import test from "node:test";
 const [layout, component, player, styles] = await Promise.all([
   readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
   readFile(new URL("../app/music-player.tsx", import.meta.url), "utf8"),
-  readFile(new URL("../public/music-player.js", import.meta.url), "utf8"),
+  readFile(new URL("../public/music-player-v27.js", import.meta.url), "utf8"),
   readFile(new URL("../app/music-player.css", import.meta.url), "utf8"),
 ]);
 
 test("global layout includes the floating music player", () => {
   assert.match(layout, /<MusicPlayer\s+tracks=/);
   assert.match(component, /id="site-music-player"/);
-  assert.match(component, /src="\/music-player\.js"/);
+  assert.match(component, /src="\/music-player-v27\.js"/);
+});
+
+test("toggle opens independently and player script initializes after loading",()=>{
+  assert.match(component,/useState\(false\)/);
+  assert.match(component,/onClick=\{\(\)=>setIsOpen\(open=>!open\)\}/);
+  assert.match(component,/aria-expanded=\{isOpen\}/);
+  assert.match(component,/onLoad=\{initialize\}/);
+  assert.match(component,/onReady=\{initialize\}/);
+  assert.doesNotMatch(player,/data-music-toggle.*addEventListener/);
 });
 
 test("player separates universal site tracks from visitor-local tracks", () => {

@@ -41,9 +41,6 @@ class FloatingMusicPlayer {
   }
 
   bindEvents() {
-    this.root.querySelector("[data-music-toggle]").addEventListener("click", () => {
-      this.root.classList.toggle("is-open");
-    });
     this.playButton.addEventListener("click", () => this.togglePlayback());
     this.root.querySelector("[data-music-prev]").addEventListener("click", () => this.change(-1));
     this.root.querySelector("[data-music-next]").addEventListener("click", () => this.next());
