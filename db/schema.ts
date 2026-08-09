@@ -103,6 +103,8 @@ export const siteVisits = sqliteTable("site_visits", {
   blogSlug: text("blog_slug"),
   visitedAt: integer("visited_at").notNull(),
   visitDay: text("visit_day").notNull(),
+  durationSeconds: integer("duration_seconds").notNull().default(0),
+  ipAddress: text("ip_address"),
 });
 
 export const onlineSessions = sqliteTable("online_sessions", {
@@ -117,4 +119,12 @@ export const adminActivityLogs = sqliteTable("admin_activity_logs", {
   action: text("action").notNull(),
   detail: text("detail").notNull().default(""),
   createdAt: integer("created_at").notNull(),
+});
+
+export const visitorProfiles = sqliteTable("visitor_profiles", {
+  visitorHash: text("visitor_hash").primaryKey(), consentLevel: text("consent_level").notNull().default("automatic"),
+  firstSeen: integer("first_seen").notNull(), lastSeen: integer("last_seen").notNull(), browser: text("browser"), os: text("os"),
+  device: text("device"), language: text("language"), timezone: text("timezone"), country: text("country"), screenSize: text("screen_size"),
+  viewportSize: text("viewport_size"), colorScheme: text("color_scheme"), connectionType: text("connection_type"),
+  touchEnabled: integer("touch_enabled", { mode: "boolean" }), referrerHost: text("referrer_host"),
 });

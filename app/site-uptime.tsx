@@ -12,13 +12,13 @@ function parts() {
   return { days, hours, minutes, seconds };
 }
 
-export default function SiteUptime() {
+export default function SiteUptime({ compact = false }: { compact?: boolean }) {
   const [value, setValue] = useState(parts);
   useEffect(() => {
     const timer = window.setInterval(() => setValue(parts()), 1000);
     return () => window.clearInterval(timer);
   }, []);
-  return <div className="uptime-clock" aria-label={`網站已上線 ${value.days} 天 ${value.hours} 小時 ${value.minutes} 分 ${value.seconds} 秒`}>
+  return <div className={`uptime-clock${compact ? " compact" : ""}`} aria-label={`網站已上線 ${value.days} 天 ${value.hours} 小時 ${value.minutes} 分 ${value.seconds} 秒`}>
     <span><strong>{value.days}</strong><small>天</small></span>
     <span><strong>{String(value.hours).padStart(2,"0")}</strong><small>小時</small></span>
     <span><strong>{String(value.minutes).padStart(2,"0")}</strong><small>分鐘</small></span>

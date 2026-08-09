@@ -15,15 +15,16 @@ import PostSaveForm from "./post-save-form";
 import MusicUploadField from "./music-upload-field";
 import { listAllMusicTracks, listSongRequests } from "../../db/music";
 import { createMusicTrackAction, deleteMusicTrackAction, deleteSongRequestAction, moveMusicTrackAction, setSongRequestStatusAction, updateMusicTrackAction } from "./actions";
-import { getAnalyticsSummary, listAdminLogs, logAdminActivity } from "../../db/analytics";
-import SiteUptime from "./site-uptime";
+import { getAnalyticsSummary, listAdminLogs, listVisitorLogs, logAdminActivity } from "../../db/analytics";
+import SiteUptime from "../site-uptime";
 
 export const dynamic = "force-dynamic";
-type AdminSection = "overview" | "analytics" | "blog" | "portfolio" | "site" | "experience" | "music" | "friends";
+type AdminSection = "overview" | "analytics" | "visitors" | "blog" | "portfolio" | "site" | "experience" | "music" | "friends";
 
 const adminSections: { id: AdminSection; label: string; hint: string }[] = [
   { id: "overview", label: "總覽", hint: "Dashboard" },
   { id: "analytics", label: "網站狀態", hint: "Visits & logs" },
+  { id: "visitors", label: "訪客紀錄", hint: "Visitor details" },
   { id: "blog", label: "文章", hint: "Posts & tags" },
   { id: "portfolio", label: "作品集", hint: "Projects" },
   { id: "site", label: "網站內容", hint: "About & skills" },
@@ -42,7 +43,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const experiences = await listExperiences();
   const tags = await listTags();
   const content = await getSiteContent();
-  const [musicTracks,songRequests,analytics,adminLogs]=await Promise.all([listAllMusicTracks(),listSongRequests(),getAnalyticsSummary(),listAdminLogs()]);
+  const [musicTracks,songRequests,analytics,adminLogs,visitorLogs]=await Promise.all([listAllMusicTracks(),listSongRequests(),getAnalyticsSummary(),listAdminLogs(),listVisitorLogs()]);
   await logAdminActivity(email, "開啟後台", adminSections.find(item=>item.id===activeSection)?.label ?? activeSection);
   const newRequests = songRequests.filter(item=>item.status==="new").length;
   return <main className="admin-shell">
@@ -92,6 +93,26 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         <p className="editor-note">記錄後台登入與內容管理操作，不會顯示或保存密碼。</p>
         <div className="admin-log-list">{adminLogs.map(log=><article key={log.id}><time>{new Date(log.created_at).toLocaleString("zh-TW",{timeZone:"Asia/Taipei"})}</time><strong>{log.action}</strong><span>{log.detail}</span><small>{log.admin_email}</small></article>)}</div>
       </section>
+    </section>}
+
+    {activeSection === "visitors" && <section className="analytics-admin visitor-admin">
+      <div className="admin-page-heading"><p className="eyebrow">VISITOR LOG</p><h1>訪客紀錄</h1><p>最近 {visitorLogs.length} 筆造訪，包含 IP、裝置、瀏覽器、系統、來源與顯示環境。</p></div>
+      <div className="visitor-privacy-note"><strong>資料保護</strong><span>紀錄只限管理員查看並最長保存 90 天。公開頁尾會持續顯示蒐集項目、用途與資料權利聯絡方式。</span></div>
+      {visitorLogs.length === 0 ? <section className="analytics-panel"><p className="empty-state">目前還沒有訪客紀錄。部署新版後會開始累積。</p></section> : <div className="visitor-log-list">
+        {visitorLogs.map(log => <article key={log.id} className="visitor-log-card">
+          <header><div><span className="consent-badge automatic">自動記錄</span><strong>{pageLabel(log.path)}</strong><code>{log.path}</code></div><div><time>{new Date(log.visited_at).toLocaleString("zh-TW",{timeZone:"Asia/Taipei"})}</time><small>停留 {formatDuration(log.duration_seconds)}</small></div></header>
+          <dl>
+            <VisitorDetail label="IP 位址" value={log.ip_address}/><VisitorDetail label="匿名訪客" value={`${log.visitor_hash.slice(0,10)}…`}/>
+            <VisitorDetail label="裝置" value={log.device}/>
+            <VisitorDetail label="瀏覽器" value={log.browser}/><VisitorDetail label="作業系統" value={log.os}/>
+            <VisitorDetail label="語言" value={log.language}/><VisitorDetail label="時區" value={log.timezone}/>
+            <VisitorDetail label="國家代碼" value={log.country}/><VisitorDetail label="來源" value={log.referrer_host}/>
+            <VisitorDetail label="螢幕級距" value={log.screen_size}/><VisitorDetail label="視窗級距" value={log.viewport_size}/>
+            <VisitorDetail label="顯示模式" value={log.color_scheme}/><VisitorDetail label="網路" value={log.connection_type}/>
+            <VisitorDetail label="觸控" value={log.touch_enabled == null ? null : log.touch_enabled ? "支援" : "不支援"}/>
+          </dl>
+        </article>)}
+      </div>}
     </section>}
 
     {activeSection === "site" && <div className="admin-section-stack"><section className="editor-section content-profile-admin"><div className="editor-title"><h2>關於我與頁面文案</h2><span>繁中＋英文</span></div>
@@ -202,6 +223,15 @@ function Metric({label,value,note,live=false}:{label:string;value:number;note:st
 function pageLabel(path:string) {
   const labels:Record<string,string>={"/":"首頁","/blog":"Blog 列表","/portfolio":"作品集","/experience":"經歷","/friends":"Friends"};
   return labels[path]??path;
+}
+
+function VisitorDetail({label,value}:{label:string;value:string|null}) {
+  return <div><dt>{label}</dt><dd>{value || "未蒐集"}</dd></div>;
+}
+
+function formatDuration(seconds:number) {
+  const safe=Math.max(0,seconds||0); const minutes=Math.floor(safe/60); const rest=safe%60;
+  return minutes ? `${minutes} 分 ${rest} 秒` : `${rest} 秒`;
 }
 
 function ContentCollection({title,count,kind,children}:{title:string;count:number;kind:string;children:React.ReactNode}) {
