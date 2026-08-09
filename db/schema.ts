@@ -13,6 +13,14 @@ export const posts = sqliteTable("posts", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
 
+export const blogPostPasswords = sqliteTable("blog_post_passwords", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  postId: integer("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
+  label: text("label").notNull().default(""),
+  passwordHash: text("password_hash").notNull(),
+  createdAt: integer("created_at").notNull(),
+});
+
 export const experiences = sqliteTable("experiences", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   title: text("title").notNull(),

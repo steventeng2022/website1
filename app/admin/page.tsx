@@ -8,6 +8,7 @@ import { createContactAction, createExperienceAction, createFriendAction, create
 import CoverImageField from "./cover-image-field";
 import ProjectCoverField from "./project-cover-field";
 import GalleryUploadField from "./gallery-upload-field";
+import BlogPasswordField from "./blog-password-field";
 import MarkdownEditor from "./markdown-editor";
 import Link from "next/link";
 
@@ -154,7 +155,7 @@ function PostForm({ action, post, tags }: { action: (formData: FormData) => Prom
     <label className="content-label">文章內容（Markdown）<MarkdownEditor defaultValue={post?.content ?? ""}/></label>
     <CoverImageField existingCover={post?.cover_image ?? null}/>
     <GalleryUploadField existingItems={post?.gallery ?? []}/>
-    <fieldset className="lock-field"><legend>文章密碼鎖（選填）</legend><label>設定新密碼<input name="blogPassword" type="password" minLength={4} maxLength={128} autoComplete="new-password" placeholder={post?.password_hash ? "留空即保留目前密碼" : "留空即不鎖定"}/><small>密碼不會明文儲存。訪客解鎖後可閱讀 24 小時。</small></label>{post?.password_hash && <label className="remove-lock"><input type="checkbox" name="removeBlogPassword" value="yes"/> 移除這篇文章的密碼鎖</label>}</fieldset>
+    <BlogPasswordField existing={post?.passwords ?? []}/>
     <fieldset className="tag-picker"><legend>文章標籤（可複選）</legend>{tags.length === 0 ? <p>請先在下方建立標籤。</p> : tags.map(tag => <label key={tag.id}><input type="checkbox" name="tagIds" value={tag.id} defaultChecked={post?.tags.some(selected => selected.id === tag.id)}/><span>#{tag.name}</span></label>)}</fieldset>
     <div className="form-row"><label>文章狀態<select name="status" defaultValue={post?.status ?? "draft"}><option value="draft">草稿</option><option value="published">已發布</option></select></label><button className="primary-button" type="submit">{post ? "儲存變更" : "建立文章"} →</button></div>
   </form>;

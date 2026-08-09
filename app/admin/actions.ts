@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "../cloudflare-auth";
-import { createPost, deletePost, publishedPostExists, updatePost, updatePostStatus } from "../../db/posts";
+import { addPostPasswords, createPost, deletePost, publishedPostExists, removePostPasswords, updatePost, updatePostStatus } from "../../db/posts";
 import { createFriend, deleteFriend } from "../../db/friends";
 import { createExperience, deleteExperience, moveExperience, updateExperience } from "../../db/experiences";
 import { createTag, deleteTag } from "../../db/tags";
@@ -38,24 +38,42 @@ async function fields(formData: FormData) {
     if (caption.length > 300) throw new Error("每張照片的說明最多 300 個字");
     return { image_url, caption, sort_order: index };
   });
-  const password = String(formData.get("blogPassword") ?? "");
-  if (password && (password.length < 4 || password.length > 128)) throw new Error("文章密碼需為 4～128 個字元");
-  const removePassword = formData.get("removeBlogPassword") === "yes";
-  return { post: { title, slug, excerpt, content, cover_image: imageValue(formData), status }, tagIds, gallery, password, removePassword };
+  let rawPasswords: unknown;
+  try { rawPasswords = JSON.parse(String(formData.get("newBlogPasswords") ?? "[]")); } catch { throw new Error("文章密碼資料無效，請重新整理後再試"); }
+  if (!Array.isArray(rawPasswords) || rawPasswords.length > 20) throw new Error("每篇文章最多可新增 20 組密碼");
+  const newPasswords = rawPasswords.map((item, index) => {
+    if (!item || typeof item !== "object") throw new Error("文章密碼資料無效");
+    const password = String((item as { password?: unknown }).password ?? "");
+    const label = String((item as { label?: unknown }).label ?? "").trim() || `密碼 ${index + 1}`;
+    if (password.length < 4 || password.length > 128) throw new Error(`第 ${index + 1} 組文章密碼需為 4～128 個字元`);
+    if (label.length > 40) throw new Error(`第 ${index + 1} 組密碼名稱最多 40 個字`);
+    return { label, password };
+  });
+  const removePasswordIds = formData.getAll("removeBlogPasswordIds").map(Number).filter((id) => Number.isInteger(id) && id > 0);
+  return { post: { title, slug, excerpt, content, cover_image: imageValue(formData), status }, tagIds, gallery, newPasswords, removePasswordIds };
+}
+
+async function hashedPasswords(entries: { label: string; password: string }[]) {
+  return Promise.all(entries.map(async (entry) => ({ label: entry.label, password_hash: await hashBlogPassword(entry.password) })));
 }
 
 export async function createPostAction(formData: FormData) {
   await requireAdmin();
-  const { post, tagIds, gallery, password } = await fields(formData);
-  await createPost({ ...post, password_hash: password ? await hashBlogPassword(password) : null }, tagIds, gallery);
+  const { post, tagIds, gallery, newPasswords } = await fields(formData);
+  const postId = await createPost({ ...post, password_hash: null }, tagIds, gallery);
+  if (!postId) throw new Error("文章已建立，但無法取得文章編號，請重新整理後再試");
+  await addPostPasswords(postId, await hashedPasswords(newPasswords));
   revalidatePath("/"); revalidatePath("/blog"); revalidatePath("/admin");
 }
 
 export async function updatePostAction(formData: FormData) {
   await requireAdmin();
-  const { post, tagIds, gallery, password, removePassword } = await fields(formData);
-  const passwordHash = removePassword ? null : password ? await hashBlogPassword(password) : undefined;
-  await updatePost(Number(formData.get("id")), post, tagIds, gallery, passwordHash);
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id) || id < 1) throw new Error("文章編號無效");
+  const { post, tagIds, gallery, newPasswords, removePasswordIds } = await fields(formData);
+  await updatePost(id, post, tagIds, gallery);
+  await removePostPasswords(id, removePasswordIds);
+  await addPostPasswords(id, await hashedPasswords(newPasswords));
   revalidatePath("/"); revalidatePath("/blog"); revalidatePath("/admin");
 }
 

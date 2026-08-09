@@ -14,9 +14,9 @@ export default async function BlogPost({ params, searchParams }: { params: Promi
   const access = await getPublishedPostAccess(slug);
   if (!access) notFound();
 
-  if (access.password_hash) {
+  if (access.passwords.length > 0) {
     const jar = await cookies();
-    const expected = await blogUnlockToken(access.id, access.password_hash);
+    const expected = await blogUnlockToken(access.id, access.passwords);
     const unlocked = jar.get(unlockCookieName(access.id))?.value === expected;
     if (!unlocked) {
       const failed = (await searchParams).unlock === "failed";
@@ -26,5 +26,5 @@ export default async function BlogPost({ params, searchParams }: { params: Promi
 
   const post = await getPublishedPost(slug);
   if (!post) notFound();
-  return <main className="article-shell"><header className="site-header"><Link className="brand" href="/">STEVEN</Link><nav><Link href="/blog">所有文章</Link><Link href="/admin">撰寫文章</Link></nav></header><article className="article"><p className="eyebrow">部落格 · {new Date(post.updated_at).toLocaleDateString("zh-TW", { year:"numeric", month:"short", day:"2-digit" })}{access.password_hash ? " · 已解鎖" : ""}</p><h1>{post.title}</h1>{post.tags.length > 0 && <div className="post-tags article-tags">{post.tags.map(tag => <Link key={tag.id} href={`/blog?tag=${tag.slug}`}>#{tag.name}</Link>)}</div>}{post.excerpt && <p className="article-lead">{post.excerpt}</p>}{post.cover_image && <img className="article-cover" src={post.cover_image} alt={post.title}/>}<div className="article-body markdown-body"><ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown></div>{post.gallery.length > 0 && <section className="article-gallery" aria-labelledby="gallery-title"><div className="article-gallery-heading"><p className="eyebrow">PHOTO NOTES</p><h2 id="gallery-title">文章相簿</h2></div><div className="article-gallery-grid">{post.gallery.map((item,index) => <figure key={item.id}><img src={item.image_url} alt={item.caption || `${post.title} 相簿照片 ${index+1}`}/>{item.caption && <figcaption>{item.caption}</figcaption>}</figure>)}</div></section>}<Link className="text-link" href="/blog">← 返回所有文章</Link></article></main>;
+  return <main className="article-shell"><header className="site-header"><Link className="brand" href="/">STEVEN</Link><nav><Link href="/blog">所有文章</Link><Link href="/admin">撰寫文章</Link></nav></header><article className="article"><p className="eyebrow">部落格 · {new Date(post.updated_at).toLocaleDateString("zh-TW", { year:"numeric", month:"short", day:"2-digit" })}{access.passwords.length > 0 ? " · 已解鎖" : ""}</p><h1>{post.title}</h1>{post.tags.length > 0 && <div className="post-tags article-tags">{post.tags.map(tag => <Link key={tag.id} href={`/blog?tag=${tag.slug}`}>#{tag.name}</Link>)}</div>}{post.excerpt && <p className="article-lead">{post.excerpt}</p>}{post.cover_image && <img className="article-cover" src={post.cover_image} alt={post.title}/>}<div className="article-body markdown-body"><ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown></div>{post.gallery.length > 0 && <section className="article-gallery" aria-labelledby="gallery-title"><div className="article-gallery-heading"><p className="eyebrow">PHOTO NOTES</p><h2 id="gallery-title">文章相簿</h2></div><div className="article-gallery-grid">{post.gallery.map((item,index) => <figure key={item.id}><img src={item.image_url} alt={item.caption || `${post.title} 相簿照片 ${index+1}`}/>{item.caption && <figcaption>{item.caption}</figcaption>}</figure>)}</div></section>}<Link className="text-link" href="/blog">← 返回所有文章</Link></article></main>;
 }

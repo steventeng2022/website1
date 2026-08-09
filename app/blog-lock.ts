@@ -41,8 +41,16 @@ export async function verifyBlogPassword(password: string, stored: string) {
   }
 }
 
-export async function blogUnlockToken(postId: number, passwordHash: string) {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`steven-blog-unlock-v1:${postId}:${passwordHash}`));
+export async function verifyAnyBlogPassword(password: string, records: { password_hash: string }[]) {
+  for (const record of records) {
+    if (await verifyBlogPassword(password, record.password_hash)) return true;
+  }
+  return false;
+}
+
+export async function blogUnlockToken(postId: number, records: { id: number; password_hash: string }[]) {
+  const version = [...records].sort((a, b) => a.id - b.id).map((record) => `${record.id}:${record.password_hash}`).join("|");
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`steven-blog-unlock-v2:${postId}:${version}`));
   return encode(new Uint8Array(digest));
 }
 

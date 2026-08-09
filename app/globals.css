@@ -154,6 +154,13 @@ h1 { margin:0; font-size:clamp(76px,10vw,158px); line-height:.82; letter-spacing
 .lock-field legend { padding:0 8px; font:700 13px "Courier New",monospace; }
 .lock-field .remove-lock { display:flex; flex-direction:row; align-items:center; gap:9px; margin-top:16px; }
 .lock-field .remove-lock input { width:auto; }
+.existing-passwords,.new-password-list { display:grid; gap:10px; margin-bottom:20px; }
+.existing-passwords>p,.new-password-list>p { margin:0; color:#555; font:400 12px/1.6 "Courier New",monospace; }
+.password-row { display:grid; grid-template-columns:minmax(0,.8fr) minmax(0,1fr) auto; gap:12px; align-items:end; padding:14px; border:1px solid #aaa; background:#fff; }
+.password-row label { margin:0; }
+.password-remove-button { min-height:46px; white-space:nowrap; }
+.add-password-button { margin:0 0 14px; }
+@media (max-width:760px) { .password-row { grid-template-columns:1fr; } .password-remove-button { justify-self:start; } }
 .blog-lock { max-width:720px; margin:80px auto; border:1px solid var(--ink); padding:clamp(28px,6vw,64px); }
 .blog-lock h1 { margin:18px 0; font-size:clamp(42px,7vw,76px); line-height:.95; letter-spacing:-.06em; }
 .blog-lock>p:not(.eyebrow) { font:400 15px/1.7 "Courier New",monospace; max-width:580px; }
