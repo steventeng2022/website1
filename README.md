@@ -1,5 +1,10 @@
 # Steven Website — Cloudflare Blog
 
+## v28
+
+- 修正播放器收合時的透明區域遮住後方連結、按鈕與表單欄位
+- 播放器圖示維持可點擊，展開後的控制面板維持完整操作
+
 Cloudflare Workers + D1 version of Steven's personal website. Public visitors can browse the dedicated `/portfolio`, experience timeline, and published posts. The `/admin` writing studio is protected by Cloudflare Access and restricted to `steventeng2022@gmail.com`.
 
 ## Blog password locks

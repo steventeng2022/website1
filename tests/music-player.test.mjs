@@ -24,6 +24,13 @@ test("toggle opens independently and player script initializes after loading",()
   assert.doesNotMatch(player,/data-music-toggle.*addEventListener/);
 });
 
+test("collapsed player does not block nearby page controls",()=>{
+  assert.match(styles,/\.music-player\s*\{[^}]*pointer-events:\s*none/s);
+  assert.match(styles,/\.music-player__toggle\s*\{[^}]*pointer-events:\s*auto/s);
+  assert.match(styles,/\.music-player__panel\s*\{[^}]*pointer-events:\s*none/s);
+  assert.match(styles,/\.music-player\.is-open \.music-player__panel\s*\{[^}]*pointer-events:\s*auto/s);
+});
+
 test("player separates universal site tracks from visitor-local tracks", () => {
   assert.match(player, /constructor\(root, tracks = \[\]\)/);
   assert.match(player, /this\.tracks\.push\(track\)/);

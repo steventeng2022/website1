@@ -12,6 +12,9 @@
   z-index: 9999;
   display: flex;
   align-items: flex-end;
+  /* The closed panel still has layout width. Keep that transparent area from
+     intercepting clicks on admin fields and links behind the player. */
+  pointer-events: none;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: var(--music-text);
 }
@@ -28,6 +31,7 @@
   background: #222;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
   cursor: pointer;
+  pointer-events: auto;
 }
 
 .music-player__cover {
@@ -66,9 +70,10 @@
   transform: translateX(-8px) scale(0.98);
   transform-origin: left bottom;
   transition: opacity 180ms ease, transform 180ms ease, visibility 180ms;
+  pointer-events: none;
 }
 
-.music-player.is-open .music-player__panel { opacity: 1; visibility: visible; transform: none; }
+.music-player.is-open .music-player__panel { opacity: 1; visibility: visible; transform: none; pointer-events: auto; }
 
 .music-player__now {
   display: grid;
