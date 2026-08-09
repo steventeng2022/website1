@@ -11,9 +11,10 @@ import GalleryUploadField from "./gallery-upload-field";
 import BlogPasswordField from "./blog-password-field";
 import MarkdownEditor from "./markdown-editor";
 import Link from "next/link";
+import PostSaveForm from "./post-save-form";
 
 export const dynamic = "force-dynamic";
-export default async function AdminPage() {
+export default async function AdminPage({ searchParams }: { searchParams: Promise<{ saved?: string }> }) {
   const email = await requireAdmin();
   const posts = await listAllPosts();
   const friends = await listFriends();
@@ -23,6 +24,7 @@ export default async function AdminPage() {
   return <main className="admin-shell">
     <header className="admin-top"><Link className="brand" href="/">STEVEN</Link><div><span>{email}</span><a href="/cdn-cgi/access/logout">登出</a></div></header>
     <section className="studio-heading"><p className="eyebrow">STEVEN CONTENT STUDIO</p><h1>管理你的<br/>個人網站</h1><p>在這裡編輯關於我、作品、技能、聯絡方式、經歷與文章；儲存後公開網站會直接更新。</p></section>
+    {(await searchParams).saved === "post" && <p className="admin-save-success" role="status">文章已成功儲存，公開頁面已更新。</p>}
     <section className="editor-section content-profile-admin"><div className="editor-title"><h2>關於我與頁面文案</h2><span>繁中＋英文</span></div>
       <form className="post-form content-profile-form" action={updateSiteProfileAction}>
         <label>關於我標題（中文）<textarea required name="aboutHeadingZh" rows={2} defaultValue={content.profile.about_heading_zh}/></label>
@@ -50,11 +52,11 @@ export default async function AdminPage() {
       <ContactForm action={createContactAction} nextOrder={content.contacts.length}/>
       {content.contacts.map((item,index)=><details className="post-editor" key={item.id}><summary><div><span className="experience-order">{String(index+1).padStart(2,"0")}</span><h3>{item.label} · {item.value}</h3></div><span>編輯 +</span></summary><ContactForm action={updateContactAction} item={item}/><ItemControls kind="contact" id={item.id} index={index} length={content.contacts.length} deleteAction={deleteContactAction}/></details>)}
     </ContentCollection>
-    <section className="editor-section"><h2>新增文章</h2><PostForm action={createPostAction} tags={tags} /></section>
+    <section className="editor-section"><h2>新增文章</h2><PostForm mode="create" tags={tags} /></section>
     <section className="editor-section"><div className="editor-title"><h2>我的文章</h2><span>共 {posts.length} 篇</span></div>
       {posts.length === 0 ? <p className="empty-state">目前還沒有文章，請從上方編輯器開始撰寫。</p> : posts.map(post => <details className="post-editor" key={post.id}>
         <summary><div><span className={`status ${post.status}`}>{post.status === "published" ? "已發布" : "草稿"}</span><h3>{post.title}</h3></div><span>編輯 +</span></summary>
-        <PostForm action={updatePostAction} post={post} tags={tags} />
+        <PostForm mode="update" post={post} tags={tags} />
         <form action={updatePostStatusAction} className="status-toggle-form">
           <input type="hidden" name="id" value={post.id}/>
           <input type="hidden" name="slug" value={post.slug}/>
@@ -147,8 +149,8 @@ function ExperienceForm({ action, experience, nextOrder = 0 }: { action: (formDa
   </form>;
 }
 
-function PostForm({ action, post, tags }: { action: (formData: FormData) => Promise<void>; post?: Awaited<ReturnType<typeof listAllPosts>>[number]; tags: Awaited<ReturnType<typeof listTags>> }) {
-  return <form className="post-form" action={action}>
+function PostForm({ mode, post, tags }: { mode: "create" | "update"; post?: Awaited<ReturnType<typeof listAllPosts>>[number]; tags: Awaited<ReturnType<typeof listTags>> }) {
+  return <PostSaveForm mode={mode}>
     {post && <input type="hidden" name="id" value={post.id}/>}<label>文章標題<input required name="title" defaultValue={post?.title} placeholder="我從第一個專案學到的事"/></label>
     <label>網址代稱（英文）<input required name="slug" defaultValue={post?.slug} placeholder="my-first-project" pattern="[a-z0-9-]+"/></label>
     <label>簡短介紹<textarea name="excerpt" defaultValue={post?.excerpt} rows={2} placeholder="顯示在首頁的文章簡介。"/></label>
@@ -157,6 +159,6 @@ function PostForm({ action, post, tags }: { action: (formData: FormData) => Prom
     <GalleryUploadField existingItems={post?.gallery ?? []}/>
     <BlogPasswordField existing={post?.passwords ?? []}/>
     <fieldset className="tag-picker"><legend>文章標籤（可複選）</legend>{tags.length === 0 ? <p>請先在下方建立標籤。</p> : tags.map(tag => <label key={tag.id}><input type="checkbox" name="tagIds" value={tag.id} defaultChecked={post?.tags.some(selected => selected.id === tag.id)}/><span>#{tag.name}</span></label>)}</fieldset>
-    <div className="form-row"><label>文章狀態<select name="status" defaultValue={post?.status ?? "draft"}><option value="draft">草稿</option><option value="published">已發布</option></select></label><button className="primary-button" type="submit">{post ? "儲存變更" : "建立文章"} →</button></div>
-  </form>;
+    <div className="form-row"><label>文章狀態<select name="status" defaultValue={post?.status ?? "draft"}><option value="draft">草稿</option><option value="published">已發布</option></select></label></div>
+  </PostSaveForm>;
 }

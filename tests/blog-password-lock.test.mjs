@@ -6,11 +6,11 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("stores only a salted password hash", async () => {
   const lock = await read("app/blog-lock.ts");
-  const actions = await read("app/admin/actions.ts");
+  const saver = await read("app/admin/post-save.ts");
   assert.match(lock, /PBKDF2/);
   assert.match(lock, /crypto\.getRandomValues/);
-  assert.match(actions, /password_hash:\s*await hashBlogPassword\(entry\.password\)/);
-  assert.doesNotMatch(actions, /INSERT[^\n]+password(?!_hash)/i);
+  assert.match(saver, /password_hash:\s*await hashBlogPassword\(entry\.password\)/);
+  assert.doesNotMatch(saver, /INSERT[^\n]+password(?!_hash)/i);
 });
 
 test("checks access before loading protected article content", async () => {
@@ -22,16 +22,33 @@ test("checks access before loading protected article content", async () => {
 });
 
 test("supports multiple independent passwords and selective removal", async () => {
-  const actions = await read("app/admin/actions.ts");
+  const saver = await read("app/admin/post-save.ts");
   const posts = await read("db/posts.ts");
   const field = await read("app/admin/blog-password-field.tsx");
-  assert.match(actions, /newBlogPasswords/);
-  assert.match(actions, /removeBlogPasswordIds/);
-  assert.match(actions, /addPostPasswords/);
-  assert.match(actions, /removePostPasswords/);
+  assert.match(saver, /newBlogPasswords/);
+  assert.match(saver, /removeBlogPasswordIds/);
+  assert.match(saver, /addPostPasswords/);
+  assert.match(saver, /removePostPasswords/);
   assert.match(posts, /CREATE TABLE IF NOT EXISTS blog_post_passwords/);
   assert.match(field, /新增另一組密碼/);
   assert.match(field, /最多 20 組/);
+});
+
+test("saves posts without navigating to a blank server-action page", async () => {
+  const form = await read("app/admin/post-save-form.tsx");
+  const route = await read("app/admin/post-save/route.ts");
+  assert.match(form, /event\.preventDefault\(\)/);
+  assert.match(form, /fetch\("\/admin\/post-save"/);
+  assert.match(form, /setMessage\(/);
+  assert.match(form, /response\.json\(\)\.catch/);
+  assert.match(route, /Response\.json\(\{ ok: true/);
+  assert.match(route, /Response\.json\(\{ ok: false, error:/);
+});
+
+test("hashes new passwords before changing the saved post", async () => {
+  const saver = await read("app/admin/post-save.ts");
+  assert.ok(saver.indexOf("const passwords = await hashedPasswords(newPasswords)") < saver.indexOf("await updatePost(id"));
+  assert.doesNotMatch(saver, /Promise\.all\(entries\.map/);
 });
 
 test("accepts any saved password and invalidates cookies when the password set changes", async () => {
