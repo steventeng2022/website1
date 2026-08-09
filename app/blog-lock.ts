@@ -1,41 +1,68 @@
-const ITERATIONS = 120_000;
+import { pbkdf2, randomBytes, scrypt, timingSafeEqual } from "node:crypto";
+
+const SCRYPT_N = 16_384;
+const SCRYPT_R = 8;
+const SCRYPT_P = 1;
+const KEY_LENGTH = 32;
+const MAX_LEGACY_ITERATIONS = 1_000_000;
 
 function encode(bytes: Uint8Array) {
-  let value = "";
-  for (const byte of bytes) value += String.fromCharCode(byte);
-  return btoa(value).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+  return Buffer.from(bytes).toString("base64url");
 }
 
 function decode(value: string) {
-  const base64 = value.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(value.length / 4) * 4, "=");
-  const binary = atob(base64);
-  return Uint8Array.from(binary, (character) => character.charCodeAt(0));
+  return Buffer.from(value, "base64url");
 }
 
-async function derive(password: string, salt: Uint8Array, iterations: number) {
-  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
-  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt, iterations }, key, 256);
-  return new Uint8Array(bits);
+function deriveScrypt(password: string, salt: Uint8Array) {
+  return new Promise<Buffer>((resolve, reject) => {
+    scrypt(password, salt, KEY_LENGTH, { N: SCRYPT_N, r: SCRYPT_R, p: SCRYPT_P, maxmem: 32 * 1024 * 1024 }, (error, key) => {
+      if (error) reject(error);
+      else resolve(key);
+    });
+  });
+}
+
+function deriveLegacyPbkdf2(password: string, salt: Uint8Array, iterations: number) {
+  return new Promise<Buffer>((resolve, reject) => {
+    pbkdf2(password, salt, iterations, KEY_LENGTH, "sha256", (error, key) => {
+      if (error) reject(error);
+      else resolve(key);
+    });
+  });
 }
 
 function equal(a: Uint8Array, b: Uint8Array) {
-  if (a.length !== b.length) return false;
-  let difference = 0;
-  for (let index = 0; index < a.length; index += 1) difference |= a[index] ^ b[index];
-  return difference === 0;
+  const first = Buffer.from(a);
+  const second = Buffer.from(b);
+  return first.length === second.length && timingSafeEqual(first, second);
 }
 
 export async function hashBlogPassword(password: string) {
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  return `pbkdf2-sha256$${ITERATIONS}$${encode(salt)}$${encode(await derive(password, salt, ITERATIONS))}`;
+  const salt = randomBytes(16);
+  const hash = await deriveScrypt(password, salt);
+  return `scrypt-v1$${SCRYPT_N}$${SCRYPT_R}$${SCRYPT_P}$${encode(salt)}$${encode(hash)}`;
 }
 
 export async function verifyBlogPassword(password: string, stored: string) {
-  const [algorithm, iterationsText, saltText, expectedText] = stored.split("$");
-  const iterations = Number(iterationsText);
-  if (algorithm !== "pbkdf2-sha256" || !Number.isInteger(iterations) || iterations < 100_000 || !saltText || !expectedText) return false;
   try {
-    return equal(await derive(password, decode(saltText), iterations), decode(expectedText));
+    const parts = stored.split("$");
+    if (parts[0] === "scrypt-v1") {
+      const [, nText, rText, pText, saltText, expectedText] = parts;
+      if (Number(nText) !== SCRYPT_N || Number(rText) !== SCRYPT_R || Number(pText) !== SCRYPT_P || !saltText || !expectedText) return false;
+      return equal(await deriveScrypt(password, decode(saltText)), decode(expectedText));
+    }
+
+    // v20-v22 compatibility: verify existing PBKDF2 hashes through node:crypto,
+    // which does not have the Workers Web Crypto 10,000-iteration ceiling.
+    if (parts[0] === "pbkdf2-sha256") {
+      const [, iterationsText, saltText, expectedText] = parts;
+      const iterations = Number(iterationsText);
+      if (!Number.isInteger(iterations) || iterations < 10_000 || iterations > MAX_LEGACY_ITERATIONS || !saltText || !expectedText) return false;
+      return equal(await deriveLegacyPbkdf2(password, decode(saltText), iterations), decode(expectedText));
+    }
+
+    return false;
   } catch {
     return false;
   }

@@ -7,10 +7,19 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 test("stores only a salted password hash", async () => {
   const lock = await read("app/blog-lock.ts");
   const saver = await read("app/admin/post-save.ts");
-  assert.match(lock, /PBKDF2/);
-  assert.match(lock, /crypto\.getRandomValues/);
+  assert.match(lock, /scrypt-v1/);
+  assert.match(lock, /randomBytes\(16\)/);
+  assert.match(lock, /timingSafeEqual/);
   assert.match(saver, /password_hash:\s*await hashBlogPassword\(entry\.password\)/);
   assert.doesNotMatch(saver, /INSERT[^\n]+password(?!_hash)/i);
+});
+
+test("avoids the Workers Web Crypto PBKDF2 iteration ceiling", async () => {
+  const lock = await read("app/blog-lock.ts");
+  assert.doesNotMatch(lock, /crypto\.subtle\.deriveBits/);
+  assert.doesNotMatch(lock, /const ITERATIONS = 120_000/);
+  assert.match(lock, /deriveLegacyPbkdf2/);
+  assert.match(lock, /parts\[0\] === "pbkdf2-sha256"/);
 });
 
 test("checks access before loading protected article content", async () => {
