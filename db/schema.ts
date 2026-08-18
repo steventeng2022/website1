@@ -113,6 +113,16 @@ export const onlineSessions = sqliteTable("online_sessions", {
   lastSeen: integer("last_seen").notNull(),
 });
 
+export const discordStatusSettings = sqliteTable("discord_status_settings", {
+  id: integer("id").primaryKey(),
+  discordUserId: text("discord_user_id").notNull().default(""),
+  defaultStatusZh: text("default_status_zh").notNull(),
+  defaultStatusEn: text("default_status_en").notNull(),
+  showActivities: integer("show_activities", { mode: "boolean" }).notNull().default(true),
+  showSpotify: integer("show_spotify", { mode: "boolean" }).notNull().default(true),
+  updatedAt: integer("updated_at").notNull(),
+});
+
 export const adminActivityLogs = sqliteTable("admin_activity_logs", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   adminEmail: text("admin_email").notNull(),

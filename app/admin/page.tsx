@@ -4,7 +4,7 @@ import { listFriends } from "../../db/friends";
 import { listExperiences } from "../../db/experiences";
 import { listTags } from "../../db/tags";
 import { getSiteContent } from "../../db/site-content";
-import { createContactAction, createExperienceAction, createFriendAction, createProjectAction, createSkillAction, createTagAction, deleteContactAction, deleteExperienceAction, deleteFriendAction, deletePostAction, deleteProjectAction, deleteSkillAction, deleteTagAction, moveExperienceAction, moveSiteItemAction, updateContactAction, updateExperienceAction, updatePostStatusAction, updateProjectAction, updateSiteProfileAction, updateSkillAction } from "./actions";
+import { createContactAction, createExperienceAction, createFriendAction, createProjectAction, createSkillAction, createTagAction, deleteContactAction, deleteExperienceAction, deleteFriendAction, deletePostAction, deleteProjectAction, deleteSkillAction, deleteTagAction, moveExperienceAction, moveSiteItemAction, updateContactAction, updateDiscordStatusAction, updateExperienceAction, updatePostStatusAction, updateProjectAction, updateSiteProfileAction, updateSkillAction } from "./actions";
 import CoverImageField from "./cover-image-field";
 import ProjectCoverField from "./project-cover-field";
 import GalleryUploadField from "./gallery-upload-field";
@@ -17,14 +17,16 @@ import { listAllMusicTracks, listSongRequests } from "../../db/music";
 import { createMusicTrackAction, deleteMusicTrackAction, deleteSongRequestAction, moveMusicTrackAction, setSongRequestStatusAction, updateMusicTrackAction } from "./actions";
 import { getAnalyticsSummary, listAdminLogs, listVisitorLogs, logAdminActivity } from "../../db/analytics";
 import SiteUptime from "../site-uptime";
+import { getDiscordStatusSettings } from "../../db/discord-status";
 
 export const dynamic = "force-dynamic";
-type AdminSection = "overview" | "analytics" | "visitors" | "blog" | "portfolio" | "site" | "experience" | "music" | "friends";
+type AdminSection = "overview" | "analytics" | "visitors" | "presence" | "blog" | "portfolio" | "site" | "experience" | "music" | "friends";
 
 const adminSections: { id: AdminSection; label: string; hint: string }[] = [
   { id: "overview", label: "總覽", hint: "Dashboard" },
   { id: "analytics", label: "網站狀態", hint: "Visits & logs" },
   { id: "visitors", label: "訪客紀錄", hint: "Visitor details" },
+  { id: "presence", label: "Discord 狀態", hint: "Now playing" },
   { id: "blog", label: "文章", hint: "Posts & tags" },
   { id: "portfolio", label: "作品集", hint: "Projects" },
   { id: "site", label: "網站內容", hint: "About & skills" },
@@ -43,7 +45,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const experiences = await listExperiences();
   const tags = await listTags();
   const content = await getSiteContent();
-  const [musicTracks,songRequests,analytics,adminLogs,visitorLogs]=await Promise.all([listAllMusicTracks(),listSongRequests(),getAnalyticsSummary(),listAdminLogs(),listVisitorLogs()]);
+  const [musicTracks,songRequests,analytics,adminLogs,visitorLogs,discordSettings]=await Promise.all([listAllMusicTracks(),listSongRequests(),getAnalyticsSummary(),listAdminLogs(),listVisitorLogs(),getDiscordStatusSettings()]);
   await logAdminActivity(email, "開啟後台", adminSections.find(item=>item.id===activeSection)?.label ?? activeSection);
   const newRequests = songRequests.filter(item=>item.status==="new").length;
   return <main className="admin-shell">
@@ -67,8 +69,23 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         <AdminCard href="music" label="網站歌曲" value={musicTracks.length} note={`${newRequests} 則推薦待處理`} alert={newRequests>0}/>
         <AdminCard href="site" label="技能" value={content.skills.length} note={`${content.contacts.length} 種聯絡方式`}/>
         <AdminCard href="friends" label="Friends" value={friends.length} note="合作網站"/>
+        <AdminCard href="presence" label="Discord" value={discordSettings.discord_user_id ? "ON" : "OFF"} note={discordSettings.discord_user_id ? "即時狀態已連線" : "尚未設定 User ID"}/>
       </div>
       <div className="admin-quick-actions"><h2>快速開始</h2><div><Link href="/admin?section=analytics">查看網站狀態</Link><Link href="/admin?section=blog#new-post">＋ 撰寫新文章</Link><Link href="/admin?section=portfolio#new-project">＋ 新增作品</Link><Link href="/admin?section=music#new-track">＋ 上傳歌曲</Link></div></div>
+    </section>}
+
+    {activeSection === "presence" && <section className="editor-section discord-admin">
+      <div className="admin-page-heading"><p className="eyebrow">LIVE PRESENCE</p><h1>Discord 狀態</h1><p>首頁會優先顯示 Discord 自訂狀態、Spotify 或目前活動；沒有可顯示的活動時自動使用預設文字。</p></div>
+      <div className="discord-setup-note"><strong>第一次設定</strong><ol><li>在 Discord 開啟「開發者模式」，右鍵自己的帳號並複製 User ID</li><li>加入 Lanyard Discord server，讓公開 Presence API 能讀取狀態</li><li>貼上 User ID 並儲存，首頁約 30 秒內更新</li></ol><a href="https://discord.gg/lanyard" target="_blank" rel="noopener noreferrer">開啟 Lanyard 設定 ↗</a></div>
+      <form className="post-form discord-settings-form" action={updateDiscordStatusAction}>
+        <label className="wide-field">Discord User ID<input name="discordUserId" inputMode="numeric" pattern="[0-9]{17,20}" defaultValue={discordSettings.discord_user_id} placeholder="例如 123456789012345678"/><small>留空會停用 Discord 連線並永遠顯示預設狀態。這不是帳號名稱 steven0925。</small></label>
+        <label>預設狀態（中文）<textarea required name="defaultStatusZh" maxLength={160} rows={3} defaultValue={discordSettings.default_status_zh}/></label>
+        <label>Default status (English)<textarea required name="defaultStatusEn" maxLength={160} rows={3} defaultValue={discordSettings.default_status_en}/></label>
+        <label className="featured-check"><input type="checkbox" name="showActivities" value="yes" defaultChecked={Boolean(discordSettings.show_activities)}/><span>顯示 Discord 遊戲與其他活動</span></label>
+        <label className="featured-check"><input type="checkbox" name="showSpotify" value="yes" defaultChecked={Boolean(discordSettings.show_spotify)}/><span>顯示 Spotify 歌曲與歌手</span></label>
+        <button className="primary-button" type="submit">儲存 Discord 狀態設定 →</button>
+      </form>
+      <p className="editor-note discord-privacy-note">只會顯示你在 Discord 公開 Presence 中提供的內容。請避免把私人資訊寫進自訂狀態。</p>
     </section>}
 
     {activeSection === "analytics" && <section className="analytics-admin">
@@ -212,7 +229,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   </main>;
 }
 
-function AdminCard({href,label,value,note,alert=false}:{href:AdminSection;label:string;value:number;note:string;alert?:boolean}) {
+function AdminCard({href,label,value,note,alert=false}:{href:AdminSection;label:string;value:number|string;note:string;alert?:boolean}) {
   return <Link href={`/admin?section=${href}`} className={`admin-stat-card${alert?" has-alert":""}`}><span>{label}</span><strong>{value}</strong><small>{note}</small><b aria-hidden="true">↗</b></Link>;
 }
 

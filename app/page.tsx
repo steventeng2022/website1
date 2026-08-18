@@ -3,6 +3,7 @@ import LanguageToggle from "./language-toggle";
 import HeroCharacterTabs from "./hero-character-tabs";
 import { getSiteContent } from "../db/site-content";
 import Link from "next/link";
+import DiscordStatusCard from "./discord-status-card";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +39,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
             <Link className="primary-button" href={en ? "/portfolio?lang=en" : "/portfolio"}>{en ? "View my work" : "查看我的作品"} <span aria-hidden="true">→</span></Link>
             <a className="text-link" href="#about">{en ? "More about me" : "進一步認識我"}</a>
           </div>
+          <DiscordStatusCard en={en} />
           <p className="skill-line"><span>C++</span><i>/</i><span>PYTHON</span><i>/</i><span>ARDUINO</span><i>/</i><span>AI</span></p>
         </div>
         <HeroCharacterTabs />

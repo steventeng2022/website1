@@ -10,6 +10,7 @@ import { createContact, createProject, createSkill, deleteContact, deleteProject
 import { saveExistingPost, saveNewPost } from "./post-save";
 import { createMusicTrack, deleteMusicTrack, deleteSongRequest, moveMusicTrack, setSongRequestStatus, updateMusicTrack } from "../../db/music";
 import { logAdminActivity } from "../../db/analytics";
+import { updateDiscordStatusSettings } from "../../db/discord-status";
 
 async function auditedAdmin(action: string, detail = "") {
   const email = await requireAdmin();
@@ -199,6 +200,20 @@ export async function updateSiteProfileAction(formData: FormData) {
     contact_body_en: requiredText(formData,"contactBodyEn","Contact 英文內容"),
   });
   revalidatePath("/"); revalidatePath("/admin");
+}
+
+export async function updateDiscordStatusAction(formData: FormData) {
+  await auditedAdmin("更新 Discord 狀態設定", String(formData.get("discordUserId") ?? "未設定帳號"));
+  const discord_user_id = String(formData.get("discordUserId") ?? "").trim();
+  if (discord_user_id && !/^\d{17,20}$/.test(discord_user_id)) throw new Error("Discord User ID 應為 17 至 20 位數字");
+  await updateDiscordStatusSettings({
+    discord_user_id,
+    default_status_zh: requiredText(formData,"defaultStatusZh","中文預設狀態").slice(0,160),
+    default_status_en: requiredText(formData,"defaultStatusEn","英文預設狀態").slice(0,160),
+    show_activities: formData.get("showActivities") === "yes" ? 1 : 0,
+    show_spotify: formData.get("showSpotify") === "yes" ? 1 : 0,
+  });
+  revalidatePath("/"); revalidatePath("/admin"); revalidatePath("/api/discord-status");
 }
 
 async function projectFields(formData: FormData) {

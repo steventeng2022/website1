@@ -1,5 +1,15 @@
 # Steven Website — Cloudflare Blog
 
+## v34 — Discord 即時狀態
+
+- 首頁新增「現在正在做什麼」狀態卡，每 30 秒更新
+- 顯示順序：Discord 自訂狀態 → Spotify → 一般活動 → 後台預設文字
+- 後台「Discord 狀態」可設定 User ID、中英文預設狀態及活動顯示選項
+- 帳號離線、沒有活動或 Presence API 無法讀取時，自動顯示預設文字
+- 使用公開 Presence 服務，不需要也不應保存 Discord token
+
+第一次使用時，請在 Discord 開啟開發者模式並複製自己的 User ID，再於後台貼上。帳號需加入 Lanyard Discord server，Presence API 才能讀取公開狀態。
+
 ## v30
 
 - 後台新增「網站狀態」分頁：總瀏覽、今日瀏覽、匿名獨立訪客、目前在線與 Blog 閱讀量
