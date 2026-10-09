@@ -64,7 +64,7 @@ h1 { margin:0; font-size:clamp(76px,10vw,158px); line-height:.82; letter-spacing
 .preserve-lines { white-space:pre-line; }
 .project-list { border-top:1px solid var(--ink); }
 .project-card { display:grid; grid-template-columns:140px 1fr 70px; gap:30px; align-items:center; padding:34px 24px; border-bottom:1px solid var(--ink); transition:.22s; }
-.project-card:hover { color:white; background:var(--blue); padding-left:34px; }
+.project-card:hover { color:white; background:var(--blue); transform:translateY(-3px); }
 .project-number { color:var(--blue); font-size:70px; font-weight:300; letter-spacing:-.06em; }
 .project-card:hover .project-number { color:white; }
 .project-tag { margin:0 0 8px; }
@@ -373,9 +373,13 @@ footer .section-kicker span { color:#6688ff; }
 .portfolio-footer p { max-width:780px; margin:0; font-size:clamp(42px,6vw,88px); line-height:.95; font-weight:900; letter-spacing:-.065em; }
 .portfolio-footer a { flex:none; padding-bottom:8px; border-bottom:1px solid; color:#8aa2ff; font:800 13px "Courier New",monospace; }
 .footer-bottom { margin-top:100px; padding-top:22px; border-top:1px solid #444; display:flex; justify-content:space-between; font:700 12px "Courier New",monospace; }
-@keyframes rise { from { opacity:0; transform:translateY(24px); } }
-@keyframes mark-in { from { opacity:0; transform:translateX(45px); } }
-@keyframes photo-swap { from { opacity:.25; transform:scale(.985); } }
+@keyframes rise { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:none; } }
+@keyframes mark-in { from { opacity:0; transform:translateX(24px); } to { opacity:1; transform:none; } }
+@keyframes photo-swap { from { opacity:.2; transform:scale(1.025); } to { opacity:1; transform:none; } }
+@keyframes gentle-reveal { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:none; } }
+.motion-reveal { animation:gentle-reveal .8s cubic-bezier(.2,.65,.25,1) both; animation-timeline:view(); animation-range:entry 0% cover 22%; }
+@supports not (animation-timeline:view()) { .motion-reveal { animation:none; } }
+@media (prefers-reduced-motion:reduce) { .motion-reveal { animation:none!important; } }
 @media (max-width:800px) {
   .gallery-admin-grid,.article-gallery-grid { grid-template-columns:1fr; }
   main { background-size:25vw 100%; }

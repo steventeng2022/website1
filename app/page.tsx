@@ -45,7 +45,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
         <HeroCharacterTabs />
       </section>
 
-      <section className="section about" id="about">
+      <section className="section about motion-reveal" id="about">
         <div className="section-kicker"><span>01</span> {en ? "ABOUT ME" : "關於我"}</div>
         <div className="about-grid">
           <h2 className="preserve-lines">{en ? profile.about_heading_en : profile.about_heading_zh}</h2>
@@ -55,7 +55,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
         </div>
       </section>
 
-      <section className="section projects" id="projects">
+      <section className="section projects motion-reveal" id="projects">
         <div className="section-kicker"><span>02</span> {en ? "SELECTED PROJECTS" : "精選作品"}</div>
         <div className="project-list">
           {homeProjects.map((project,index) => (
@@ -73,7 +73,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
         <Link className="archive-link" href={en ? "/portfolio?lang=en" : "/portfolio"}>{en ? "VIEW COMPLETE PORTFOLIO" : "查看完整作品集"} →</Link>
       </section>
 
-      <section className="section skills" id="skills">
+      <section className="section skills motion-reveal" id="skills">
         <div className="section-kicker"><span>03</span> {en ? "SKILLS & INTERESTS" : "技能與興趣"}</div>
         <h2>{en ? profile.skills_heading_en : profile.skills_heading_zh}</h2>
         <div className="skill-grid">
@@ -87,13 +87,13 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
         </div>
       </section>
 
-      <section className="section blog" id="blog">
+      <section className="section blog motion-reveal" id="blog">
         <div className="section-kicker"><span>04</span> {en ? "PERSONAL BLOG" : "個人部落格"}</div>
         <div className="blog-heading"><h2>{en ? <>Notes on learning<br/>and creating.</> : <>記錄學習與<br/>創作過程</>}</h2><Link className="text-link" href="/admin">{en ? "OWNER SIGN IN" : "站長登入"} →</Link></div>
         {posts.length === 0 ? <div className="blog-empty"><p>{en ? "No published posts yet." : "目前還沒有已發布的文章。"}</p><span>{en ? "The first story is being written." : "第一篇故事正在撰寫中。"}</span></div> : <><div className="blog-grid">{posts.map((post, index) => <article className="blog-card" key={post.id}><p className="project-tag">{String(index + 1).padStart(2,"0")} · {new Date(post.updated_at).toLocaleDateString(en ? "en-US" : "zh-TW", { year:"numeric", month:"short", day:"2-digit" })}{post.is_locked ? ` · ${en ? "LOCKED" : "密碼保護"}` : ""}</p><h3><Link href={`/blog/${post.slug}`}>{post.title}</Link></h3>{post.tags.length > 0 && <div className="post-tags">{post.tags.map(tag => <Link key={tag.id} href={`/blog?tag=${tag.slug}`}>#{tag.name}</Link>)}</div>}<p>{post.excerpt}</p><Link className="read-link" href={`/blog/${post.slug}`}>{post.is_locked ? (en ? "UNLOCK POST" : "解鎖文章") : (en ? "READ POST" : "閱讀文章")} ↗</Link></article>)}</div><Link className="archive-link" href={en ? "/blog?lang=en" : "/blog"}>{en ? "VIEW ALL POSTS" : "查看所有舊文章"} →</Link></>}
       </section>
 
-      <footer id="contact">
+      <footer className="motion-reveal" id="contact">
         <p className="section-kicker"><span>05</span> {en ? "CONTACT" : "聯絡我"}</p>
         <div className="footer-grid">
           <h2 className="preserve-lines">{en ? profile.contact_heading_en : profile.contact_heading_zh}</h2>
