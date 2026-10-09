@@ -26,7 +26,9 @@ export default function HeroCharacterTabs() {
     <div className="hero-photo" role="tabpanel">
       <img
         key={active}
-        src={isSteven ? "/steven-drawing.png" : "/flower.png"}
+        src={isSteven ? "/steven-drawing.png" : "/flower.webp"}
+        loading={isSteven ? "eager" : "lazy"}
+        decoding="async"
         alt={isSteven ? "Steven's hand-drawn character" : "Flower, a cheerful tiger character in front of a castle"}
         className={isSteven ? "steven-drawing" : "flower-photo"}
       />

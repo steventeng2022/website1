@@ -1,4 +1,4 @@
-import { listPublishedPosts } from "../db/posts";
+import { listRecentPublishedPostSummaries } from "../db/posts";
 import LanguageToggle from "./language-toggle";
 import HeroCharacterTabs from "./hero-character-tabs";
 import { getSiteContent } from "../db/site-content";
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export default async function Home({ searchParams }: { searchParams: Promise<{ lang?: string }> }) {
   const { lang } = await searchParams;
   const en = lang === "en";
-  const [posts, content] = await Promise.all([listPublishedPosts(), getSiteContent()]);
+  const [posts, content] = await Promise.all([listRecentPublishedPostSummaries(3), getSiteContent()]);
   const { profile, projects, skills, contacts } = content;
   const featuredProjects = projects.filter((project) => project.featured).slice(0, 3);
   const homeProjects = featuredProjects.length > 0 ? featuredProjects : projects.slice(0, 3);
@@ -90,7 +90,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
       <section className="section blog" id="blog">
         <div className="section-kicker"><span>04</span> {en ? "PERSONAL BLOG" : "個人部落格"}</div>
         <div className="blog-heading"><h2>{en ? <>Notes on learning<br/>and creating.</> : <>記錄學習與<br/>創作過程</>}</h2><Link className="text-link" href="/admin">{en ? "OWNER SIGN IN" : "站長登入"} →</Link></div>
-        {posts.length === 0 ? <div className="blog-empty"><p>{en ? "No published posts yet." : "目前還沒有已發布的文章。"}</p><span>{en ? "The first story is being written." : "第一篇故事正在撰寫中。"}</span></div> : <><div className="blog-grid">{posts.slice(0, 3).map((post, index) => <article className="blog-card" key={post.id}><p className="project-tag">{String(index + 1).padStart(2,"0")} · {new Date(post.updated_at).toLocaleDateString(en ? "en-US" : "zh-TW", { year:"numeric", month:"short", day:"2-digit" })}{post.is_locked ? ` · ${en ? "LOCKED" : "密碼保護"}` : ""}</p><h3><Link href={`/blog/${post.slug}`}>{post.title}</Link></h3>{post.tags.length > 0 && <div className="post-tags">{post.tags.map(tag => <Link key={tag.id} href={`/blog?tag=${tag.slug}`}>#{tag.name}</Link>)}</div>}<p>{post.excerpt}</p><Link className="read-link" href={`/blog/${post.slug}`}>{post.is_locked ? (en ? "UNLOCK POST" : "解鎖文章") : (en ? "READ POST" : "閱讀文章")} ↗</Link></article>)}</div><Link className="archive-link" href={en ? "/blog?lang=en" : "/blog"}>{en ? "VIEW ALL POSTS" : "查看所有舊文章"} →</Link></>}
+        {posts.length === 0 ? <div className="blog-empty"><p>{en ? "No published posts yet." : "目前還沒有已發布的文章。"}</p><span>{en ? "The first story is being written." : "第一篇故事正在撰寫中。"}</span></div> : <><div className="blog-grid">{posts.map((post, index) => <article className="blog-card" key={post.id}><p className="project-tag">{String(index + 1).padStart(2,"0")} · {new Date(post.updated_at).toLocaleDateString(en ? "en-US" : "zh-TW", { year:"numeric", month:"short", day:"2-digit" })}{post.is_locked ? ` · ${en ? "LOCKED" : "密碼保護"}` : ""}</p><h3><Link href={`/blog/${post.slug}`}>{post.title}</Link></h3>{post.tags.length > 0 && <div className="post-tags">{post.tags.map(tag => <Link key={tag.id} href={`/blog?tag=${tag.slug}`}>#{tag.name}</Link>)}</div>}<p>{post.excerpt}</p><Link className="read-link" href={`/blog/${post.slug}`}>{post.is_locked ? (en ? "UNLOCK POST" : "解鎖文章") : (en ? "READ POST" : "閱讀文章")} ↗</Link></article>)}</div><Link className="archive-link" href={en ? "/blog?lang=en" : "/blog"}>{en ? "VIEW ALL POSTS" : "查看所有舊文章"} →</Link></>}
       </section>
 
       <footer id="contact">

@@ -66,6 +66,15 @@ async function ready() {
   await db().prepare("UPDATE posts SET title = replace(title, '。', '') WHERE instr(title, '。') > 0").run();
 }
 
+export async function listRecentPublishedPostSummaries(limit: number) {
+  await ready();
+  const capped = Math.max(0, Math.min(Math.trunc(limit) || 0, 3));
+  if (!capped) return [] as Array<Pick<Post, "id" | "title" | "slug" | "excerpt" | "updated_at" | "is_locked"> & { tags: Tag[] }>;
+  const posts = (await db().prepare("SELECT id, title, slug, excerpt, updated_at, CASE WHEN EXISTS (SELECT 1 FROM blog_post_passwords WHERE blog_post_passwords.post_id = posts.id) THEN 1 ELSE 0 END AS is_locked FROM posts WHERE status = 'published' ORDER BY updated_at DESC LIMIT ?").bind(capped).all<Pick<Post, "id" | "title" | "slug" | "excerpt" | "updated_at" | "is_locked">>()).results;
+  const tags = await tagsByPostIds(posts.map(post => post.id));
+  return posts.map(post => ({ ...post, tags: tags.get(post.id) ?? [] }));
+}
+
 export async function listPublishedPosts() {
   await ready();
   const posts = (await db().prepare("SELECT id, title, slug, excerpt, content, cover_image, status, created_at, updated_at, NULL AS password_hash, CASE WHEN EXISTS (SELECT 1 FROM blog_post_passwords WHERE blog_post_passwords.post_id = posts.id) THEN 1 ELSE 0 END AS is_locked FROM posts WHERE status = 'published' ORDER BY updated_at DESC").all<Post>()).results;
