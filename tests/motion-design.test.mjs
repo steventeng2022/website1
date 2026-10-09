@@ -14,6 +14,12 @@ test('interactive cards and controls move with transforms instead of layout padd
  assert.doesNotMatch(css,/\.project-card:hover[^}]*padding-left/);
  assert.match(css,/\.primary-button:hover[^}]*translateY/);
 });
+test('cards, tabs and music drawer use restrained transform-based motion',()=>{
+ assert.match(css,/\.blog-card:hover[^}]*translateY/);
+ assert.match(css,/\.portfolio-card\.has-link:hover[^}]*translateY/);
+ assert.match(css,/\.character-tabs button[^}]*transition:transform/);
+ assert.match(music,/\.music-player__panel[^}]*cubic-bezier/);
+});
 test('music panel remains usable without motion and photo swap is restrained',()=>{
  assert.match(music,/prefers-reduced-motion: reduce/);
  assert.match(css,/@keyframes photo-swap/);
