@@ -69,7 +69,7 @@
   visibility: hidden;
   transform: translateX(-8px) scale(0.98);
   transform-origin: left bottom;
-  transition: opacity 180ms ease, transform 180ms ease, visibility 180ms;
+  transition: opacity 320ms ease, transform 320ms cubic-bezier(.2,.65,.25,1), visibility 320ms;
   pointer-events: none;
 }
 
