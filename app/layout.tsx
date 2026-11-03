@@ -6,6 +6,8 @@ import PublicSiteStatus from "./public-site-status";
 import { listPublicMusicTracks } from "../db/music";
 import "./globals.css";
 import "./music-player.css";
+import "./premium.css";
+import "./site-header.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,9 +22,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Steven — 學生、程式設計與創作",
   description: "Steven 的個人網站：程式設計、AI、Arduino 與 Raspberry Pi。",
-  other: {
-    "codex-preview": "development",
-  },
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",

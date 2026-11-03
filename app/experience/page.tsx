@@ -1,4 +1,4 @@
-import LanguageToggle from "../language-toggle";
+import SiteHeader from "../site-header";
 import { listExperiences } from "../../db/experiences";
 import Link from "next/link";
 
@@ -16,25 +16,17 @@ export default async function ExperiencePage({ searchParams }: { searchParams: P
   const experiences = await listExperiences();
 
   return <main className="experience-shell">
-    <header className="site-header">
-      <Link className="brand" href={en ? "/?lang=en" : "/"}>STEVEN</Link>
-      <nav aria-label={en ? "Experience page navigation" : "經歷頁面導覽列"}>
-        <Link href={en ? "/?lang=en" : "/"}>{en ? "Home" : "首頁"}</Link>
-        <Link className="active-nav" href={en ? "/experience?lang=en" : "/experience"}>{en ? "Experience" : "經歷"}</Link>
-        <Link href={en ? "/friends?lang=en" : "/friends"}>Friends</Link>
-        <LanguageToggle />
-      </nav>
-    </header>
+    <SiteHeader en={en} active="experience" />
 
-    <section className="experience-hero">
-      <p className="eyebrow">{en ? "LEARNING · BUILDING · GROWING" : "學習 · 實作 · 成長"}</p>
+    <section className="experience-hero page-intro" id="main-content">
+      <div className="page-heading-meta"><p className="eyebrow">{en ? "LEARNING · BUILDING · GROWING" : "學習 · 實作 · 成長"}</p><span className="page-index">02 / EXPERIENCE</span></div>
       <h1>{en ? "Experience." : "我的經歷"}</h1>
-      <p>{en ? "A timeline of projects, communities, events, and the things I learned along the way." : "依時間整理我參與的專案、社群與活動，以及一路上學到的事。"}</p>
+      <div className="page-intro-footer"><p>{en ? "Every experience leaves something behind. The projects, communities, and moments that shape the way I learn and create." : "每段經歷，都留下一點養分。記錄參與過的專案、社群與活動，以及它們如何改變我學習與創作的方式。"}</p><span className="page-index">{en ? "AN ONGOING JOURNEY" : "持續累積的旅程"} ↘</span></div>
     </section>
 
     <section className="experience-list" aria-label={en ? "Experience timeline" : "經歷時間軸"}>
       <div className="section-kicker"><span>01</span> {en ? "TIMELINE" : "時間軸"}</div>
-      {experiences.length === 0 ? <div className="blog-empty"><p>{en ? "No experiences added yet." : "目前還沒有新增經歷。"}</p><span>{en ? "New milestones will appear here." : "新增後會依設定順序顯示在這裡。"}</span></div> : <div className="timeline">
+      {experiences.length === 0 ? <div className="blog-empty"><p>{en ? "The journey is still being written." : "旅程，還在持續書寫。"}</p><span>{en ? "New milestones will find a home here." : "新的里程碑，會慢慢收藏在這裡。"}</span></div> : <div className="timeline">
         {experiences.map((experience, index) => <article className="timeline-item" key={experience.id}>
           <div className="timeline-marker"><span>{String(index + 1).padStart(2, "0")}</span></div>
           <div className="timeline-date">

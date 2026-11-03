@@ -1,4 +1,4 @@
-import LanguageToggle from "../language-toggle";
+import SiteHeader from "../site-header";
 import { listFriends } from "../../db/friends";
 import Link from "next/link";
 
@@ -15,39 +15,29 @@ export default async function FriendsPage({
 
   return (
     <main className="friends-shell">
-      <header className="site-header">
-        <Link className="brand" href={en ? "/?lang=en" : "/"} aria-label={en ? "Steven home" : "Steven 首頁"}>
-          STEVEN
-        </Link>
-        <nav aria-label={en ? "Friends page navigation" : "Friends 頁面導覽列"}>
-          <Link href={en ? "/?lang=en" : "/"}>{en ? "Home" : "首頁"}</Link>
-          <Link href={en ? "/experience?lang=en" : "/experience"}>{en ? "Experience" : "經歷"}</Link>
-          <Link className="active-nav" href={en ? "/friends?lang=en" : "/friends"}>Friends</Link>
-          <LanguageToggle />
-        </nav>
-      </header>
+      <SiteHeader en={en} active="friends" />
 
-      <section className="friends-hero">
-        <p className="eyebrow">{en ? "COLLABORATORS · CREATORS · FRIENDS" : "合作夥伴 · 創作者 · 朋友"}</p>
+      <section className="friends-hero page-intro" id="main-content">
+        <div className="page-heading-meta"><p className="eyebrow">{en ? "COLLABORATORS · CREATORS · FRIENDS" : "合作夥伴 · 創作者 · 朋友"}</p><span className="page-index">04 / FRIENDS</span></div>
         <h1>Friends.</h1>
-        <p className="friends-intro">
+        <div className="page-intro-footer"><p className="friends-intro">
           {en
-            ? "A collection of websites made by friends and creators I have collaborated with."
-            : "收藏曾與我合作的朋友與創作者所製作的網站。"}
-        </p>
+            ? "Good things happen when curious people meet. A small corner of the internet for friends and creators I’ve worked with."
+            : "有趣的人相遇，讓好點子發生。在網路的一角，收藏與我一起創作的朋友和他們的網站。"}
+        </p><span className="page-index">{en ? "BETTER TOGETHER" : "一起創作，一起成長"} ↘</span></div>
       </section>
 
       <section className="friends-list" aria-label={en ? "Friend websites" : "朋友網站列表"}>
         <div className="section-kicker"><span>01</span> {en ? "WEBSITES" : "合作網站"}</div>
         <div className="friend-grid">
-          {friends.length === 0 ? <div className="blog-empty"><p>{en ? "No friend websites yet." : "目前還沒有 Friends 網站。"}</p><span>{en ? "New collaborators will appear here." : "新增合作網站後會顯示在這裡。"}</span></div> : friends.map((friend, index) => (
+          {friends.length === 0 ? <div className="blog-empty"><p>{en ? "Room for new connections." : "留一個位置，給新的相遇。"}</p><span>{en ? "Friends and their websites will appear here." : "朋友們的網站，會慢慢收藏在這裡。"}</span></div> : friends.map((friend, index) => (
             <article className="friend-card" key={friend.id}>
               <div className="friend-card-top">
                 <span className="friend-index">{String(index + 1).padStart(2, "0")}</span>
-                <img src={friend.logo_url} alt={`${friend.site_name} logo`} width="80" height="80" />
+                <img src={friend.logo_url} alt={`${friend.site_name} logo`} width="80" height="80" loading="lazy" decoding="async" />
               </div>
               <div className="friend-card-copy">
-                <p className="project-tag">{en ? "COLLABORATE WEBSITE" : "合作網站"}</p>
+                <p className="project-tag">{en ? "FRIEND OF THE SITE" : "一起創作的朋友"}</p>
                 <h2>{friend.site_name}</h2>
                 <p>{friend.description}</p>
               </div>
