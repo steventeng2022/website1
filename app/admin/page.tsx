@@ -17,6 +17,7 @@ import { listAllMusicTracks, listSongRequests } from "../../db/music";
 import { createMusicTrackAction, deleteMusicTrackAction, deleteSongRequestAction, moveMusicTrackAction, setSongRequestStatusAction, updateMusicTrackAction } from "./actions";
 import { getAnalyticsSummary, listAdminLogs, listVisitorLogs, logAdminActivity } from "../../db/analytics";
 import SiteUptime from "../site-uptime";
+import ThemeToggle from "../theme-toggle";
 import { getDiscordStatusSettings } from "../../db/discord-status";
 
 export const dynamic = "force-dynamic";
@@ -49,7 +50,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   await logAdminActivity(email, "開啟後台", adminSections.find(item=>item.id===activeSection)?.label ?? activeSection);
   const newRequests = songRequests.filter(item=>item.status==="new").length;
   return <main className="admin-shell">
-    <header className="admin-top"><Link className="brand" href="/">STEVEN</Link><div><span>{email}</span><a href="/cdn-cgi/access/logout">登出</a></div></header>
+    <header className="admin-top"><Link className="brand" href="/">STEVEN</Link><div><ThemeToggle /><span>{email}</span><a href="/cdn-cgi/access/logout">登出</a></div></header>
     <div className="admin-workspace">
       <aside className="admin-sidebar" aria-label="後台分類">
         <div className="admin-sidebar-title"><span>CONTENT STUDIO</span><strong>管理中心</strong></div>
