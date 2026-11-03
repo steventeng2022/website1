@@ -1,4 +1,4 @@
-import LanguageToggle from "../language-toggle";
+import SiteHeader from "../site-header";
 import { getSiteContent } from "../../db/site-content";
 import Link from "next/link";
 
@@ -17,33 +17,24 @@ export default async function PortfolioPage({ searchParams }: { searchParams: Pr
   const withLang = (path: string) => en ? `${path}${path.includes("?") ? "&" : "?"}lang=en` : path;
 
   return <main className="portfolio-shell">
-    <header className="site-header">
-      <Link className="brand" href={withLang("/")}>STEVEN</Link>
-      <nav aria-label={en ? "Main navigation" : "主要導覽列"}>
-        <Link href={withLang("/")}>{en ? "Home" : "首頁"}</Link>
-        <Link className="active-nav" href={withLang("/portfolio")}>{en ? "Portfolio" : "作品集"}</Link>
-        <Link href={withLang("/experience")}>{en ? "Experience" : "經歷"}</Link>
-        <Link href={withLang("/blog")}>{en ? "Blog" : "部落格"}</Link>
-        <LanguageToggle />
-      </nav>
-    </header>
+    <SiteHeader en={en} active="portfolio" />
 
-    <section className="portfolio-hero">
-      <p className="eyebrow">{en ? "PROJECTS · BUILDS · EXPERIMENTS" : "專案 · 實作 · 學習實驗"}</p>
+    <section className="portfolio-hero page-intro" id="main-content">
+      <div className="page-heading-meta"><p className="eyebrow">{en ? "PROJECTS · BUILDS · EXPERIMENTS" : "專案 · 實作 · 學習實驗"}</p><span className="page-index">01 / PORTFOLIO</span></div>
       <h1>{en ? "Things I’ve\nbuilt." : "我完成的\n作品"}</h1>
-      <div className="portfolio-hero-bottom"><p>{en ? "A growing collection of websites, software, AI explorations, and hardware projects. Some include a longer blog post about the process." : "這裡整理了我做過的網站、程式、AI 探索與硬體實作；部分作品也附有完整 Blog 記錄。"}</p><strong>{String(projects.length).padStart(2,"0")}</strong></div>
+      <div className="portfolio-hero-bottom page-intro-footer"><p>{en ? "Ideas made real. A growing collection of websites, software, AI explorations, and hardware projects — with notes from the process." : "讓想法成為作品。這裡收藏了我的網站、程式、AI 探索與硬體實作，以及一路上的學習筆記。"}</p><div className="page-count"><strong>{String(projects.length).padStart(2,"0")}</strong><span>{en ? "PROJECTS & EXPERIMENTS" : "作品與實驗"}</span></div></div>
     </section>
 
     <section className="portfolio-index">
       <div className="portfolio-toolbar">
         <p className="section-kicker"><span>01</span> {en ? "ALL WORK" : "所有作品"}</p>
         <div className="portfolio-filters" aria-label={en ? "Project categories" : "作品分類"}>
-          <Link className={!category ? "active" : ""} href={withLang("/portfolio")}>{en ? "ALL" : "全部"}</Link>
-          {categories.map((item) => <Link className={category === item ? "active" : ""} key={item} href={withLang(`/portfolio?category=${encodeURIComponent(item)}`)}>{item}</Link>)}
+          <Link className={!category ? "active" : ""} aria-current={!category ? "page" : undefined} href={withLang("/portfolio")}>{en ? "ALL" : "全部"}</Link>
+          {categories.map((item) => <Link className={category === item ? "active" : ""} aria-current={category === item ? "page" : undefined} key={item} href={withLang(`/portfolio?category=${encodeURIComponent(item)}`)}>{item}</Link>)}
         </div>
       </div>
 
-      {visible.length === 0 ? <div className="portfolio-empty">{en ? "No projects in this category yet." : "這個分類目前還沒有作品。"}</div> : <div className="portfolio-grid">
+      {visible.length === 0 ? <div className="portfolio-empty"><p>{en ? "A little room for the next idea." : "為下一個想法，留一點空間。"}</p><span>{en ? "There are no projects in this category yet." : "這個分類目前還沒有作品。"}</span>{category && <Link className="text-link" href={withLang("/portfolio")}>{en ? "Explore all projects" : "探索所有作品"} →</Link>}</div> : <div className="portfolio-grid">
         {visible.map((project, index) => {
           const destination = project.link_url || project.github_url || (project.blog_slug ? `/blog/${project.blog_slug}` : "");
           const external = destination.startsWith("http://") || destination.startsWith("https://");
@@ -51,7 +42,7 @@ export default async function PortfolioPage({ searchParams }: { searchParams: Pr
           const title = en ? project.title_en : project.title_zh;
 
           return <article className={`portfolio-card${destination ? " has-link" : ""}`} key={project.id}>
-            <div className="portfolio-media">{project.cover_image ? <img src={project.cover_image} alt={en ? `${title} project preview` : `${title}作品預覽`}/> : <div className="portfolio-placeholder"><span>{String(index + 1).padStart(2,"0")}</span><strong>{project.tag}</strong></div>}{project.featured ? <span className="featured-badge">{en ? "FEATURED" : "精選"}</span> : null}</div>
+            <div className="portfolio-media">{project.cover_image ? <img src={project.cover_image} loading="lazy" decoding="async" alt={en ? `${title} project preview` : `${title}作品預覽`}/> : <div className="portfolio-placeholder"><span>{String(index + 1).padStart(2,"0")}</span><strong>{project.tag}</strong></div>}{project.featured ? <span className="featured-badge">{en ? "FEATURED" : "精選"}</span> : null}</div>
             <div className="portfolio-card-copy">
               <div className="portfolio-meta">{project.completed_at ? <time>{project.completed_at.replace("-", ".")}</time> : <span>{String(index + 1).padStart(2,"0")}</span>}</div>
               <h2>{title}</h2>

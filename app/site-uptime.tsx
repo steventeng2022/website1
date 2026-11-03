@@ -12,16 +12,21 @@ function parts() {
   return { days, hours, minutes, seconds };
 }
 
-export default function SiteUptime({ compact = false }: { compact?: boolean }) {
-  const [value, setValue] = useState(parts);
+export default function SiteUptime({ compact = false, en = false }: { compact?: boolean; en?: boolean }) {
+  // The server and first client render must agree, even across a second boundary.
+  const [value, setValue] = useState<ReturnType<typeof parts> | null>(null);
   useEffect(() => {
+    setValue(parts());
     const timer = window.setInterval(() => setValue(parts()), 1000);
     return () => window.clearInterval(timer);
   }, []);
-  return <div className={`uptime-clock${compact ? " compact" : ""}`} aria-label={`網站已上線 ${value.days} 天 ${value.hours} 小時 ${value.minutes} 分 ${value.seconds} 秒`}>
-    <span><strong>{value.days}</strong><small>天</small></span>
-    <span><strong>{String(value.hours).padStart(2,"0")}</strong><small>小時</small></span>
-    <span><strong>{String(value.minutes).padStart(2,"0")}</strong><small>分鐘</small></span>
-    <span><strong>{String(value.seconds).padStart(2,"0")}</strong><small>秒</small></span>
+  const label = value
+    ? (en ? `Website online for ${value.days} days, ${value.hours} hours, ${value.minutes} minutes, ${value.seconds} seconds` : `網站已上線 ${value.days} 天 ${value.hours} 小時 ${value.minutes} 分 ${value.seconds} 秒`)
+    : (en ? "Loading website uptime" : "正在載入網站上線時間");
+  return <div className={`uptime-clock${compact ? " compact" : ""}`} role="timer" aria-label={label}>
+    <span><strong>{value ? value.days : "—"}</strong><small>{en ? "days" : "天"}</small></span>
+    <span><strong>{value ? String(value.hours).padStart(2,"0") : "—"}</strong><small>{en ? "hours" : "小時"}</small></span>
+    <span><strong>{value ? String(value.minutes).padStart(2,"0") : "—"}</strong><small>{en ? "minutes" : "分鐘"}</small></span>
+    <span><strong>{value ? String(value.seconds).padStart(2,"0") : "—"}</strong><small>{en ? "seconds" : "秒"}</small></span>
   </div>;
 }
