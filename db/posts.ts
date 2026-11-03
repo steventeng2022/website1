@@ -20,6 +20,8 @@ export type BlogPasswordSummary = { id: number; label: string; created_at: numbe
 type BlogPasswordRecord = BlogPasswordSummary & { password_hash: string };
 
 export type PostWithTags = Post & { tags: Tag[]; gallery: GalleryItem[]; passwords: BlogPasswordSummary[] };
+export type PublishedPostSummary = Pick<Post, "id" | "title" | "slug" | "excerpt" | "updated_at" | "is_locked"> & { tags: Tag[] };
+export const BLOG_ARCHIVE_PAGE_SIZE = 12;
 
 function db(): D1Database {
   const binding = (globalThis as typeof globalThis & { __STEVEN_SITE_ENV__?: { DB: D1Database } }).__STEVEN_SITE_ENV__?.DB;
@@ -89,6 +91,40 @@ export async function listPublishedPosts() {
   await ready();
   const posts = (await db().prepare("SELECT id, title, slug, excerpt, content, cover_image, status, created_at, updated_at, NULL AS password_hash, CASE WHEN EXISTS (SELECT 1 FROM blog_post_passwords WHERE blog_post_passwords.post_id = posts.id) THEN 1 ELSE 0 END AS is_locked FROM posts WHERE status = 'published' ORDER BY updated_at DESC").all<Post>()).results;
   return attachTags(posts);
+}
+
+export async function listPublishedPostSummaries({ page = 1, tag = "", query = "" }: { page?: number; tag?: string; query?: string } = {}) {
+  await ready();
+  const selectedTag = tag.trim().slice(0, 120);
+  const search = query.trim().slice(0, 120);
+  const conditions = ["p.status = 'published'"];
+  const values: string[] = [];
+  if (selectedTag) {
+    await ensureTagsReady();
+    conditions.push("EXISTS (SELECT 1 FROM post_tags pt JOIN tags t ON t.id = pt.tag_id WHERE pt.post_id = p.id AND t.slug = ?)");
+    values.push(selectedTag);
+  }
+  if (search) {
+    // Search text is literal: %, _ and backslash must not become LIKE patterns.
+    const pattern = `%${search.replace(/[\\%_]/g, "\\$&")}%`;
+    conditions.push("(p.title LIKE ? ESCAPE '\\' OR p.excerpt LIKE ? ESCAPE '\\')");
+    values.push(pattern, pattern);
+  }
+  const where = conditions.join(" AND ");
+  const count = await db().prepare(`SELECT COUNT(*) AS count FROM posts p WHERE ${where}`).bind(...values).first<{ count: number }>();
+  const total = count?.count ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / BLOG_ARCHIVE_PAGE_SIZE));
+  const currentPage = Math.min(totalPages, Math.max(1, Number.isFinite(page) ? Math.trunc(page) : 1));
+  const result = { total, totalPages, page: currentPage, pageSize: BLOG_ARCHIVE_PAGE_SIZE, tag: selectedTag, query: search };
+  if (total === 0) return { ...result, posts: [] as PublishedPostSummary[] };
+
+  const rows = (await db().prepare(`SELECT p.id, p.title, p.slug, p.excerpt, p.updated_at,
+    CASE WHEN EXISTS (SELECT 1 FROM blog_post_passwords WHERE post_id = p.id) THEN 1 ELSE 0 END AS is_locked
+    FROM posts p WHERE ${where} ORDER BY p.updated_at DESC, p.id DESC LIMIT ? OFFSET ?`)
+    .bind(...values, BLOG_ARCHIVE_PAGE_SIZE, (currentPage - 1) * BLOG_ARCHIVE_PAGE_SIZE)
+    .all<Omit<PublishedPostSummary, "tags">>()).results;
+  const tags = await tagsByPostIds(rows.map(post => post.id));
+  return { ...result, posts: rows.map(post => ({ ...post, tags: tags.get(post.id) ?? [] })) };
 }
 
 export async function listAllPosts() {

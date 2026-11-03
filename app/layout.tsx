@@ -6,6 +6,7 @@ import PublicSiteStatus from "./public-site-status";
 import { ThemeSync } from "./theme-toggle";
 import { themeInitScript } from "./theme";
 import SiteMotion from "./site-motion";
+import DocumentLanguage from "./document-language";
 import { listPublicMusicTracks } from "../db/music";
 import "./globals.css";
 import "./music-player.css";
@@ -13,6 +14,7 @@ import "./premium.css";
 import "./site-header.css";
 import "./theme.css";
 import "./admin/admin-feedback.css";
+import "./recovery.css";
 import "./motion-3d.css";
 
 const geistSans = Geist({
@@ -44,9 +46,13 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const tracks = await listPublicMusicTracks();
+  const tracks = await listPublicMusicTracks().catch(() => {
+    // Music is optional; a playlist outage must not take down every page.
+    console.error("Public playlist unavailable; rendering the page without site tracks.");
+    return [];
+  });
   return (
-    <html lang="zh-Hant-TW" suppressHydrationWarning>
+    <DocumentLanguage>
       <head><script dangerouslySetInnerHTML={{ __html: themeInitScript }} /></head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
@@ -58,6 +64,6 @@ export default async function RootLayout({
         <VisitorTracker />
         <MusicPlayer tracks={tracks.map(track=>({id:track.id,title:track.title,artist:track.artist,src:track.audio_url,cover:track.cover_url}))}/>
       </body>
-    </html>
+    </DocumentLanguage>
   );
 }

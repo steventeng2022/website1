@@ -20,7 +20,7 @@ export default function PostSaveForm({ mode, children }: { mode: "create" | "upd
       const payload = await response.json().catch(() => null) as { ok?: boolean; error?: string; message?: string } | null;
       if (!response.ok || !payload?.ok) throw new Error(payload?.error || `儲存失敗（${response.status}）`);
       setMessage(payload.message || "文章已成功儲存");
-      window.setTimeout(() => window.location.assign("/admin?saved=post"), 350);
+      window.setTimeout(() => window.location.assign("/admin?section=blog&saved=post"), 350);
     } catch (error) {
       setFailed(true);
       setMessage(error instanceof Error ? error.message : "文章儲存失敗，請稍後再試");
