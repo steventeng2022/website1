@@ -1,3 +1,5 @@
+import { cacheForRequest } from "vinext/cache";
+
 export type Experience = {
   id: number;
   title: string;
@@ -18,7 +20,7 @@ function db(): D1Database {
   return binding;
 }
 
-async function ready() {
+const ready = cacheForRequest(async () => {
   const d1 = db();
   await d1.batch([
     d1.prepare(`CREATE TABLE IF NOT EXISTS experiences (
@@ -37,7 +39,9 @@ async function ready() {
     d1.prepare("CREATE INDEX IF NOT EXISTS experiences_order_idx ON experiences(sort_order ASC, start_date DESC)"),
     d1.prepare("UPDATE experiences SET title = replace(title, '。', '') WHERE instr(title, '。') > 0"),
   ]);
-}
+});
+
+export { ready as ensureExperiencesReady };
 
 export async function listExperiences() {
   await ready();

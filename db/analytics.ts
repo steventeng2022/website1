@@ -1,3 +1,5 @@
+import { cacheForRequest } from "vinext/cache";
+
 export type AnalyticsSummary = {
   totalViews: number; todayViews: number; uniqueVisitors: number; onlineNow: number; blogViews: number;
   daily: { day: string; views: number; visitors: number }[];
@@ -26,7 +28,7 @@ function db(): D1Database {
   return binding;
 }
 
-async function ready() {
+const ready = cacheForRequest(async () => {
   const d1 = db();
   await d1.batch([
     d1.prepare(`CREATE TABLE IF NOT EXISTS site_visits (id INTEGER PRIMARY KEY AUTOINCREMENT,visitor_hash TEXT NOT NULL,path TEXT NOT NULL,blog_slug TEXT,visited_at INTEGER NOT NULL,visit_day TEXT NOT NULL,duration_seconds INTEGER NOT NULL DEFAULT 0)`),
@@ -51,7 +53,9 @@ async function ready() {
   if (!columns.some(column => column.name === "ip_address")) {
     await d1.prepare("ALTER TABLE site_visits ADD COLUMN ip_address TEXT").run();
   }
-}
+});
+
+export { ready as ensureAnalyticsReady };
 
 const clean = (value: string | undefined, max: number) => value ? value.replace(/[\u0000-\u001f\u007f]/g, "").slice(0, max) : null;
 
