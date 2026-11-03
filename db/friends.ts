@@ -1,3 +1,5 @@
+import { cacheForRequest } from "vinext/cache";
+
 export type FriendSite = {
   id: number;
   site_name: string;
@@ -13,18 +15,23 @@ function db(): D1Database {
   return binding;
 }
 
-async function ready() {
-  await db().prepare(`CREATE TABLE IF NOT EXISTS friends (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    site_name TEXT NOT NULL,
-    site_url TEXT NOT NULL,
-    logo_url TEXT NOT NULL,
-    description TEXT NOT NULL DEFAULT '',
-    created_at INTEGER NOT NULL
-  )`).run();
-  await db().prepare("CREATE INDEX IF NOT EXISTS friends_created_idx ON friends(created_at DESC)").run();
-  await db().prepare("UPDATE friends SET site_name = replace(site_name, '。', '') WHERE instr(site_name, '。') > 0").run();
-}
+const ready = cacheForRequest(async () => {
+  const d1 = db();
+  await d1.batch([
+    d1.prepare(`CREATE TABLE IF NOT EXISTS friends (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      site_name TEXT NOT NULL,
+      site_url TEXT NOT NULL,
+      logo_url TEXT NOT NULL,
+      description TEXT NOT NULL DEFAULT '',
+      created_at INTEGER NOT NULL
+    )`),
+    d1.prepare("CREATE INDEX IF NOT EXISTS friends_created_idx ON friends(created_at DESC)"),
+    d1.prepare("UPDATE friends SET site_name = replace(site_name, '。', '') WHERE instr(site_name, '。') > 0"),
+  ]);
+});
+
+export { ready as ensureFriendsReady };
 
 export async function listFriends() {
   await ready();

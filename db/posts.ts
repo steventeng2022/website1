@@ -1,3 +1,4 @@
+import { cacheForRequest } from "vinext/cache";
 import { ensureTagsReady, setPostTags, tagsByPostIds, type Tag } from "./tags";
 import { ensureGalleryReady, galleryByPostIds, setPostGallery, type GalleryInput, type GalleryItem } from "./gallery";
 
@@ -26,45 +27,54 @@ function db(): D1Database {
   return binding;
 }
 
-async function ready() {
-  await db().prepare(`CREATE TABLE IF NOT EXISTS posts (
+// Share initialization within this request only; every content read stays fresh.
+const ready = cacheForRequest(async () => {
+  const d1 = db();
+  await d1.prepare(`CREATE TABLE IF NOT EXISTS posts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
     slug TEXT NOT NULL UNIQUE,
     excerpt TEXT NOT NULL DEFAULT '',
     content TEXT NOT NULL,
     cover_image TEXT,
+    password_hash TEXT,
     status TEXT NOT NULL DEFAULT 'draft',
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL
   )`).run();
-  try {
-    await db().prepare("ALTER TABLE posts ADD COLUMN cover_image TEXT").run();
-  } catch (error) {
-    if (!String(error).toLowerCase().includes("duplicate column")) throw error;
+  const columns = (await d1.prepare("PRAGMA table_info(posts)").all<{ name: string }>()).results;
+  for (const name of ["cover_image", "password_hash"] as const) {
+    if (columns.some(column => column.name === name)) continue;
+    try {
+      await d1.prepare(`ALTER TABLE posts ADD COLUMN ${name} TEXT`).run();
+    } catch (error) {
+      // Another request may have upgraded an older database after the PRAGMA.
+      if (!String(error).toLowerCase().includes("duplicate column")) throw error;
+    }
   }
-  try {
-    await db().prepare("ALTER TABLE posts ADD COLUMN password_hash TEXT").run();
-  } catch (error) {
-    if (!String(error).toLowerCase().includes("duplicate column")) throw error;
-  }
-  await db().prepare(`CREATE TABLE IF NOT EXISTS blog_post_passwords (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    post_id INTEGER NOT NULL,
-    label TEXT NOT NULL DEFAULT '',
-    password_hash TEXT NOT NULL,
-    created_at INTEGER NOT NULL,
-    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
-  )`).run();
-  await db().prepare("CREATE INDEX IF NOT EXISTS blog_post_passwords_post_idx ON blog_post_passwords(post_id, id)").run();
-  await db().prepare(`INSERT INTO blog_post_passwords (post_id, label, password_hash, created_at)
-    SELECT id, '原有密碼', password_hash, updated_at FROM posts
-    WHERE password_hash IS NOT NULL AND password_hash <> ''
-      AND NOT EXISTS (SELECT 1 FROM blog_post_passwords WHERE blog_post_passwords.post_id = posts.id)`).run();
-  await db().prepare("UPDATE posts SET password_hash = NULL WHERE password_hash IS NOT NULL").run();
-  await db().prepare("CREATE INDEX IF NOT EXISTS posts_status_updated_idx ON posts(status, updated_at DESC)").run();
-  await db().prepare("UPDATE posts SET title = replace(title, '。', '') WHERE instr(title, '。') > 0").run();
-}
+  // D1 executes a batch in order and atomically: preserve legacy passwords
+  // before clearing the old column, without six separate database round trips.
+  await d1.batch([
+    d1.prepare(`CREATE TABLE IF NOT EXISTS blog_post_passwords (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      post_id INTEGER NOT NULL,
+      label TEXT NOT NULL DEFAULT '',
+      password_hash TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+    )`),
+    d1.prepare("CREATE INDEX IF NOT EXISTS blog_post_passwords_post_idx ON blog_post_passwords(post_id, id)"),
+    d1.prepare(`INSERT INTO blog_post_passwords (post_id, label, password_hash, created_at)
+      SELECT id, '原有密碼', password_hash, updated_at FROM posts
+      WHERE password_hash IS NOT NULL AND password_hash <> ''
+        AND NOT EXISTS (SELECT 1 FROM blog_post_passwords WHERE blog_post_passwords.post_id = posts.id)`),
+    d1.prepare("UPDATE posts SET password_hash = NULL WHERE password_hash IS NOT NULL"),
+    d1.prepare("CREATE INDEX IF NOT EXISTS posts_status_updated_idx ON posts(status, updated_at DESC)"),
+    d1.prepare("UPDATE posts SET title = replace(title, '。', '') WHERE instr(title, '。') > 0"),
+  ]);
+});
+
+export { ready as ensurePostsReady };
 
 export async function listRecentPublishedPostSummaries(limit: number) {
   await ready();
@@ -107,9 +117,12 @@ export async function publishedPostExists(slug: string) {
 }
 
 async function attachTags(posts: Post[]): Promise<PostWithTags[]> {
-  const tags = await tagsByPostIds(posts.map((post) => post.id));
-  const gallery = await galleryByPostIds(posts.map((post) => post.id));
-  const passwords = await passwordSummariesByPostIds(posts.map((post) => post.id));
+  const ids = posts.map((post) => post.id);
+  const [tags, gallery, passwords] = await Promise.all([
+    tagsByPostIds(ids),
+    galleryByPostIds(ids),
+    passwordSummariesByPostIds(ids),
+  ]);
   return posts.map((post) => ({ ...post, tags: tags.get(post.id) ?? [], gallery: gallery.get(post.id) ?? [], passwords: passwords.get(post.id) ?? [] }));
 }
 

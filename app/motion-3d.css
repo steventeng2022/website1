@@ -1,0 +1,147 @@
+/* Sculpted CSS surfaces. Intro motion finishes; depth responds only to input. */
+.hero-character { perspective: 1200px; }
+.character-stage {
+  overflow: visible;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+  border: 1px solid #ffffff24;
+  box-shadow: 0 4px 0 #183db9, 0 8px 0 #1d3794, 0 26px 48px #203d7424;
+  transition: transform .65s var(--ease), box-shadow .65s var(--ease);
+}
+.character-stage::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(ellipse at var(--shine-x, 22%) var(--shine-y, 10%), #ffffff22, transparent 62%);
+  pointer-events: none;
+}
+.character-stage::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 16px 8px -8px;
+  border: 1px solid #365dcc;
+  border-radius: inherit;
+  background: #193caa;
+  transform: translateZ(-18px);
+  pointer-events: none;
+}
+.character-stage[data-depth-active] { transition-duration: .15s; box-shadow: 0 4px 0 #183db9, 0 8px 0 #1d3794, 0 32px 58px #203d7436; }
+.character-stage-top, .character-stage-bottom { transform: translateZ(24px); }
+.character-orbit { inset: 12% 5% auto; width: 90%; transform: translateZ(4px) rotateZ(-26deg) scaleY(.55); border-width: 2px; }
+.character-orbit::after { inset: 20px; }
+.stage-depth-grid { position: absolute; inset: 48% 8% 9%; border: 1px solid #ffffff16; border-radius: 50%; background-image: linear-gradient(#ffffff19 1px, transparent 1px), linear-gradient(90deg, #ffffff19 1px, transparent 1px); background-size: 24px 24px; transform: translateZ(6px) rotateZ(-18deg) scaleY(.5); pointer-events: none; }
+.character-note { z-index: 5; top: 12%; right: 5%; transform: translateZ(62px) rotate(8deg); }
+.hero-photo {
+  position: relative;
+  z-index: 2;
+  width: 74%;
+  margin-block: 54px 37px;
+  transform: translateZ(68px) rotateZ(-8deg) rotateY(-5deg) rotateX(3deg);
+  box-shadow: 2px 3px 0 #dce1f0, 4px 6px 0 #becaf1, 12px 26px 30px #10266b55;
+  transition: transform .65s var(--ease), box-shadow .65s var(--ease);
+}
+.hero-photo:hover, .hero-photo:focus-visible { transform: translateZ(80px) rotateZ(-5deg) rotateY(-3deg) rotateX(2deg); box-shadow: 2px 3px 0 #dce1f0, 4px 6px 0 #becaf1, 16px 30px 40px #10266b66; }
+.stage-shape { position: absolute; pointer-events: none; }
+.stage-sphere {
+  z-index: 4;
+  width: clamp(54px, 6vw, 88px);
+  aspect-ratio: 1;
+  right: 5%;
+  bottom: 12%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 31% 24%, #f5ffed 0%, #d8f5c6 21%, #9ac7a6 54%, #3c786f 82%, #28535f 100%);
+  box-shadow: inset -7px -10px 15px #1c52442e, 13px 18px 18px #0c28633b;
+  transform: translateZ(125px);
+}
+.stage-cube { z-index: 3; width: 48px; height: 48px; top: 17%; left: 7%; transform-style: preserve-3d; transform: translateZ(68px) rotateX(-22deg) rotateY(-32deg) rotateZ(-12deg); }
+.stage-cube i { position: absolute; inset: 0; display: block; border: 1px solid #ffffff99; border-radius: 5px; }
+.stage-cube i:nth-child(1) { background: #b4c6ff; transform: translateZ(24px); }
+.stage-cube i:nth-child(2) { background: #6d90ed; transform: rotateY(90deg) translateZ(24px); }
+.stage-cube i:nth-child(3) { background: #e5eaff; transform: rotateX(90deg) translateZ(24px); }
+.stage-ring { z-index: 1; width: 72px; height: 72px; left: 7%; bottom: 13%; border: 9px solid #a4c1ff; border-top-color: #e2eaff; border-right-color: #678fe7; border-radius: 50%; box-shadow: 3px 5px 0 #416cc9, 8px 13px 14px #10266b44; transform: translateZ(42px) rotateX(48deg) rotateZ(-24deg); }
+.character-controls { margin-top: 26px; }
+.project-card, .portfolio-card.has-link {
+  transform: perspective(1100px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+  transition: transform .55s var(--ease), box-shadow .4s var(--ease), border-color .3s ease, background-color .22s ease;
+  box-shadow: 0 3px 0 #18222506, 0 10px 22px #18222506;
+}
+.project-card::before, .portfolio-card.has-link::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  background: radial-gradient(ellipse at var(--shine-x, 50%) var(--shine-y, 20%), #ffffff25, transparent 62%);
+  opacity: 0;
+  transition: opacity .3s ease;
+  pointer-events: none;
+}
+.project-card[data-depth-active], .portfolio-card.has-link[data-depth-active] { transition-duration: .15s; }
+.project-card[data-depth-active]::before, .portfolio-card.has-link[data-depth-active]::before { opacity: 1; }
+.project-card:hover, .portfolio-card.has-link:hover { transform: perspective(1100px) translateY(-5px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)); box-shadow: 0 5px 0 #18222505, 0 23px 34px #18222514; }
+.project-glyph { text-shadow: 1px 2px 0 #ffffff44, 3px 5px 0 #18222512, 10px 14px 12px #18222512; }
+.portfolio-placeholder span { text-shadow: 2px 3px 0 #ffffff50, 5px 7px 0 #315df417; }
+:root[data-theme="dark"] .character-stage { box-shadow: 0 4px 0 #163192, 0 8px 0 #142769, 0 26px 48px #0005; }
+:root[data-theme="dark"] .character-stage::after { background: #112363; border-color: #3653b1; }
+:root[data-theme="dark"] .project-card, :root[data-theme="dark"] .portfolio-card.has-link { box-shadow: 0 3px 0 #0002, 0 14px 26px #0002; }
+:root[data-theme="dark"] .project-card:hover, :root[data-theme="dark"] .portfolio-card.has-link:hover { box-shadow: 0 5px 0 #0002, 0 24px 36px #0004; }
+
+@keyframes sculpture-arrive {
+  from { opacity: 0; transform: translate3d(0, 22px, 68px) rotateZ(-12deg) rotateY(-5deg); }
+  to { opacity: 1; transform: translateZ(68px) rotateZ(-8deg) rotateY(-5deg) rotateX(3deg); }
+}
+@keyframes sphere-arrive {
+  0% { opacity: 0; transform: translate3d(0, -24px, 125px) scale(.8); }
+  65% { opacity: 1; transform: translate3d(0, 5px, 125px) scale(1.02); }
+  100% { opacity: 1; transform: translateZ(125px) scale(1); }
+}
+@keyframes cube-arrive {
+  from { opacity: 0; transform: translate3d(-12px, -15px, 68px) rotateX(-55deg) rotateY(20deg) rotateZ(-25deg); }
+  to { opacity: 1; transform: translateZ(68px) rotateX(-22deg) rotateY(-32deg) rotateZ(-12deg); }
+}
+@keyframes ring-arrive {
+  from { opacity: 0; transform: translate3d(-10px, 14px, 42px) rotateX(78deg) rotateZ(-60deg); }
+  to { opacity: 1; transform: translateZ(42px) rotateX(48deg) rotateZ(-24deg); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero-photo { animation: sculpture-arrive 1.1s .08s var(--ease) backwards; }
+  .stage-sphere { animation: sphere-arrive 1.4s .25s var(--ease) backwards; }
+  .stage-cube { animation: cube-arrive 1.3s .15s var(--ease) backwards; }
+  .stage-ring { animation: ring-arrive 1.4s .3s var(--ease) backwards; }
+}
+html[data-motion-paused] .hero-photo,
+html[data-motion-paused] .stage-shape,
+.hero-character.is-out-of-view .hero-photo,
+.hero-character.is-out-of-view .stage-shape { animation-play-state: paused; }
+@media (max-width: 800px) {
+  .character-stage { box-shadow: 0 4px 0 #183db9, 0 7px 0 #1d3794, 0 20px 30px #203d741b; }
+  .hero-photo { width: 62%; margin-block: 42px 28px; }
+  .stage-sphere { width: 58px; right: 6%; bottom: 13%; }
+  .stage-cube { width: 34px; height: 34px; left: 9%; top: 18%; }
+  .stage-cube i:nth-child(1) { transform: translateZ(17px); }
+  .stage-cube i:nth-child(2) { transform: rotateY(90deg) translateZ(17px); }
+  .stage-cube i:nth-child(3) { transform: rotateX(90deg) translateZ(17px); }
+  .stage-ring { width: 54px; height: 54px; border-width: 7px; left: 8%; bottom: 13%; }
+}
+@media (max-width: 480px) {
+  .hero-photo { width: 71%; margin-block: 45px 30px; }
+  .stage-sphere { width: 47px; right: 5%; bottom: 13%; }
+  .stage-cube { left: 8%; top: 20%; width: 28px; height: 28px; }
+  .stage-cube i:nth-child(1) { transform: translateZ(14px); }
+  .stage-cube i:nth-child(2) { transform: rotateY(90deg) translateZ(14px); }
+  .stage-cube i:nth-child(3) { transform: rotateX(90deg) translateZ(14px); }
+  .stage-ring { width: 44px; height: 44px; border-width: 6px; bottom: 14%; left: 5%; }
+  .character-note { right: 5%; top: 14%; font-size: 11px; }
+}
+@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .character-stage { transform: none; }
+  .project-card:hover, .portfolio-card.has-link:hover { transform: none; }
+  .hero-photo:hover, .hero-photo:focus-visible { transform: translateZ(68px) rotateZ(-8deg) rotateY(-5deg) rotateX(3deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-photo, .stage-shape { animation: none !important; }
+  .character-stage, .hero-photo, .project-card, .portfolio-card.has-link { transition: none !important; }
+}

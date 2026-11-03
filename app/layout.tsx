@@ -5,12 +5,15 @@ import VisitorTracker from "./visitor-tracker";
 import PublicSiteStatus from "./public-site-status";
 import { ThemeSync } from "./theme-toggle";
 import { themeInitScript } from "./theme";
+import SiteMotion from "./site-motion";
 import { listPublicMusicTracks } from "../db/music";
 import "./globals.css";
 import "./music-player.css";
 import "./premium.css";
 import "./site-header.css";
 import "./theme.css";
+import "./admin/admin-feedback.css";
+import "./motion-3d.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -49,6 +52,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeSync />
+        <SiteMotion />
         {children}
         <PublicSiteStatus />
         <VisitorTracker />
