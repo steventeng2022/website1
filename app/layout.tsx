@@ -79,7 +79,7 @@ export default async function RootLayout({
         {children}
         <PublicSiteStatus />
         <VisitorTracker />
-        {siteTheme.id === "mario" && <script src="/mario-world.js?v=1" defer />}
+        {siteTheme.id === "mario" && <><script src="/mario-world.js?v=2" defer /><script src="/mario-game.js?v=2" defer /></>}
         <MusicPlayer tracks={tracks.map(track=>({id:track.id,title:track.title,artist:track.artist,src:track.audio_url,cover:track.cover_url}))}/>
       </body>
     </DocumentLanguage>
