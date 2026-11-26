@@ -3,7 +3,7 @@ import { listAllPosts } from "../../db/posts";
 import { listExperiences } from "../../db/experiences";
 import { listTags } from "../../db/tags";
 import { getSiteContent } from "../../db/site-content";
-import { createContactAction, createExperienceAction, createFriendAction, createProjectAction, createSkillAction, createTagAction, deleteContactAction, deleteExperienceAction, deleteFriendAction, deletePostAction, deleteProjectAction, deleteSkillAction, deleteTagAction, moveExperienceAction, moveSiteItemAction, updateContactAction, updateDiscordStatusAction, updateExperienceAction, updatePostStatusAction, updateProjectAction, updateSiteProfileAction, updateSkillAction } from "./actions";
+import { createContactAction, createExperienceAction, createFriendAction, createProjectAction, createSkillAction, createTagAction, deleteContactAction, deleteExperienceAction, deleteFriendAction, deletePostAction, deleteProjectAction, deleteSkillAction, deleteTagAction, moveExperienceAction, moveSiteItemAction, updateContactAction, updateDiscordStatusAction, updateThemeAction, updateExperienceAction, updatePostStatusAction, updateProjectAction, updateSiteProfileAction, updateSkillAction } from "./actions";
 import CoverImageField from "./cover-image-field";
 import ProjectCoverField from "./project-cover-field";
 import GalleryUploadField from "./gallery-upload-field";
@@ -20,6 +20,7 @@ import ThemeToggle from "../theme-toggle";
 import { loadAdminData, type AdminSection } from "./data";
 import type { ProjectPostOption } from "../../db/admin";
 import AdminNavigation from "./admin-navigation";
+import { THEMES } from "../themes";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,7 @@ const adminSections: { id: AdminSection; label: string; hint: string }[] = [
   { id: "analytics", label: "網站狀態", hint: "Visits & logs" },
   { id: "visitors", label: "訪客紀錄", hint: "Visitor details" },
   { id: "presence", label: "Discord 狀態", hint: "Now playing" },
+  { id: "theme", label: "網站主題", hint: "Theme & colors" },
   { id: "blog", label: "文章", hint: "Posts & tags" },
   { id: "portfolio", label: "作品集", hint: "Projects" },
   { id: "site", label: "網站內容", hint: "About & skills" },
@@ -41,7 +43,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const params = await searchParams;
   const requestedSection = params.section as AdminSection | undefined;
   const activeSection = adminSections.some(item => item.id === requestedSection) ? requestedSection! : "overview";
-  const [{ posts, projectPosts, friends, experiences, tags, content, musicTracks, songRequests, analytics, adminLogs, visitorLogs, discordSettings, overview, newRequests }] = await Promise.all([
+  const [{ posts, projectPosts, friends, experiences, tags, content, musicTracks, songRequests, analytics, adminLogs, visitorLogs, discordSettings, overview, newRequests, themeSettings }] = await Promise.all([
     loadAdminData(activeSection),
     logAdminActivity(email, "開啟後台", adminSections.find(item=>item.id===activeSection)?.label ?? activeSection),
   ]);
@@ -69,6 +71,22 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         <AdminCard href="presence" label="Discord" value={discordSettings.discord_user_id ? "ON" : "OFF"} note={discordSettings.discord_user_id ? "即時狀態已連線" : "尚未設定 User ID"}/>
       </div>
       <div className="admin-quick-actions"><h2>快速開始</h2><div><Link href="/admin?section=analytics">查看網站狀態</Link><Link href="/admin?section=blog#new-post">＋ 撰寫新文章</Link><Link href="/admin?section=portfolio#new-project">＋ 新增作品</Link><Link href="/admin?section=music#new-track">＋ 上傳歌曲</Link></div></div>
+    </section>}
+
+    {activeSection === "theme" && themeSettings && <section className="editor-section theme-admin">
+      <div className="admin-page-heading"><p className="eyebrow">SITE THEME</p><h1>網站主題</h1><p>選擇後會立即套用到整個公開網站（首頁、Blog、作品集、經歷、Friends 與音樂播放器）。</p></div>
+      <form className="post-form theme-form" action={updateThemeAction}>
+        <div className="theme-grid" role="radiogroup" aria-label="網站主題">{THEMES.map(item=><label key={item.id} className="theme-option">
+          <input type="radio" name="theme" value={item.id} defaultChecked={themeSettings.theme===item.id} required/>
+          <span className="theme-card" style={{background:item.vars.paper,color:item.vars.ink,borderColor:item.vars.line}}>
+            <span className="theme-swatch"><i style={{background:item.vars.blue}}/><i style={{background:item.vars.surface,borderColor:item.vars.line}}/><i style={{background:item.vars.ink}}/></span>
+            <strong>{item.name_zh}</strong><small style={{color:item.vars.muted}}>{item.name_en} · {item.scheme==="dark"?"深色":"淺色"}</small>
+          </span>
+        </label>)}</div>
+        <label className="featured-check"><input type="checkbox" name="useAccent" value="yes" defaultChecked={Boolean(themeSettings.accent)}/><span>自訂主題色（覆蓋所選主題的強調色）</span></label>
+        <label>強調色<input type="color" name="accent" defaultValue={themeSettings.accent ?? "#315df4"}/></label>
+        <button className="primary-button" type="submit">套用網站主題 →</button>
+      </form>
     </section>}
 
     {activeSection === "presence" && discordSettings && <section className="editor-section discord-admin">

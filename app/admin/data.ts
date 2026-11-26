@@ -6,14 +6,15 @@ import { getSiteContent } from "../../db/site-content";
 import { listAllMusicTracks, listSongRequests } from "../../db/music";
 import { getAnalyticsSummary, listAdminLogs, listVisitorLogs } from "../../db/analytics";
 import { getDiscordStatusSettings } from "../../db/discord-status";
+import { getThemeSettings } from "../../db/theme";
 import { getAdminOverview, getPendingSongRequestCount, listProjectPostOptions } from "../../db/admin";
 
-export type AdminSection = "overview" | "analytics" | "visitors" | "presence" | "blog" | "portfolio" | "site" | "experience" | "music" | "friends";
+export type AdminSection = "overview" | "analytics" | "visitors" | "presence" | "theme" | "blog" | "portfolio" | "site" | "experience" | "music" | "friends";
 
 // These reads contain mutable/private data. Deliberately fetch them per request;
 // schema initialization may be deduplicated, but admin content is never cached.
 export async function loadAdminData(section: AdminSection) {
-  const [posts, projectPosts, friends, experiences, tags, content, musicTracks, songRequests, analytics, adminLogs, visitorLogs, discordSettings, overview, pendingRequests] = await Promise.all([
+  const [posts, projectPosts, friends, experiences, tags, content, musicTracks, songRequests, analytics, adminLogs, visitorLogs, discordSettings, overview, pendingRequests, themeSettings] = await Promise.all([
     section === "blog" ? listAllPosts() : [],
     section === "portfolio" ? listProjectPostOptions() : [],
     section === "friends" ? listFriends() : [],
@@ -28,7 +29,8 @@ export async function loadAdminData(section: AdminSection) {
     section === "presence" || section === "overview" ? getDiscordStatusSettings() : null,
     section === "overview" ? getAdminOverview() : null,
     section !== "overview" && section !== "music" ? getPendingSongRequestCount() : 0,
+    section === "theme" ? getThemeSettings() : null,
   ]);
   const newRequests = overview?.newRequests ?? (section === "music" ? songRequests.filter(item => item.status === "new").length : pendingRequests);
-  return { posts, projectPosts, friends, experiences, tags, content, musicTracks, songRequests, analytics, adminLogs, visitorLogs, discordSettings, overview, newRequests };
+  return { posts, projectPosts, friends, experiences, tags, content, musicTracks, songRequests, analytics, adminLogs, visitorLogs, discordSettings, overview, newRequests, themeSettings };
 }

@@ -5,7 +5,7 @@ export const THEME_CHANGE_EVENT = "steven:themechange";
 
 // Runs before the page paints. Keep this independent of React and browser storage
 // availability so a returning visitor never sees the wrong color scheme first.
-export const themeInitScript = `(()=>{let saved=null;try{saved=localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)})}catch{}const preference=saved==="light"||saved==="dark"?saved:"system";const theme=preference==="system"?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):preference;const root=document.documentElement;root.dataset.theme=theme;root.dataset.themePreference=preference;root.style.colorScheme=theme})()`;
+export const themeInitScript = `(()=>{let saved=null;try{saved=localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)})}catch{}const preference=saved==="light"||saved==="dark"?saved:"system";const theme=preference==="system"?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):preference;const root=document.documentElement;const forced=root.dataset.siteScheme;const effective=forced==="light"||forced==="dark"?forced:theme;root.dataset.theme=effective;root.dataset.themePreference=preference;root.style.colorScheme=effective})()`;
 
 export function systemTheme(): Theme {
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
@@ -13,9 +13,12 @@ export function systemTheme(): Theme {
 
 export function applyTheme(theme: Theme, preference: Theme | "system") {
   const root = document.documentElement;
-  root.dataset.theme = theme;
+  // A non-classic site theme chosen in the admin fixes the scheme for everyone.
+  const forced = root.dataset.siteScheme;
+  const effective = forced === "light" || forced === "dark" ? forced : theme;
+  root.dataset.theme = effective;
   root.dataset.themePreference = preference;
-  root.style.colorScheme = theme;
+  root.style.colorScheme = effective;
   window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
 }
 

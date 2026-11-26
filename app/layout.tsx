@@ -8,6 +8,8 @@ import { themeInitScript } from "./theme";
 import SiteMotion from "./site-motion";
 import DocumentLanguage from "./document-language";
 import { listPublicMusicTracks } from "../db/music";
+import { getThemeSettings } from "../db/theme";
+import { getTheme, themeStyle } from "./themes";
 import "./globals.css";
 import "./music-player.css";
 import "./premium.css";
@@ -46,13 +48,15 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const tracks = await listPublicMusicTracks().catch(() => {
+  const [tracks, themeSettings] = await Promise.all([listPublicMusicTracks().catch(() => {
     // Music is optional; a playlist outage must not take down every page.
     console.error("Public playlist unavailable; rendering the page without site tracks.");
     return [];
-  });
+  }), getThemeSettings()]);
+  const siteTheme = getTheme(themeSettings.theme);
+  const custom = siteTheme.id !== "classic" || Boolean(themeSettings.accent);
   return (
-    <DocumentLanguage>
+    <DocumentLanguage siteTheme={siteTheme.id} siteScheme={siteTheme.id === "classic" ? undefined : siteTheme.scheme} style={custom ? themeStyle(themeSettings.theme, themeSettings.accent) : undefined}>
       <head><script dangerouslySetInnerHTML={{ __html: themeInitScript }} /></head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
