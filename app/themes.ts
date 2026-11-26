@@ -1,6 +1,6 @@
 // Single source of truth for site themes. The active theme is applied as CSS
 // variables on <html>, overriding the defaults declared in globals.css/premium.css.
-export type ThemeId = "classic" | "midnight" | "ocean" | "forest" | "sunset" | "rose" | "mono" | "mario";
+export type ThemeId = "classic" | "midnight" | "ocean" | "forest" | "sunset" | "rose" | "mono" | "mario" | "depth";
 
 export type ThemeDef = {
   id: ThemeId;
@@ -28,6 +28,8 @@ export const THEMES: ThemeDef[] = [
     vars: { paper: "#000000", ink: "#f2f2f2", blue: "#ffffff", line: "#2c2c2c", muted: "#a0a0a0", surface: "#0d0d0d", surface2: "#131313", surface3: "#1c1c1c" } },
   { id: "mario", name_zh: "超級瑪利風", name_en: "Super Plumber (retro)", scheme: "light", animated: true,
     vars: { paper: "#9ad1ff", ink: "#1b1f3b", blue: "#e52521", line: "#1b1f3b", muted: "#3b4468", surface: "#ffffff", surface2: "#fff8e1", surface3: "#ffe9a8" } },
+  { id: "depth", name_zh: "3D 立體空間", name_en: "Depth (3D)", scheme: "dark", animated: true,
+    vars: { paper: "#070b1e", ink: "#e8ecff", blue: "#7c5cff", line: "#26305f", muted: "#9aa3d6", surface: "#101736", surface2: "#151d44", surface3: "#1c2655" } },
 ];
 
 export const DEFAULT_THEME: ThemeId = "classic";

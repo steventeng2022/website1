@@ -31,3 +31,15 @@ test("mario theme is animated, scoped, and has a runner with easter eggs", async
   for (const needle of [/function autopilot/, /stomp|P\.vy < 0 && P\.y > c\.h/, /KONAMI/, /fireworks/, /coinShower/, /prefers-reduced-motion/, /isOn\(\)/, /sessionStorage/]) assert.match(js, needle);
   assert.doesNotMatch(js, /\.(mp3|ogg|wav)/);
 });
+
+test("depth (3D) theme is registered, loads its own assets, and degrades safely", async () => {
+  const [themes, layout, css, js] = await Promise.all([read("app/themes.ts"), read("app/layout.tsx"), read("app/theme-depth.css"), read("public/depth-world.js")]);
+  assert.match(themes, /id: "depth"/);
+  assert.match(layout, /theme-depth\.css/);
+  assert.match(layout, /siteTheme\.id === "depth" && <script src="\/depth-world\.js/);
+  for (const needle of [/prefers-reduced-motion/, /isAdmin\(\)/, /innerWidth >= 900/, /d3-flat/, /focusin/, /translate3d/, /scrollToIndex/]) assert.match(js, needle);
+  assert.doesNotMatch(js, /<script|eval\(|new Function/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.match(css, /html\.d3-on main\.home-shell/);
+  for (const line of css.split(/\r?\n/).filter(l => /\{\s*$/.test(l) && !/^(\s|@keyframes|@media|@supports|\.d3-|html\.d3-on)/.test(l))) assert.match(line, /^html\[data-site-theme="depth"\]/);
+});
