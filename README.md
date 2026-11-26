@@ -1,85 +1,141 @@
-# Steven Website — Cloudflare Blog
-steventeng.uk <-- this is my website
-## v34 — Discord 即時狀態
+# Steven's Website
 
-- 首頁新增「現在正在做什麼」狀態卡，每 30 秒更新
-- 顯示順序：Discord 自訂狀態 → Spotify → 一般活動 → 後台預設文字
-- 後台「Discord 狀態」可設定 User ID、中英文預設狀態及活動顯示選項
-- 帳號離線、沒有活動或 Presence API 無法讀取時，自動顯示預設文字
-- 使用公開 Presence 服務，不需要也不應保存 Discord token
+An open-source personal website and writing studio that runs entirely on **Cloudflare Workers + D1 + R2**. Public visitors get a portfolio, an experience timeline, a friends page, a bilingual (繁體中文 / English) blog and a floating music player. The site owner gets a private `/admin` studio to manage everything, including the **site-wide theme**.
 
-第一次使用時，請在 Discord 開啟開發者模式並複製自己的 User ID，再於後台貼上。帳號需加入 Lanyard Discord server，Presence API 才能讀取公開狀態。
+Live site: <https://steventeng.uk> · License: [MIT](LICENSE) · 繁體中文說明在[文末](#繁體中文簡介)
 
-## v30
+## Features
 
-- 後台新增「網站狀態」分頁：總瀏覽、今日瀏覽、匿名獨立訪客、目前在線與 Blog 閱讀量
-- 顯示最近 7 天流量、熱門頁面及最近 50 筆管理員操作紀錄
-- 網站上線時間會以天、時、分、秒即時更新
-- 訪客統計只使用隨機匿名瀏覽器代碼的 SHA-256 雜湊，不保存 IP
+**Public site**
+- Home, `/portfolio` (category filters), `/experience` timeline, `/friends`, `/blog` (search, tags, pagination)
+- Bilingual pages (`?lang=en`), visitor light/dark mode, reduced-motion friendly animations
+- Password-protected blog posts (salted scrypt hashes, 24-hour HttpOnly unlock cookie)
+- Floating music player: site-wide tracks (R2) plus tracks visitors add in their own browser, and a song-recommendation form
+- Live "what I'm doing" card from Discord / Spotify presence via the public Lanyard API (no Discord token stored)
+- Privacy-minded analytics: page views and visitors counted with hashed anonymous browser IDs
 
-Cloudflare Workers + D1 version of Steven's personal website. Public visitors can browse the dedicated `/portfolio`, experience timeline, and published posts. The `/admin` writing studio is protected by Cloudflare Access and restricted to `steventeng2022@gmail.com`.
+**Admin studio (`/admin`)**
+- Posts and tags with a Markdown editor, cover and gallery uploads (browser-side compression, streamed to R2)
+- Portfolio projects, About/Skills/Contact content, experience timeline, friends list
+- Music library and song-request inbox, Discord status settings
+- Site status: traffic, uptime, visitor and admin activity logs
+- **Site themes**: switch the whole site between 7 presets (Classic, Midnight, Ocean, Forest, Sunset, Rose, Mono) and an animated retro platformer-style theme, with an optional custom accent color
 
-## Blog password locks
+## Tech stack
 
-Each published post can optionally be password protected from the admin editor. Passwords are salted and hashed with Cloudflare-compatible scrypt before storage, while old PBKDF2 hashes remain readable. A successful unlock is kept in an HttpOnly, Secure, SameSite cookie for 24 hours and is invalidated automatically when the post password changes.
+Next.js 16 (App Router) on [vinext](https://github.com/cloudflare/vinext) · React 19 · Tailwind CSS 4 · Cloudflare Workers, D1 (SQLite), R2, Images · Drizzle ORM · Cloudflare Access for admin sign-in · Node.js test runner
 
-## Floating music player
+## Quick start
 
-The global bottom-left player supports site-wide tracks managed in `/admin` plus device-local tracks added by each visitor. Admin audio is stored in R2 with metadata in D1 and appears for everyone; visitor tracks stay in that visitor's browser. The player also includes a song recommendation form whose submissions appear in the admin inbox. No third-party demo music is included; upload only audio you own or have permission to use.
-
-## Portfolio
-
-The homepage shows featured projects beneath About Me, while `/portfolio` presents the complete collection with category filters. Projects appear as one horizontal rectangle per row: image on the left, title and description on the right, and tags in the bottom-right corner. The whole card opens the first available destination in this order: live link, GitHub link, then related Blog post. Each project can include a bilingual description, cover image, technology tags, completion date, live link, GitHub link, and a related Blog post. Sign in to `/admin` to add, edit, delete, feature, or reorder projects. Existing projects are upgraded automatically without deleting their content.
-
-## 1. Create the D1 database
-
-In Cloudflare Dashboard open **Storage & databases → D1 → Create database** and name it `steven-blog`. Copy its Database ID and replace `REPLACE_WITH_YOUR_D1_DATABASE_ID` in `wrangler.jsonc`.
-
-The app creates the `posts` table automatically on first use.
-
-## 2. Create image storage
-
-In Cloudflare Dashboard open **Storage & databases → R2 object storage → Create bucket** and name it `steven-blog-images`.
-
-The `BUCKET` binding is already included in `wrangler.jsonc`. The Blog editor accepts a cover photo and a multi-photo gallery. JPG, PNG and WebP source files can be up to 80 MB and are compressed in the browser to an 8 MB upload while retaining up to A4 at 300 DPI (2480×3508 px). GIF files can be up to 20 MB. Uploads use a raw Worker request that streams directly into R2, so they do not pass through the app router's multipart parser. Photos are stored in R2 and will not disappear after a GitHub deployment.
-
-## 3. Push this folder to GitHub
-
-Replace the old files in `steventeng2022/website1`, then commit and push.
-
-## 4. Connect GitHub to Cloudflare Workers
-
-Open **Workers & Pages → Create application → Import a repository**, choose `steventeng2022/website1`, and use:
-
-- Build command: `npm run build`
-- Deploy command: `npx wrangler deploy`
-- Root directory: `/`
-
-If Cloudflare asks for a Node version, use Node.js 22.
-
-## 5. Add your domain
-
-In the deployed Worker, open **Settings → Domains & Routes → Add → Custom domain** and add `steventeng.uk`.
-
-Remove old DNS records that pointed the domain at ChatGPT Sites if Cloudflare reports a conflict.
-
-## 6. Protect `/admin` with Cloudflare Access
-
-Open **Zero Trust → Access → Applications → Add an application → Self-hosted**. Protect `/admin/*` so the editor and its image-upload endpoint receive the same verified identity.
-
-- Application domain: `steventeng.uk`
-- Path: `/admin*`
-- Policy action: Allow
-- Include: Emails → `steventeng2022@gmail.com`
-- Login method: One-time PIN
-
-Cloudflare Access adds the verified email header checked by the server. Do not expose `/admin` without this Access rule.
-
-## Local verification
+Requirements: **Node.js ≥ 22.13** and a Cloudflare account (free plan is enough).
 
 ```bash
-npm install
-npm run build
+git clone https://github.com/steventeng2022/website1.git
+cd website1
+npm ci
+npm run dev        # local dev server at http://localhost:5173
 ```
 
-The public contact details are `steventeng2022@gmail.com` and Discord `steven0925`.
+Local dev uses Miniflare, so D1 and R2 work without a Cloudflare account. If the dev server refuses to start with a message about the compatibility date, update `wrangler` (`npm i -D wrangler@latest`) or temporarily lower `compatibility_date` in `wrangler.jsonc`.
+
+Useful scripts:
+
+```bash
+npm run build      # production build
+npm test           # build + rendered HTML checks
+npm run lint
+```
+
+The full unit-style suite lives in `tests/` and runs with Node's built-in runner:
+
+```bash
+node --test tests/*.test.mjs
+```
+
+> `/admin` requires a Cloudflare Access login, so it is not reachable on a plain local dev server. See [Admin access](#admin-access).
+
+## Make it yours (read before deploying)
+
+This repository is the author's real site, so a few things are personal. Change them before you deploy your own copy:
+
+1. **Admin email.** Hard-coded in two places; set both to your address:
+   - `app/cloudflare-auth.ts` (`ADMIN_EMAIL`)
+   - `worker/index.ts` (`ADMIN_EMAIL`)
+2. **Cloudflare resources in `wrangler.jsonc`.** Replace `database_id`, `database_name` and the R2 `bucket_name` with your own.
+3. **Content and defaults.** `db/site-content.ts` seeds the About / Skills / Contact text and contact links, and `app/layout.tsx` has the page title and description. Replace them with yours.
+4. **Personal images and branding.** `public/steven-drawing.png`, `public/flower.*`, the icons and `favicon.svg` belong to the author (see [Licensing](#licensing)). Swap in your own.
+5. **Analytics.** `app/layout.tsx` loads a Google Tag Manager container (`GTM-P4HZ4DZ5`) on public pages. Remove it or replace the ID with yours, and update the privacy notice in `app/public-site-status.tsx` accordingly.
+
+## Deploy to Cloudflare
+
+1. **Create the D1 database** (Storage & databases → D1) and put its ID in `wrangler.jsonc`. Tables are created and migrated automatically on first use; the SQL in `drizzle/` documents the schema.
+2. **Create an R2 bucket** for images and audio and match its name in `wrangler.jsonc`. JPG/PNG/WebP up to 80 MB are compressed in the browser to ≤ 8 MB (up to A4 at 300 DPI); GIF up to 20 MB.
+3. **Push to GitHub and connect Workers Builds** (Workers & Pages → Create → Import a repository):
+   - Build command: `npm run build`
+   - Deploy command: `npx wrangler deploy`
+   - Node version: 22
+4. **Add your domain** under the Worker's Settings → Domains & Routes.
+
+Or deploy from your machine: `npm run build && npx wrangler deploy`.
+
+### Admin access
+
+`/admin` is protected by **Cloudflare Access**; the app trusts the verified email header Cloudflare adds and rejects everyone except `ADMIN_EMAIL`.
+
+1. Zero Trust → Access → Applications → Add → Self-hosted
+2. Application domain: your domain, path: `/admin*`
+3. Policy: Allow → Emails → your address; login method: One-time PIN
+
+Never expose `/admin` without this Access rule.
+
+## Themes
+
+Themes are defined in `app/themes.ts` (colors as CSS variables applied on `<html>`), stored in D1 (`site_theme`) and changed from **Admin → 網站主題**. The visitor light/dark toggle works with the Classic theme; every other theme fixes its own scheme. The retro platformer theme adds its own stylesheet (`app/theme-mario.css`) and a small script (`public/mario-world.js`) that is only loaded when that theme is active; all of its pixel art is original and drawn in code.
+
+To add a theme, append an entry to `THEMES` in `app/themes.ts`. For extra styling, scope CSS to `html[data-site-theme="your-id"]`.
+
+## Project structure
+
+```
+app/        Next.js routes, components and CSS (public pages, /admin, API routes)
+db/         D1 access modules (one per feature); schema is created lazily
+drizzle/    SQL migrations documenting the schema
+worker/     Cloudflare Worker entry: uploads, media streaming, image resizing
+public/     Static assets and the music player / theme scripts
+tests/      node:test suites (rendering, admin, uploads, themes, analytics, ...)
+```
+
+## Contributing
+
+Issues and pull requests are welcome.
+
+- Keep changes focused and match the surrounding style (TypeScript, small modules, no new runtime dependencies without a reason)
+- Run `npx tsc --noEmit` and `node --test tests/*.test.mjs` before opening a PR
+- For UI changes, include screenshots in the PR description
+- Do not commit secrets, real visitor data or personal content
+
+Please report security issues privately via the contact below instead of a public issue.
+
+## Licensing
+
+- **Code** is released under the [MIT License](LICENSE).
+- **Personal content is not covered by the MIT License**: the author's photos, drawings, logo/icons, text content, blog posts and any uploaded media remain the author's and may not be reused without permission. Replace them in your own fork.
+- Third-party fonts (Geist, Press Start 2P) are used under their own open licenses via Google Fonts.
+- The retro platformer theme is an original homage; it contains no Nintendo artwork, logos or audio. Do not add trademarked sprites or sounds.
+
+## Contact
+
+Steven: <steventeng2022@gmail.com> · Discord `steven0925`
+
+---
+
+## 繁體中文簡介
+
+這是 Steven 的個人網站與寫作後台，完全運行在 **Cloudflare Workers + D1 + R2** 上，程式碼以 **MIT 授權開源**。
+
+- **前台**：首頁、作品集、經歷時間軸、Friends、雙語 Blog（搜尋、標籤、分頁、文章密碼鎖）、浮動音樂播放器、Discord 即時狀態卡
+- **後台 `/admin`**（由 Cloudflare Access 保護）：管理文章、作品、經歷、音樂、Discord 狀態、網站流量與紀錄，並可**一鍵更換整個網站的主題**
+- **自行部署**：需 Node.js 22.13 以上與 Cloudflare 帳號。請先閱讀上方「Make it yours」，把管理員 Email、`wrangler.jsonc` 的資源、個人內容與圖片、GTM 換成自己的
+- **授權注意**：程式碼為 MIT；作者的照片、插圖、Logo、文章與文字內容不在授權範圍內，請在你的 fork 中替換
+
+歡迎提出 Issue 或 Pull Request。
