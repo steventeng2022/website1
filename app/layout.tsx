@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Press_Start_2P } from "next/font/google";
 import MusicPlayer from "./music-player";
 import VisitorTracker from "./visitor-tracker";
 import PublicSiteStatus from "./public-site-status";
@@ -28,6 +28,15 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+// Pixel font for the optional "mario" theme. It is only fetched when a glyph uses it.
+const pixelFont = Press_Start_2P({
+  variable: "--font-pixel",
+  weight: "400",
+  subsets: ["latin"],
+  display: "swap",
+  preload: false,
 });
 
 // Google Tag Manager for public pages only: the private studio under /admin is never tagged.
@@ -63,13 +72,14 @@ export default async function RootLayout({
     <DocumentLanguage siteTheme={siteTheme.id} siteScheme={siteTheme.id === "classic" ? undefined : siteTheme.scheme} style={custom ? themeStyle(themeSettings.theme, themeSettings.accent) : undefined}>
       <head><script dangerouslySetInnerHTML={{ __html: themeInitScript }} /><script dangerouslySetInnerHTML={{ __html: googleTagScript }} /></head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${pixelFont.variable} antialiased`}
       >
         <ThemeSync />
         <SiteMotion />
         {children}
         <PublicSiteStatus />
         <VisitorTracker />
+        {siteTheme.id === "mario" && <script src="/mario-world.js?v=1" defer />}
         <MusicPlayer tracks={tracks.map(track=>({id:track.id,title:track.title,artist:track.artist,src:track.audio_url,cover:track.cover_url}))}/>
       </body>
     </DocumentLanguage>
