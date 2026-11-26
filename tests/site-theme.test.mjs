@@ -18,11 +18,15 @@ test("admin can switch the whole-site theme", async () => {
   assert.match(themes, /midnight/);
 });
 
-test("mario theme is animated and scoped", async () => {
-  const [css, themes, layout] = await Promise.all([read("app/theme-mario.css"), read("app/themes.ts"), read("app/layout.tsx")]);
+test("mario theme is animated, scoped, and has a runner with easter eggs", async () => {
+  const [css, themes, layout, js] = await Promise.all([read("app/theme-mario.css"), read("app/themes.ts"), read("app/layout.tsx"), read("public/mario-world.js")]);
   assert.match(themes, /id: "mario"/);
   assert.match(layout, /theme-mario\.css/);
+  assert.match(layout, /siteTheme\.id === "mario" && <script src="\/mario-world\.js/);
   assert.match(css, /@keyframes mario-clouds/);
   assert.match(css, /@keyframes mario-coin/);
-  for (const line of css.split(/[data-site-theme="mario"]?\n/).filter(l => /\{\s*$/.test(l) && !/@keyframes|^\s/.test(l))) assert.match(line, /^html\[data-site-theme="mario"\]/);
+  for (const line of css.split(/\r?\n/).filter(l => /\{\s*$/.test(l) && !/^(\s|@keyframes|@media|\.mw-)/.test(l))) assert.match(line, /^html\[data-site-theme="mario"\]/);
+  // runner behaviour: autopilot, stomping, coins, flag, Konami star, reduced-motion
+  for (const needle of [/function autopilot/, /stomp|P\.vy < 0 && P\.y > c\.h/, /KONAMI/, /fireworks/, /coinShower/, /prefers-reduced-motion/, /isOn\(\)/, /sessionStorage/]) assert.match(js, needle);
+  assert.doesNotMatch(js, /\.(mp3|ogg|wav)/);
 });

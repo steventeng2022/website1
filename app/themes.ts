@@ -27,7 +27,7 @@ export const THEMES: ThemeDef[] = [
   { id: "mono", name_zh: "極簡黑白", name_en: "Mono", scheme: "dark",
     vars: { paper: "#000000", ink: "#f2f2f2", blue: "#ffffff", line: "#2c2c2c", muted: "#a0a0a0", surface: "#0d0d0d", surface2: "#131313", surface3: "#1c1c1c" } },
   { id: "mario", name_zh: "超級瑪利風", name_en: "Super Plumber (retro)", scheme: "light", animated: true,
-    vars: { paper: "#e6f2ff", ink: "#1b1f3b", blue: "#e52521", line: "#b9d3f2", muted: "#4d5678", surface: "#ffffff", surface2: "#fff8e1", surface3: "#ffe9a8" } },
+    vars: { paper: "#9ad1ff", ink: "#1b1f3b", blue: "#e52521", line: "#1b1f3b", muted: "#3b4468", surface: "#ffffff", surface2: "#fff8e1", surface3: "#ffe9a8" } },
 ];
 
 export const DEFAULT_THEME: ThemeId = "classic";
