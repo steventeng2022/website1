@@ -1,0 +1,158 @@
+/* "Underwater" (abyss) theme: scrolling is diving. The water darkens with depth (--sea-depth, set by /sea-world.js),
+   sections become rounded water pods, the hero photo sits in a brass porthole, cards are bubbles, skills are blobs,
+   the footer is the seabed. Page rules are scoped to html[data-site-theme="abyss"]; the sea layer (.sea*) is created by
+   /sea-world.js only when this theme is active. Motion respects prefers-reduced-motion. */
+html[data-site-theme="abyss"] {
+  --sea-aqua: #2ee6d6; --sea-foam: #eafcff; --sea-coral: #ff7a8a; --sea-gold: #ffcf5a; --sea-sand: #d9bf86;
+  --sea-pod: radial-gradient(130% 120% at 15% 0%, rgb(180 240 255 / .2), rgb(60 170 210 / .08) 38%, rgb(2 30 56 / .52) 100%);
+  --sea-edge: rgb(190 245 255 / .34);
+  --sea-round: ui-rounded, "Hiragino Maru Gothic ProN", "Arial Rounded MT Bold", var(--sans, sans-serif);
+  scrollbar-color: #2a8fb0 #04203c;
+}
+html[data-site-theme="abyss"] body { background: #0b5a86; color: var(--ink); }
+html[data-site-theme="abyss"] ::selection { background: var(--sea-aqua); color: #04203c; }
+html[data-site-theme="abyss"] main { position: relative; z-index: 1; background: none; }
+html[data-site-theme="abyss"] :is(h1, h2, h3, p, li, span, a, small) { text-shadow: 0 1px 10px rgb(0 40 70 / .45); }
+
+/* ---------- the sea (decorative, created by JS) ---------- */
+.sea { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.sea-bg { position: absolute; inset: 0; background: linear-gradient(#1fa2c6 0%, #137ea8 16%, #0b5a86 36%, #073a62 58%, #041f3d 78%, #020c1c 100%); background-size: 100% 600%; background-position: 50% calc(var(--depth, 0) * 100%); }
+.sea-rays { position: absolute; inset: -20% -15% 25%; opacity: calc(1 - var(--depth, 0) * 1.7); background: repeating-linear-gradient(105deg, transparent 0 70px, rgb(255 255 255 / .13) 70px 120px, transparent 120px 230px); -webkit-mask-image: linear-gradient(#000, transparent 80%); mask-image: linear-gradient(#000, transparent 80%); animation: sea-sway 11s ease-in-out infinite alternate; }
+@keyframes sea-sway { from { transform: translateX(-4%) skewX(-3deg); } to { transform: translateX(4%) skewX(3deg); } }
+.sea-snow { position: absolute; inset: 0; opacity: calc(.35 + var(--depth, 0) * .45); background-image: radial-gradient(2px 2px at 30px 40px, rgb(255 255 255 / .8), transparent), radial-gradient(1.5px 1.5px at 120px 150px, rgb(200 240 255 / .7), transparent), radial-gradient(2px 2px at 210px 90px, rgb(255 255 255 / .6), transparent); background-size: 260px 220px; animation: sea-snow 50s linear infinite; }
+@keyframes sea-snow { to { background-position: -60px 440px; } }
+.sea-layer { position: absolute; inset: 0; }
+.sea-fish { position: absolute; left: 0; top: 0; background: no-repeat center / contain; will-change: transform; filter: drop-shadow(0 3px 4px rgb(0 30 50 / .35)); }
+.sea-fish-glow { filter: drop-shadow(0 0 16px #7affea); }
+.sea-jelly { position: absolute; left: 0; top: 0; width: 60px; height: 90px; background: no-repeat center / contain; will-change: transform; filter: drop-shadow(0 0 22px rgb(181 140 255 / .8)); animation: sea-glow 4.5s ease-in-out infinite alternate; }
+@keyframes sea-glow { from { filter: drop-shadow(0 0 10px rgb(181 140 255 / .5)) brightness(.9); } to { filter: drop-shadow(0 0 30px rgb(181 140 255 / .95)) brightness(1.25); } }
+.sea-bubble { position: absolute; left: 0; top: 0; border-radius: 50%; will-change: transform; border: 1px solid rgb(255 255 255 / .55); background: radial-gradient(circle at 30% 28%, rgb(255 255 255 / .95) 0 8%, rgb(255 255 255 / .22) 24%, rgb(150 230 255 / .1) 62%, rgb(255 255 255 / .3) 100%); box-shadow: inset 0 0 8px rgb(255 255 255 / .35); }
+.sea-food { position: absolute; left: 0; top: 0; width: 7px; height: 7px; border-radius: 50%; background: #ffd98a; box-shadow: 0 0 6px #ffb84a; }
+.sea-ring { position: absolute; width: 60px; height: 60px; border: 2px solid rgb(255 255 255 / .7); border-radius: 50%; }
+.sea-pop { position: absolute; color: #fff; font: 700 13px var(--sea-round); text-shadow: 0 2px 6px rgb(0 30 50 / .75); white-space: nowrap; }
+.sea-pop-big { font-size: 20px; } .sea-pop-pearl { color: #f1e6ff; } .sea-pop-food { color: var(--sea-gold); }
+.sea-pearl { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #fff, #e8d9ff 60%, #b79be0); box-shadow: 0 0 10px rgb(232 217 255 / .8); }
+.sea-whale { position: absolute; left: 0; width: 420px; height: 168px; background: no-repeat center / contain; opacity: .85; filter: drop-shadow(0 0 30px rgb(120 200 255 / .3)); }
+
+/* seabed, chest and depth gauge sit above the page */
+.sea-ui { position: fixed; inset: 0; z-index: 40; pointer-events: none; overflow: hidden; }
+.sea-floor { position: absolute; left: 0; right: 0; bottom: 0; height: 190px; transform: translateY(calc((1 - var(--floor, 0)) * 105%)); }
+.sea-sand { position: absolute; left: 0; right: 0; bottom: 0; height: 60px; background-repeat: repeat-x; background-size: 400px 60px; }
+.sea-weed { position: absolute; bottom: 24px; width: 70px; height: var(--h, 100px); background: no-repeat bottom / contain; transform-origin: 50% 100%; animation: sea-weed var(--sway, 4s) ease-in-out infinite alternate; }
+@keyframes sea-weed { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
+.sea-chest { position: absolute; right: 11%; bottom: 16px; width: 78px; height: 54px; pointer-events: auto; cursor: pointer; }
+.sea-chest i { position: absolute; display: block; box-sizing: border-box; }
+.sea-chest-lid { left: 0; right: 0; top: 0; height: 28px; border: 3px solid #5a3a1b; border-radius: 34px 34px 4px 4px; background: #8a5a2b; transform-origin: 0 100%; transition: transform .3s; }
+.sea-chest-base { left: 0; right: 0; top: 26px; height: 28px; border: 3px solid #5a3a1b; border-radius: 0 0 6px 6px; background: #a8743b; }
+.sea-chest-lock { left: 33px; top: 22px; width: 12px; height: 14px; border: 2px solid #8a6200; border-radius: 3px; background: var(--sea-gold); z-index: 1; }
+.sea-chest-open .sea-chest-lid { transform: rotate(-40deg); }
+.sea-chest-open::after { content: ""; position: absolute; left: 14px; right: 14px; top: -6px; height: 22px; background: radial-gradient(ellipse at 50% 100%, rgb(255 230 140 / .9), transparent 70%); }
+.sea-gauge { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); display: flex; align-items: stretch; gap: 10px; height: 44vh; min-height: 220px; color: #fff; font: 600 11px var(--sea-round); text-shadow: 0 1px 6px rgb(0 30 50 / .8); pointer-events: auto; cursor: help; }
+.sea-gauge-track { position: relative; width: 4px; border-radius: 4px; background: rgb(255 255 255 / .28); order: 2; }
+.sea-gauge-dot { position: absolute; left: 50%; top: 0; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: #fff; box-shadow: 0 0 14px #fff, 0 0 4px var(--sea-aqua); }
+.sea-gauge-text { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 2px; text-align: right; }
+.sea-gauge-text b { font: 700 18px var(--sea-round); font-variant-numeric: tabular-nums; }
+.sea-gauge-label, .sea-gauge-unit, .sea-gauge-zone { font-size: 10px; letter-spacing: .08em; opacity: .85; }
+.sea-gauge-zone { margin-top: 6px; color: var(--sea-aqua); }
+.sea-gauge-pops { display: flex; align-items: center; gap: 5px; margin-top: 10px; }
+.sea-gauge-pops i { width: 10px; height: 10px; border: 1px solid #fff; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #fff, rgb(255 255 255 / .1)); }
+.sea-gauge-pops b { font-size: 12px; }
+@media (max-width: 700px) { .sea-gauge { display: none; } }
+
+/* ---------- headings and header ---------- */
+html[data-site-theme="abyss"] :is(h1, h2, h3, .hero-name, .brand) { font-family: var(--sea-round); }
+html[data-site-theme="abyss"] .hero-name { color: #fff; text-shadow: 0 4px 0 #0d6f97, 0 10px 30px rgb(0 40 70 / .6); animation: sea-bob 6s ease-in-out infinite; }
+@keyframes sea-bob { 50% { transform: translateY(-8px); } }
+html[data-site-theme="abyss"] .hero-greeting { color: var(--sea-gold); }
+html[data-site-theme="abyss"] .hero-period { color: var(--sea-coral); }
+html[data-site-theme="abyss"] em { font-style: normal; color: var(--sea-aqua); }
+html[data-site-theme="abyss"] :is(.eyebrow, .section-kicker, .page-index, .skill-index, .project-tag) { color: var(--sea-aqua); font-family: var(--sea-round); }
+html[data-site-theme="abyss"] .section-kicker > span { border-color: var(--sea-edge); color: var(--sea-foam); background: rgb(255 255 255 / .1); }
+html[data-site-theme="abyss"] :is(.intro, .about-copy, .page-intro-footer > p, .portfolio-hero-bottom > p, .friends-intro, .experience-hero > p:last-child, .section-heading p, .footer-note) { color: #d6f4ff; }
+
+html[data-site-theme="abyss"] .premium-header { position: sticky; top: 12px; z-index: 60; width: min(1080px, 94vw); max-width: none; margin: 14px auto 0; padding: 0 22px; border: 1px solid var(--sea-edge); border-radius: 999px; background: radial-gradient(120% 220% at 20% 0%, rgb(190 245 255 / .28), rgb(8 60 100 / .5)); backdrop-filter: blur(10px); box-shadow: inset 0 0 24px rgb(190 245 255 / .15), 0 14px 40px rgb(0 20 40 / .35); }
+html[data-site-theme="abyss"] .premium-header__inner { border-bottom: 0; min-height: 66px; }
+html[data-site-theme="abyss"] .premium-header .premium-header__brand { color: #fff; font-family: var(--sea-round); }
+html[data-site-theme="abyss"] .premium-header__brand span { color: var(--sea-coral); }
+html[data-site-theme="abyss"] .premium-header .premium-header__nav > a { color: #d6f4ff; padding-inline: 14px; border-radius: 999px; transition: background .2s, transform .25s; }
+html[data-site-theme="abyss"] .premium-header .premium-header__nav > a::after { display: none; }
+html[data-site-theme="abyss"] .premium-header .premium-header__nav > a:hover { background: rgb(255 255 255 / .16); color: #fff; transform: translateY(-3px); }
+html[data-site-theme="abyss"] .premium-header .premium-header__nav > a[aria-current="page"] { background: rgb(46 230 214 / .22); color: #fff; box-shadow: inset 0 0 0 1px rgb(46 230 214 / .5); }
+html[data-site-theme="abyss"] .premium-header .premium-header__nav > .premium-header__contact { border-color: var(--sea-aqua); background: rgb(46 230 214 / .18); color: #fff; }
+html[data-site-theme="abyss"] .premium-header__theme { display: none; }
+
+/* ---------- sections become rounded water pods ---------- */
+html[data-site-theme="abyss"] .hero { background: none; }
+html[data-site-theme="abyss"] .section { margin: 34px auto; width: min(1280px, calc(100% - clamp(24px, 6vw, 96px))); border: 1px solid var(--sea-edge); background: var(--sea-pod) !important; backdrop-filter: blur(6px); box-shadow: inset 0 0 60px rgb(190 245 255 / .08), 0 30px 70px rgb(0 20 40 / .32); }
+html[data-site-theme="abyss"] .section.about { border-radius: 72px 28px 72px 28px; }
+html[data-site-theme="abyss"] .section.projects { border-radius: 28px 72px 28px 72px; }
+html[data-site-theme="abyss"] .section.skills { border-radius: 90px; }
+html[data-site-theme="abyss"] .section.blog { border-radius: 28px 90px 28px 90px; }
+html[data-site-theme="abyss"] :is(.section, .page-intro) { border-top-color: var(--sea-edge); }
+html[data-site-theme="abyss"] .page-intro { margin: 18px auto 0; width: min(1280px, calc(100% - clamp(24px, 6vw, 96px))); border: 1px solid var(--sea-edge); border-radius: 60px; background: var(--sea-pod); }
+html[data-site-theme="abyss"] :is(.about h2, .skills h2, .blog-heading h2, .section-heading h2, footer h2, .page-intro h1) { color: #fff; font-family: var(--sea-round); text-shadow: 0 3px 0 rgb(13 111 151 / .8), 0 8px 24px rgb(0 40 70 / .5); }
+
+/* hero photo = brass porthole */
+html[data-site-theme="abyss"] .hero-photo { width: min(78%, 440px); aspect-ratio: 1; height: auto; padding: 0; margin: 20px auto; border: 16px solid #c8934a; border-radius: 50%; background: #0b5a86; overflow: hidden; transform: none; box-shadow: inset 0 0 0 4px #7a5424, inset 0 0 40px rgb(0 30 60 / .6), 0 0 0 5px #7a5424, 0 24px 60px rgb(0 20 40 / .5), 0 0 0 14px rgb(255 255 255 / .05); animation: sea-bob 7s ease-in-out infinite; }
+html[data-site-theme="abyss"] .hero-photo::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: linear-gradient(135deg, rgb(255 255 255 / .35) 0, transparent 38%); pointer-events: none; }
+html[data-site-theme="abyss"] .hero-photo:hover { transform: none; }
+html[data-site-theme="abyss"] .hero-photo img { border-radius: 50%; }
+
+/* ---------- buttons, bubble cards, blobs ---------- */
+html[data-site-theme="abyss"] .primary-button { border: 1px solid rgb(255 255 255 / .55); border-radius: 999px; color: #04203c; background: radial-gradient(120% 140% at 30% 10%, #fff, var(--sea-aqua) 55%, #19b3c6); box-shadow: inset 0 -6px 14px rgb(0 80 110 / .25), 0 12px 28px rgb(0 40 70 / .4); text-shadow: none; transition: transform .25s, box-shadow .25s; }
+html[data-site-theme="abyss"] .primary-button:hover { transform: translateY(-4px) scale(1.03); box-shadow: inset 0 -6px 14px rgb(0 80 110 / .25), 0 18px 34px rgb(0 40 70 / .5); }
+html[data-site-theme="abyss"] .primary-button:active { transform: scale(.96); }
+html[data-site-theme="abyss"] :is(.text-link, .archive-link, .read-link) { color: var(--sea-aqua); }
+html[data-site-theme="abyss"] :is(.project-card, .portfolio-card, .friend-card, .blog-card, .timeline-content, .discord-status-card, .blog-empty, .portfolio-empty, .intro, .about-portfolio-callout, .archive-search__field) { border: 1px solid var(--sea-edge); border-radius: 38px; background: radial-gradient(120% 120% at 18% 8%, rgb(255 255 255 / .22), rgb(120 220 255 / .08) 40%, rgb(3 40 70 / .5)); color: var(--ink); box-shadow: inset 0 0 40px rgb(180 240 255 / .1), 0 20px 50px rgb(0 20 40 / .35); }
+html[data-site-theme="abyss"] :is(.project-card, .portfolio-card.has-link, .friend-card, .blog-card):hover { background: radial-gradient(120% 120% at 18% 8%, rgb(255 255 255 / .3), rgb(120 220 255 / .12) 40%, rgb(3 40 70 / .45)); border-color: rgb(255 255 255 / .55); transform: translateY(-10px); animation: sea-wobble 1.6s ease-in-out infinite; }
+@keyframes sea-wobble { 50% { transform: translateY(-14px) rotate(.6deg); } }
+html[data-site-theme="abyss"] :is(.project-card p, .blog-card > p, .portfolio-card-copy > p, .friend-card-copy > p:last-child, .timeline-content > p:not(.project-tag)) { color: #cdeefa; }
+html[data-site-theme="abyss"] :is(.project-preview, .portfolio-media) { border-radius: 38px 38px 0 0; background: radial-gradient(circle at 30% 20%, rgb(255 255 255 / .25), rgb(10 100 150 / .5)); color: #fff; border-color: transparent; }
+html[data-site-theme="abyss"] .skill-grid { border: 0; gap: 22px; }
+html[data-site-theme="abyss"] .skill-grid article { min-height: 0; padding: 34px; border: 1px solid var(--sea-edge); background: radial-gradient(110% 110% at 22% 12%, rgb(255 255 255 / .26), rgb(80 200 230 / .1) 45%, rgb(3 45 80 / .5)); color: var(--ink); box-shadow: inset 0 0 40px rgb(180 240 255 / .12), 0 18px 40px rgb(0 20 40 / .3); animation: sea-bob 7s ease-in-out infinite; }
+html[data-site-theme="abyss"] .skill-grid article:nth-child(4n + 1) { border-radius: 58% 42% 55% 45% / 48% 52% 48% 52%; }
+html[data-site-theme="abyss"] .skill-grid article:nth-child(4n + 2) { border-radius: 42% 58% 46% 54% / 55% 45% 55% 45%; animation-delay: -2s; }
+html[data-site-theme="abyss"] .skill-grid article:nth-child(4n + 3) { border-radius: 50% 50% 40% 60% / 44% 56% 44% 56%; animation-delay: -4s; }
+html[data-site-theme="abyss"] .skill-grid article:nth-child(4n) { border-radius: 46% 54% 58% 42% / 52% 48% 52% 48%; animation-delay: -1s; }
+html[data-site-theme="abyss"] .skill-grid article:hover { background: radial-gradient(110% 110% at 22% 12%, rgb(255 255 255 / .34), rgb(80 200 230 / .16) 45%, rgb(3 45 80 / .45)); color: var(--ink); transform: scale(1.05); }
+html[data-site-theme="abyss"] .skill-grid article > p:last-child { color: #cdeefa; }
+html[data-site-theme="abyss"] :is(.technology-list span, .post-tags a, .tag-chip, .featured-badge) { border: 1px solid var(--sea-edge); border-radius: 999px; background: rgb(255 255 255 / .14); color: #fff; }
+html[data-site-theme="abyss"] :is(.portfolio-filters a, .tag-filter a) { border: 1px solid var(--sea-edge); border-radius: 999px; background: rgb(255 255 255 / .1); color: #fff; transition: transform .25s; }
+html[data-site-theme="abyss"] :is(.portfolio-filters a, .tag-filter a):is(.active, [aria-current], :hover) { background: var(--sea-aqua); border-color: transparent; color: #04203c; text-shadow: none; transform: translateY(-3px); }
+html[data-site-theme="abyss"] .timeline::before { width: 0; border-left: 4px dotted rgb(255 255 255 / .55); background: none; }
+html[data-site-theme="abyss"] .timeline-marker { border: 1px solid rgb(255 255 255 / .7); border-radius: 50%; background: radial-gradient(circle at 30% 28%, #fff, rgb(160 235 255 / .4) 55%, rgb(40 160 200 / .6)); color: #04203c; text-shadow: none; box-shadow: 0 0 24px rgb(160 235 255 / .5); }
+html[data-site-theme="abyss"] .timeline-date { color: #bfeaff; }
+html[data-site-theme="abyss"] :is(input, textarea, select) { border: 1px solid var(--sea-edge); border-radius: 18px; background: rgb(3 35 62 / .6); color: var(--ink); }
+
+/* ---------- footer = the seabed ---------- */
+html[data-site-theme="abyss"] :is(.home-shell > footer, .portfolio-footer, .friends-footer) { margin-top: 60px; padding-bottom: 230px; border-top: 0; border-radius: 120px 120px 0 0 / 60px 60px 0 0; background: linear-gradient(rgb(2 14 30 / .0), rgb(2 14 30 / .55) 40%, rgb(40 32 20 / .7)); color: var(--sea-foam); }
+html[data-site-theme="abyss"] footer h2 { color: #fff; }
+html[data-site-theme="abyss"] .contact-links .contact-line { border-color: rgb(255 255 255 / .25); }
+html[data-site-theme="abyss"] .contact-line > span { color: var(--sea-gold); }
+html[data-site-theme="abyss"] .public-site-status { background: rgb(2 14 30 / .75); }
+
+/* article pages */
+html[data-site-theme="abyss"] .article { padding: clamp(22px, 4vw, 48px); border: 1px solid var(--sea-edge); border-radius: 56px; background: var(--sea-pod); }
+html[data-site-theme="abyss"] .article-body { color: #e4f8ff; }
+html[data-site-theme="abyss"] .article-lead { color: #cdeefa; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sea-fish, .sea-jelly { display: none; }
+  .sea-rays, .sea-snow { animation: none; }
+}
+@media (max-width: 700px) {
+  html[data-site-theme="abyss"] .section.about, html[data-site-theme="abyss"] .section.projects, html[data-site-theme="abyss"] .section.skills, html[data-site-theme="abyss"] .section.blog { border-radius: 36px; }
+  html[data-site-theme="abyss"] .premium-header { border-radius: 28px; }
+}
+
+/* hero stage: an aquarium window instead of the blue slab */
+html[data-site-theme="abyss"] .character-stage { border: 1px solid var(--sea-edge); border-radius: 64px; background: radial-gradient(120% 110% at 20% 0%, rgb(190 245 255 / .28), rgb(30 150 190 / .12) 45%, rgb(3 40 70 / .45)) !important; box-shadow: inset 0 0 60px rgb(190 245 255 / .12), 0 30px 70px rgb(0 20 40 / .35); }
+html[data-site-theme="abyss"] :is(.stage-depth-grid, .character-orbit, .stage-cube) { display: none; }
+html[data-site-theme="abyss"] .stage-sphere { background: radial-gradient(circle at 30% 28%, rgb(255 255 255 / .9), rgb(160 235 255 / .25) 45%, rgb(255 255 255 / .12)); border: 1px solid rgb(255 255 255 / .5); }
+html[data-site-theme="abyss"] .stage-ring { border-color: rgb(255 255 255 / .45); }
+html[data-site-theme="abyss"] :is(.character-stage-top, .character-stage-bottom, .character-note) { color: #d6f4ff; }
+html[data-site-theme="abyss"] .character-tabs button { border-radius: 999px; }
+
+/* main's dark-mode rules recolor .projects/.blog and the footer; the sea decides the color here */
+html[data-site-theme="abyss"] :is(.projects, .blog, .about, .skills) { background: var(--sea-pod) !important; }
+html[data-site-theme="abyss"] :is(.home-shell > footer) { background: linear-gradient(rgb(2 14 30 / 0), rgb(2 14 30 / .55) 40%, rgb(40 32 20 / .7)) !important; }

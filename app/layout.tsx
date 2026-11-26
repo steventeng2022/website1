@@ -15,6 +15,7 @@ import "./music-player.css";
 import "./premium.css";
 import "./site-header.css";
 import "./theme-mario.css";
+import "./theme-abyss.css";
 import "./theme.css";
 import "./admin/admin-feedback.css";
 import "./recovery.css";
@@ -79,6 +80,7 @@ export default async function RootLayout({
         {children}
         <PublicSiteStatus />
         <VisitorTracker />
+        {siteTheme.id === "abyss" && <script src="/sea-world.js?v=1" defer />}
         {siteTheme.id === "mario" && <script src="/mario-world.js?v=1" defer />}
         <MusicPlayer tracks={tracks.map(track=>({id:track.id,title:track.title,artist:track.artist,src:track.audio_url,cover:track.cover_url}))}/>
       </body>
