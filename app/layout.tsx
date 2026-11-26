@@ -4,6 +4,8 @@ import MusicPlayer from "./music-player";
 import VisitorTracker from "./visitor-tracker";
 import PublicSiteStatus from "./public-site-status";
 import { listPublicMusicTracks } from "../db/music";
+import { getThemeSettings } from "../db/theme";
+import { getTheme, themeStyle } from "./themes";
 import "./globals.css";
 import "./music-player.css";
 import "./premium.css";
@@ -33,9 +35,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const tracks = await listPublicMusicTracks();
+  const [tracks, themeSettings] = await Promise.all([listPublicMusicTracks(), getThemeSettings()]);
   return (
-    <html lang="zh-Hant-TW">
+    <html lang="zh-Hant-TW" data-theme={getTheme(themeSettings.theme).id} style={themeStyle(themeSettings.theme, themeSettings.accent)}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

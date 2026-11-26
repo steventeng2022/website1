@@ -11,6 +11,8 @@ import { saveExistingPost, saveNewPost } from "./post-save";
 import { createMusicTrack, deleteMusicTrack, deleteSongRequest, moveMusicTrack, setSongRequestStatus, updateMusicTrack } from "../../db/music";
 import { logAdminActivity } from "../../db/analytics";
 import { updateDiscordStatusSettings } from "../../db/discord-status";
+import { updateThemeSettings } from "../../db/theme";
+import { HEX_COLOR, THEMES, type ThemeId } from "../themes";
 
 async function auditedAdmin(action: string, detail = "") {
   const email = await requireAdmin();
@@ -280,3 +282,14 @@ export async function deleteMusicTrackAction(formData:FormData){await auditedAdm
 export async function moveMusicTrackAction(formData:FormData){await auditedAdmin("調整歌曲順序",`歌曲 #${formData.get("id")}`);await moveMusicTrack(itemId(formData),formData.get("direction")==="down"?"down":"up");revalidatePath("/");revalidatePath("/admin");}
 export async function setSongRequestStatusAction(formData:FormData){await auditedAdmin("處理歌曲推薦",`推薦 #${formData.get("id")}`);await setSongRequestStatus(itemId(formData),formData.get("status")==="reviewed"?"reviewed":"new");revalidatePath("/admin");}
 export async function deleteSongRequestAction(formData:FormData){await auditedAdmin("刪除歌曲推薦",`推薦 #${formData.get("id")}`);await deleteSongRequest(itemId(formData));revalidatePath("/admin");}
+
+export async function updateThemeAction(formData: FormData) {
+  const theme = String(formData.get("theme") ?? "");
+  if (!THEMES.some(item => item.id === theme)) throw new Error("主題無效");
+  const useAccent = formData.get("useAccent") === "yes";
+  const accent = String(formData.get("accent") ?? "").trim();
+  if (useAccent && !HEX_COLOR.test(accent)) throw new Error("主題色必須是 #RRGGBB 格式");
+  await auditedAdmin("更換網站主題", `${theme}${useAccent ? ` / ${accent}` : ""}`);
+  await updateThemeSettings(theme as ThemeId, useAccent ? accent.toLowerCase() : null);
+  revalidatePath("/", "layout");
+}
