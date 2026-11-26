@@ -14,6 +14,7 @@ import "./globals.css";
 import "./music-player.css";
 import "./premium.css";
 import "./site-header.css";
+import "./theme-mario.css";
 import "./theme.css";
 import "./admin/admin-feedback.css";
 import "./recovery.css";
