@@ -84,7 +84,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           <input type="radio" name="theme" value={item.id} defaultChecked={themeSettings.theme===item.id} required/>
           <span className="theme-card" style={{background:item.vars.paper,color:item.vars.ink,borderColor:item.vars.line}}>
             <span className="theme-swatch"><i style={{background:item.vars.blue}}/><i style={{background:item.vars.surface,borderColor:item.vars.line}}/><i style={{background:item.vars.ink}}/></span>
-            <strong>{item.name_zh}</strong><small style={{color:item.vars.muted}}>{item.name_en} · {item.scheme==="dark"?"深色":"淺色"}</small>
+            <strong>{item.name_zh}</strong><small style={{color:item.vars.muted}}>{item.name_en} · {item.scheme==="dark"?"深色":"淺色"}{item.animated?" · 動態":""}</small>
           </span>
         </label>)}</div>
         <label className="featured-check"><input type="checkbox" name="useAccent" value="yes" defaultChecked={Boolean(themeSettings.accent)}/><span>自訂主題色（覆蓋所選主題的強調色）</span></label>

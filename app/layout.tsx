@@ -10,6 +10,7 @@ import "./globals.css";
 import "./music-player.css";
 import "./premium.css";
 import "./site-header.css";
+import "./theme-mario.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
