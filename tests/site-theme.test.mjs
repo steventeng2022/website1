@@ -24,6 +24,7 @@ test("mario theme is animated and scoped", async () => {
   assert.match(layout, /theme-mario\.css/);
   assert.match(css, /@keyframes mario-clouds/);
   assert.match(css, /@keyframes mario-coin/);
-  for (const line of css.split(/?
+  for (const line of css.split(/
+?
 /).filter(l => /\{\s*$/.test(l) && !/@keyframes|^\s/.test(l))) assert.match(line, /^html\[data-theme="mario"\]/);
 });
