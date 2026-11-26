@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const page = await readFile(new URL("../app/admin/page.tsx", import.meta.url), "utf8");
+const navigation = await readFile(new URL("../app/admin/admin-navigation.tsx", import.meta.url), "utf8");
 const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
 
 test("admin is organized into focused sections instead of one long page", () => {
@@ -10,7 +11,8 @@ test("admin is organized into focused sections instead of one long page", () => 
     assert.match(page, new RegExp(`id: "${section}"`));
     assert.match(page, new RegExp(`activeSection === "${section}"`));
   }
-  assert.match(page, /className="admin-nav"/);
+  assert.match(page, /<AdminNavigation/);
+  assert.match(navigation, /className="admin-nav"/);
   assert.match(page, /網站管理總覽/);
   assert.match(page, /快速開始/);
 });

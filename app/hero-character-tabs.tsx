@@ -19,6 +19,10 @@ export default function HeroCharacterTabs({ en = false }: { en?: boolean }) {
     <div className="character-stage">
       <div className="character-stage-top"><span>{en ? "THE PERSON BEHIND THE PIXELS" : "螢幕背後的我"}</span><span aria-hidden="true">↗</span></div>
       <div className="character-orbit" aria-hidden="true" />
+      <div className="stage-depth-grid" aria-hidden="true" />
+      <div className="stage-shape stage-sphere" aria-hidden="true" />
+      <div className="stage-shape stage-cube" aria-hidden="true"><i /><i /><i /></div>
+      <div className="stage-shape stage-ring" aria-hidden="true" />
       <div className="character-note" aria-hidden="true">{en ? "a work in progress" : "持續進化中"}<span>↘</span></div>
       <div className="hero-photo" role="tabpanel" id="character-panel" aria-labelledby={`character-tab-${active}`} tabIndex={0}>
         <img

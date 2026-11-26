@@ -1,3 +1,5 @@
+import { cacheForRequest } from "vinext/cache";
+
 export type MusicTrack = {
   id: number;
   title: string;
@@ -25,7 +27,7 @@ function db(): D1Database {
   return binding;
 }
 
-async function ready() {
+const ready = cacheForRequest(async () => {
   const d1 = db();
   await d1.batch([
     d1.prepare(`CREATE TABLE IF NOT EXISTS music_tracks (
@@ -51,7 +53,9 @@ async function ready() {
     d1.prepare("CREATE INDEX IF NOT EXISTS music_tracks_sort_idx ON music_tracks(enabled, sort_order, id)"),
     d1.prepare("CREATE INDEX IF NOT EXISTS song_requests_requester_idx ON song_requests(requester_hash, created_at)"),
   ]);
-}
+});
+
+export { ready as ensureMusicReady };
 
 export async function listPublicMusicTracks() {
   await ready();

@@ -1,3 +1,4 @@
+import { cacheForRequest } from "vinext/cache";
 import { DEFAULT_THEME, HEX_COLOR, THEMES, type ThemeId } from "../app/themes";
 
 export type ThemeSettings = { theme: ThemeId; accent: string | null; updated_at: number };
@@ -6,15 +7,19 @@ function db(): D1Database | null {
   return (globalThis as typeof globalThis & { __STEVEN_SITE_ENV__?: { DB: D1Database } }).__STEVEN_SITE_ENV__?.DB ?? null;
 }
 
-async function ready(d1: D1Database) {
-  await d1.prepare(`CREATE TABLE IF NOT EXISTS site_theme (
-    id INTEGER PRIMARY KEY CHECK (id = 1),
-    theme TEXT NOT NULL DEFAULT 'classic',
-    accent TEXT,
-    updated_at INTEGER NOT NULL
-  )`).run();
-  await d1.prepare("INSERT OR IGNORE INTO site_theme (id,theme,accent,updated_at) VALUES (1,'classic',NULL,?)").bind(Date.now()).run();
-}
+const ready = cacheForRequest(async () => {
+  const d1 = db();
+  if (!d1) return;
+  await d1.batch([
+    d1.prepare(`CREATE TABLE IF NOT EXISTS site_theme (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      theme TEXT NOT NULL DEFAULT 'classic',
+      accent TEXT,
+      updated_at INTEGER NOT NULL
+    )`),
+    d1.prepare("INSERT OR IGNORE INTO site_theme (id,theme,accent,updated_at) VALUES (1,'classic',NULL,?)").bind(Date.now()),
+  ]);
+});
 
 // Never throws: a theme problem must not take the public site down.
 export async function getThemeSettings(): Promise<ThemeSettings> {
@@ -22,7 +27,7 @@ export async function getThemeSettings(): Promise<ThemeSettings> {
   try {
     const d1 = db();
     if (!d1) return fallback;
-    await ready(d1);
+    await ready();
     const row = await d1.prepare("SELECT theme,accent,updated_at FROM site_theme WHERE id=1").first<{ theme: string; accent: string | null; updated_at: number }>();
     if (!row) return fallback;
     return {
@@ -38,6 +43,6 @@ export async function getThemeSettings(): Promise<ThemeSettings> {
 export async function updateThemeSettings(theme: ThemeId, accent: string | null) {
   const d1 = db();
   if (!d1) throw new Error("Database binding is unavailable");
-  await ready(d1);
+  await ready();
   await d1.prepare("UPDATE site_theme SET theme=?,accent=?,updated_at=? WHERE id=1").bind(theme, accent, Date.now()).run();
 }

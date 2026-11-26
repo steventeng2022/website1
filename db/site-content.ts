@@ -1,3 +1,5 @@
+import { cacheForRequest } from "vinext/cache";
+
 export type SiteProfile = {
   id: number;
   about_heading_zh: string;
@@ -53,7 +55,7 @@ function db(): D1Database {
   return binding;
 }
 
-async function ready() {
+const ready = cacheForRequest(async () => {
   const d1 = db();
   await d1.batch([
     d1.prepare(`CREATE TABLE IF NOT EXISTS site_profile (
@@ -140,7 +142,9 @@ async function ready() {
     d1.prepare("UPDATE portfolio_projects SET title_zh=replace(title_zh,'。',''),title_en=replace(title_en,'。','') WHERE instr(title_zh,'。')>0 OR instr(title_en,'。')>0"),
     d1.prepare("UPDATE portfolio_skills SET name_zh=replace(name_zh,'。',''),name_en=replace(name_en,'。','') WHERE instr(name_zh,'。')>0 OR instr(name_en,'。')>0"),
   ]);
-}
+});
+
+export { ready as ensureSiteContentReady };
 
 export async function getSiteContent() {
   await ready();

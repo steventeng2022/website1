@@ -9,7 +9,7 @@ test("admin can switch the whole-site theme", async () => {
     read("app/layout.tsx"), read("app/admin/page.tsx"), read("app/admin/actions.ts"), read("db/theme.ts"), read("app/themes.ts"),
   ]);
   assert.match(layout, /themeStyle\(themeSettings\.theme, themeSettings\.accent\)/);
-  assert.match(layout, /data-theme=/);
+  assert.match(layout, /data-site-theme=/);
   assert.match(page, /id: "theme"/);
   assert.match(page, /action=\{updateThemeAction\}/);
   assert.match(actions, /revalidatePath\("\/", "layout"\)/);
@@ -24,5 +24,5 @@ test("mario theme is animated and scoped", async () => {
   assert.match(layout, /theme-mario\.css/);
   assert.match(css, /@keyframes mario-clouds/);
   assert.match(css, /@keyframes mario-coin/);
-  for (const line of css.split(/\r?\n/).filter(l => /\{\s*$/.test(l) && !/@keyframes|^\s/.test(l))) assert.match(line, /^html\[data-theme="mario"\]/);
+  for (const line of css.split(/[data-site-theme="mario"]?\n/).filter(l => /\{\s*$/.test(l) && !/@keyframes|^\s/.test(l))) assert.match(line, /^html\[data-site-theme="mario"\]/);
 });
