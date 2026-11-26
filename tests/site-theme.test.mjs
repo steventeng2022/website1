@@ -31,3 +31,14 @@ test("mario theme is animated, scoped, and has a runner with easter eggs", async
   for (const needle of [/function autopilot/, /stomp|P\.vy < 0 && P\.y > c\.h/, /KONAMI/, /fireworks/, /coinShower/, /prefers-reduced-motion/, /isOn\(\)/, /sessionStorage/]) assert.match(js, needle);
   assert.doesNotMatch(js, /\.(mp3|ogg|wav)/);
 });
+
+test("underwater (abyss) theme dives with scroll and keeps links clickable", async () => {
+  const [themes, layout, css, js] = await Promise.all([read("app/themes.ts"), read("app/layout.tsx"), read("app/theme-abyss.css"), read("public/sea-world.js")]);
+  assert.match(themes, /id: "abyss"/);
+  assert.match(layout, /theme-abyss\.css/);
+  assert.match(layout, /siteTheme\.id === "abyss" && <script src="\/sea-world\.js/);
+  for (const needle of [/--sea-depth/, /prefers-reduced-motion/, /isAdmin\(\)/, /INTERACTIVE/, /releaseWhale/, /openChest/, /KONAMI/, /sessionStorage/]) assert.match(js, needle);
+  assert.doesNotMatch(js, /<script|eval\(|new Function|\.(mp3|ogg|wav)\b/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
+  for (const line of css.split(/\r?\n/).filter(l => /\{\s*$/.test(l) && !/^(\s|@keyframes|@media|\.sea)/.test(l))) assert.match(line, /^html\[data-site-theme="abyss"\]/);
+});
