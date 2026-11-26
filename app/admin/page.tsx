@@ -1,6 +1,5 @@
 import { requireAdmin } from "../cloudflare-auth";
 import { listAllPosts } from "../../db/posts";
-import { listFriends } from "../../db/friends";
 import { listExperiences } from "../../db/experiences";
 import { listTags } from "../../db/tags";
 import { getSiteContent } from "../../db/site-content";
@@ -13,14 +12,16 @@ import MarkdownEditor from "./markdown-editor";
 import Link from "next/link";
 import PostSaveForm from "./post-save-form";
 import MusicUploadField from "./music-upload-field";
-import { listAllMusicTracks, listSongRequests } from "../../db/music";
+import { listAllMusicTracks } from "../../db/music";
 import { createMusicTrackAction, deleteMusicTrackAction, deleteSongRequestAction, moveMusicTrackAction, setSongRequestStatusAction, updateMusicTrackAction } from "./actions";
-import { getAnalyticsSummary, listAdminLogs, listVisitorLogs, logAdminActivity } from "../../db/analytics";
+import { logAdminActivity } from "../../db/analytics";
 import SiteUptime from "../site-uptime";
-import { getDiscordStatusSettings } from "../../db/discord-status";
+import ThemeToggle from "../theme-toggle";
+import { loadAdminData, type AdminSection } from "./data";
+import type { ProjectPostOption } from "../../db/admin";
+import AdminNavigation from "./admin-navigation";
 
 export const dynamic = "force-dynamic";
-type AdminSection = "overview" | "analytics" | "visitors" | "presence" | "blog" | "portfolio" | "site" | "experience" | "music" | "friends";
 
 const adminSections: { id: AdminSection; label: string; hint: string }[] = [
   { id: "overview", label: "總覽", hint: "Dashboard" },
@@ -40,41 +41,37 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const params = await searchParams;
   const requestedSection = params.section as AdminSection | undefined;
   const activeSection = adminSections.some(item => item.id === requestedSection) ? requestedSection! : "overview";
-  const posts = await listAllPosts();
-  const friends = await listFriends();
-  const experiences = await listExperiences();
-  const tags = await listTags();
-  const content = await getSiteContent();
-  const [musicTracks,songRequests,analytics,adminLogs,visitorLogs,discordSettings]=await Promise.all([listAllMusicTracks(),listSongRequests(),getAnalyticsSummary(),listAdminLogs(),listVisitorLogs(),getDiscordStatusSettings()]);
-  await logAdminActivity(email, "開啟後台", adminSections.find(item=>item.id===activeSection)?.label ?? activeSection);
-  const newRequests = songRequests.filter(item=>item.status==="new").length;
+  const [{ posts, projectPosts, friends, experiences, tags, content, musicTracks, songRequests, analytics, adminLogs, visitorLogs, discordSettings, overview, newRequests }] = await Promise.all([
+    loadAdminData(activeSection),
+    logAdminActivity(email, "開啟後台", adminSections.find(item=>item.id===activeSection)?.label ?? activeSection),
+  ]);
   return <main className="admin-shell">
-    <header className="admin-top"><Link className="brand" href="/">STEVEN</Link><div><span>{email}</span><a href="/cdn-cgi/access/logout">登出</a></div></header>
+    <header className="admin-top"><Link className="brand" href="/">STEVEN</Link><div><ThemeToggle /><span>{email}</span><a href="/cdn-cgi/access/logout">登出</a></div></header>
     <div className="admin-workspace">
       <aside className="admin-sidebar" aria-label="後台分類">
         <div className="admin-sidebar-title"><span>CONTENT STUDIO</span><strong>管理中心</strong></div>
-        <nav className="admin-nav">{adminSections.map(item=><Link key={item.id} href={`/admin?section=${item.id}`} className={activeSection===item.id?"active":""} aria-current={activeSection===item.id?"page":undefined}><span>{item.label}</span><small>{item.hint}</small>{item.id==="music"&&newRequests>0?<b>{newRequests}</b>:null}</Link>)}</nav>
+        <AdminNavigation sections={adminSections} activeSection={activeSection} newRequests={newRequests} />
         <Link className="admin-view-site" href="/">查看公開網站 ↗</Link>
       </aside>
       <div className="admin-content">
         {(params.saved === "post") && <p className="admin-save-success" role="status">文章已成功儲存，公開頁面已更新。</p>}
 
-    {activeSection === "overview" && <section className="admin-overview">
+    {activeSection === "overview" && overview && discordSettings && <section className="admin-overview">
       <div className="admin-page-heading"><p className="eyebrow">DASHBOARD</p><h1>網站管理總覽</h1><p>選擇一個區域開始編輯，不需要再從整頁內容中尋找。</p></div>
       <div className="admin-stat-grid">
-        <AdminCard href="analytics" label="目前在線" value={analytics.onlineNow} note={`累積 ${analytics.totalViews.toLocaleString("zh-TW")} 次瀏覽`} alert={analytics.onlineNow>0}/>
-        <AdminCard href="blog" label="文章" value={posts.length} note={`${posts.filter(post=>post.status==="draft").length} 篇草稿`}/>
-        <AdminCard href="portfolio" label="作品" value={content.projects.length} note={`${content.projects.filter(item=>item.featured).length} 個精選`}/>
-        <AdminCard href="experience" label="經歷" value={experiences.length} note="時間軸項目"/>
-        <AdminCard href="music" label="網站歌曲" value={musicTracks.length} note={`${newRequests} 則推薦待處理`} alert={newRequests>0}/>
-        <AdminCard href="site" label="技能" value={content.skills.length} note={`${content.contacts.length} 種聯絡方式`}/>
-        <AdminCard href="friends" label="Friends" value={friends.length} note="合作網站"/>
+        <AdminCard href="analytics" label="目前在線" value={overview.onlineNow} note={`累積 ${overview.totalViews.toLocaleString("zh-TW")} 次瀏覽`} alert={overview.onlineNow>0}/>
+        <AdminCard href="blog" label="文章" value={overview.posts} note={`${overview.drafts} 篇草稿`}/>
+        <AdminCard href="portfolio" label="作品" value={overview.projects} note={`${overview.featured} 個精選`}/>
+        <AdminCard href="experience" label="經歷" value={overview.experiences} note="時間軸項目"/>
+        <AdminCard href="music" label="網站歌曲" value={overview.tracks} note={`${newRequests} 則推薦待處理`} alert={newRequests>0}/>
+        <AdminCard href="site" label="技能" value={overview.skills} note={`${overview.contacts} 種聯絡方式`}/>
+        <AdminCard href="friends" label="Friends" value={overview.friends} note="合作網站"/>
         <AdminCard href="presence" label="Discord" value={discordSettings.discord_user_id ? "ON" : "OFF"} note={discordSettings.discord_user_id ? "即時狀態已連線" : "尚未設定 User ID"}/>
       </div>
       <div className="admin-quick-actions"><h2>快速開始</h2><div><Link href="/admin?section=analytics">查看網站狀態</Link><Link href="/admin?section=blog#new-post">＋ 撰寫新文章</Link><Link href="/admin?section=portfolio#new-project">＋ 新增作品</Link><Link href="/admin?section=music#new-track">＋ 上傳歌曲</Link></div></div>
     </section>}
 
-    {activeSection === "presence" && <section className="editor-section discord-admin">
+    {activeSection === "presence" && discordSettings && <section className="editor-section discord-admin">
       <div className="admin-page-heading"><p className="eyebrow">LIVE PRESENCE</p><h1>Discord 狀態</h1><p>首頁會優先顯示 Discord 自訂狀態、Spotify 或目前活動；沒有可顯示的活動時自動使用預設文字。</p></div>
       <div className="discord-setup-note"><strong>第一次設定</strong><ol><li>在 Discord 開啟「開發者模式」，右鍵自己的帳號並複製 User ID</li><li>加入 Lanyard Discord server，讓公開 Presence API 能讀取狀態</li><li>貼上 User ID 並儲存，首頁約 30 秒內更新</li></ol><a href="https://discord.gg/lanyard" target="_blank" rel="noopener noreferrer">開啟 Lanyard 設定 ↗</a></div>
       <form className="post-form discord-settings-form" action={updateDiscordStatusAction}>
@@ -88,7 +85,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       <p className="editor-note discord-privacy-note">只會顯示你在 Discord 公開 Presence 中提供的內容。請避免把私人資訊寫進自訂狀態。</p>
     </section>}
 
-    {activeSection === "analytics" && <section className="analytics-admin">
+    {activeSection === "analytics" && analytics && <section className="analytics-admin">
       <div className="admin-page-heading"><p className="eyebrow">SITE STATUS</p><h1>網站狀態與紀錄</h1><p>查看匿名流量、Blog 閱讀情況、目前在線人數與管理員操作紀錄。</p></div>
       <div className="analytics-metrics">
         <Metric label="目前在線" value={analytics.onlineNow} note="最近 2 分鐘有活動" live/>
@@ -132,7 +129,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       </div>}
     </section>}
 
-    {activeSection === "site" && <div className="admin-section-stack"><section className="editor-section content-profile-admin"><div className="editor-title"><h2>關於我與頁面文案</h2><span>繁中＋英文</span></div>
+    {activeSection === "site" && content && <div className="admin-section-stack"><section className="editor-section content-profile-admin"><div className="editor-title"><h2>關於我與頁面文案</h2><span>繁中＋英文</span></div>
       <form className="post-form content-profile-form" action={updateSiteProfileAction}>
         <label>關於我標題（中文）<textarea required name="aboutHeadingZh" rows={2} defaultValue={content.profile.about_heading_zh}/></label>
         <label>About heading (English)<textarea required name="aboutHeadingEn" rows={2} defaultValue={content.profile.about_heading_en}/></label>
@@ -156,9 +153,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       {content.contacts.map((item,index)=><details className="post-editor" key={item.id}><summary><div><span className="experience-order">{String(index+1).padStart(2,"0")}</span><h3>{item.label} · {item.value}</h3></div><span>編輯 +</span></summary><ContactForm action={updateContactAction} item={item}/><ItemControls kind="contact" id={item.id} index={index} length={content.contacts.length} deleteAction={deleteContactAction}/></details>)}
     </ContentCollection></div>}
 
-    {activeSection === "portfolio" && <div className="admin-section-stack" id="new-project"><ContentCollection title="作品管理" count={content.projects.length} kind="project">
-      <ProjectForm action={createProjectAction} posts={posts} nextOrder={content.projects.length}/>
-      {content.projects.map((item,index)=><details className="post-editor" key={item.id}><summary><div><span className="experience-order">{String(index+1).padStart(2,"0")}</span><h3>{item.title_zh}</h3>{item.featured ? <span className="status published">精選</span> : null}</div><span>編輯 +</span></summary><ProjectForm action={updateProjectAction} posts={posts} item={item}/><ItemControls kind="project" id={item.id} index={index} length={content.projects.length} deleteAction={deleteProjectAction}/></details>)}
+    {activeSection === "portfolio" && content && <div className="admin-section-stack" id="new-project"><ContentCollection title="作品管理" count={content.projects.length} kind="project">
+      <ProjectForm action={createProjectAction} posts={projectPosts} nextOrder={content.projects.length}/>
+      {content.projects.map((item,index)=><details className="post-editor" key={item.id}><summary><div><span className="experience-order">{String(index+1).padStart(2,"0")}</span><h3>{item.title_zh}</h3>{item.featured ? <span className="status published">精選</span> : null}</div><span>編輯 +</span></summary><ProjectForm action={updateProjectAction} posts={projectPosts} item={item}/><ItemControls kind="project" id={item.id} index={index} length={content.projects.length} deleteAction={deleteProjectAction}/></details>)}
     </ContentCollection></div>}
 
     {activeSection === "music" && <div className="admin-section-stack"><section className="editor-section music-admin" id="new-track"><div className="editor-title"><h2>網站歌曲設定</h2><span>共 {musicTracks.length} 首</span></div>
@@ -261,7 +258,7 @@ function MusicTrackForm({action,track,nextOrder=0}:{action:(formData:FormData)=>
 }
 
 type Content = Awaited<ReturnType<typeof getSiteContent>>;
-function ProjectForm({action,posts,item,nextOrder=0}:{action:(formData:FormData)=>Promise<void>;posts:Awaited<ReturnType<typeof listAllPosts>>;item?:Content["projects"][number];nextOrder?:number}) {
+function ProjectForm({action,posts,item,nextOrder=0}:{action:(formData:FormData)=>Promise<void>;posts:ProjectPostOption[];item?:Content["projects"][number];nextOrder?:number}) {
   return <form className="post-form content-item-form project-editor-form" action={action}>
     {item&&<input type="hidden" name="id" value={item.id}/>}<label>作品名稱（中文）<input required name="titleZh" defaultValue={item?.title_zh}/></label><label>Project title (English)<input required name="titleEn" defaultValue={item?.title_en}/></label>
     <label>作品介紹（中文）<textarea required name="descriptionZh" rows={4} defaultValue={item?.description_zh}/></label><label>Project description (English)<textarea required name="descriptionEn" rows={4} defaultValue={item?.description_en}/></label>

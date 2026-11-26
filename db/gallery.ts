@@ -1,3 +1,5 @@
+import { cacheForRequest } from "vinext/cache";
+
 export type GalleryItem = { id:number; post_id:number; image_url:string; caption:string; sort_order:number; created_at:number };
 export type GalleryInput = Pick<GalleryItem, "image_url" | "caption" | "sort_order">;
 
@@ -7,7 +9,7 @@ function db(): D1Database {
   return binding;
 }
 
-export async function ensureGalleryReady() {
+export const ensureGalleryReady = cacheForRequest(async () => {
   await db().batch([
     db().prepare(`CREATE TABLE IF NOT EXISTS post_gallery_items (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -19,7 +21,7 @@ export async function ensureGalleryReady() {
     )`),
     db().prepare("CREATE INDEX IF NOT EXISTS post_gallery_post_idx ON post_gallery_items(post_id, sort_order, id)"),
   ]);
-}
+});
 
 export async function galleryByPostIds(postIds: number[]) {
   const result = new Map<number, GalleryItem[]>();

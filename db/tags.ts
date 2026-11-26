@@ -1,3 +1,5 @@
+import { cacheForRequest } from "vinext/cache";
+
 export type Tag = { id: number; name: string; slug: string; created_at: number };
 
 function db(): D1Database {
@@ -6,7 +8,7 @@ function db(): D1Database {
   return binding;
 }
 
-export async function ensureTagsReady() {
+export const ensureTagsReady = cacheForRequest(async () => {
   const d1 = db();
   await d1.batch([
     d1.prepare(`CREATE TABLE IF NOT EXISTS tags (
@@ -22,7 +24,7 @@ export async function ensureTagsReady() {
     )`),
     d1.prepare("CREATE INDEX IF NOT EXISTS post_tags_tag_idx ON post_tags(tag_id)"),
   ]);
-}
+});
 
 export async function listTags() {
   await ensureTagsReady();
@@ -52,10 +54,10 @@ export async function setPostTags(postId: number, tagIds: number[]) {
 }
 
 export async function tagsByPostIds(postIds: number[]) {
-  await ensureTagsReady();
   const map = new Map<number, Tag[]>();
   for (const id of postIds) map.set(id, []);
   if (postIds.length === 0) return map;
+  await ensureTagsReady();
   const placeholders = postIds.map(() => "?").join(",");
   const rows = (await db().prepare(`SELECT pt.post_id, t.id, t.name, t.slug, t.created_at
     FROM post_tags pt JOIN tags t ON t.id = pt.tag_id

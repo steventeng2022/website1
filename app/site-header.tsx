@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import LanguageToggle from "./language-toggle";
+import ThemeToggle from "./theme-toggle";
 
 type Page = "home" | "portfolio" | "experience" | "blog" | "friends";
 
@@ -52,6 +53,7 @@ export default function SiteHeader({ en, active = "home" }: { en: boolean; activ
           STEVEN<span aria-hidden="true">.</span>
         </Link>
         <div className="premium-header__mobile-controls">
+          <ThemeToggle en={en} />
           <LanguageToggle />
           <button
             className="premium-header__toggle"
@@ -80,6 +82,7 @@ export default function SiteHeader({ en, active = "home" }: { en: boolean; activ
           <Link href={route("/friends")} aria-current={active === "friends" ? "page" : undefined}>{en ? "Friends" : "朋友們"}</Link>
           <SectionLink className="premium-header__contact" href={anchor("contact")}>{en ? "Let’s talk" : "聊聊吧"}<span aria-hidden="true">↗</span></SectionLink>
           <div className="premium-header__language"><LanguageToggle /></div>
+          <div className="premium-header__theme"><ThemeToggle en={en} /></div>
         </nav>
       </div>
     </header>
