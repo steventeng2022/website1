@@ -1,0 +1,75 @@
+/* Retro platformer theme. Original CSS art only (no Nintendo sprites or logos).
+   Scoped to html[data-site-theme="mario"]; motion is disabled by the global
+   prefers-reduced-motion rule in globals.css. */
+html[data-site-theme="mario"] {
+  --mario-red: #e52521;
+  --mario-red-dark: #a8140f;
+  --mario-green: #3fa83b;
+  --mario-green-dark: #2a7a27;
+  --mario-yellow: #fbd000;
+  --mario-brown: #c84c0c;
+  --mario-brown-dark: #8a3306;
+}
+
+/* Drifting clouds behind all content */
+html[data-site-theme="mario"] body { position: relative; }
+html[data-site-theme="mario"] body::before {
+  content: ""; position: fixed; inset: 0 0 auto 0; height: 340px; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(ellipse 60px 22px at 80px 70px, #fff 98%, transparent),
+    radial-gradient(ellipse 42px 22px at 56px 82px, #fff 98%, transparent),
+    radial-gradient(ellipse 42px 22px at 108px 82px, #fff 98%, transparent),
+    radial-gradient(ellipse 80px 28px at 70px 190px, #ffffffcc 98%, transparent),
+    radial-gradient(ellipse 54px 26px at 36px 204px, #ffffffcc 98%, transparent),
+    radial-gradient(ellipse 54px 26px at 104px 204px, #ffffffcc 98%, transparent);
+  background-size: 520px 340px, 520px 340px, 520px 340px, 760px 340px, 760px 340px, 760px 340px;
+  background-repeat: repeat-x;
+  animation: mario-clouds 90s linear infinite;
+}
+@keyframes mario-clouds { to { background-position: 520px 0, 520px 0, 520px 0, -760px 0, -760px 0, -760px 0; } }
+
+/* Header ends in a scrolling brick "ground" */
+html[data-site-theme="mario"] .premium-header { background: color-mix(in srgb, var(--paper) 88%, transparent); backdrop-filter: blur(6px); }
+html[data-site-theme="mario"] .premium-header::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 10px;
+  background:
+    linear-gradient(var(--mario-brown-dark) 0 2px, transparent 2px),
+    linear-gradient(90deg, var(--mario-brown-dark) 0 2px, transparent 2px) 0 0 / 20px 10px,
+    var(--mario-brown);
+  animation: mario-ground 6s linear infinite;
+}
+@keyframes mario-ground { to { background-position: 0 0, 20px 0, 0 0; } }
+
+/* Spinning coin as the hero eyebrow marker */
+html[data-site-theme="mario"] .hero-eyebrow > span {
+  width: 14px; height: 18px; border-radius: 50%; background: var(--mario-yellow);
+  box-shadow: inset -3px 0 0 #c99700, 0 0 0 2px var(--mario-brown-dark);
+  animation: mario-coin 1.4s ease-in-out infinite;
+}
+@keyframes mario-coin { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(.18); } }
+
+/* Section numbers become "?" blocks that bob */
+html[data-site-theme="mario"] .section-kicker > span {
+  width: 32px; height: 32px; border-radius: 4px; border: 2px solid var(--mario-brown-dark);
+  background: var(--mario-yellow); color: var(--mario-brown-dark); font-weight: 800;
+  box-shadow: inset -3px -3px 0 #c99700, 3px 3px 0 var(--mario-brown-dark);
+  animation: mario-bob 2.4s ease-in-out infinite;
+}
+@keyframes mario-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+
+/* Chunky, pressable buttons */
+html[data-site-theme="mario"] .primary-button {
+  border-radius: 6px; border: 2px solid var(--mario-red-dark); background: var(--mario-red);
+  box-shadow: 0 5px 0 var(--mario-red-dark); transition: transform .12s, box-shadow .12s;
+}
+html[data-site-theme="mario"] .primary-button:hover { background: #f0302c; transform: translateY(-1px); box-shadow: 0 6px 0 var(--mario-red-dark); }
+html[data-site-theme="mario"] .primary-button:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--mario-red-dark); }
+
+/* Cards: pipe-green outline with a hard retro shadow */
+html[data-site-theme="mario"] .hero-photo { box-shadow: 6px 6px 0 var(--mario-green-dark); }
+html[data-site-theme="mario"] .discord-status-card,
+html[data-site-theme="mario"] .project-card,
+html[data-site-theme="mario"] .skill-grid article { border-color: var(--mario-green-dark); }
+html[data-site-theme="mario"] .discord-status-card { box-shadow: 5px 5px 0 var(--mario-green); border-radius: 6px; }
+html[data-site-theme="mario"] a:hover { text-decoration-color: var(--mario-red); }
+html[data-site-theme="mario"] ::selection { background: var(--mario-yellow); color: var(--ink); }
