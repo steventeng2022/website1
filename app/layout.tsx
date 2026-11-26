@@ -3,6 +3,10 @@ import { Geist, Geist_Mono } from "next/font/google";
 import MusicPlayer from "./music-player";
 import VisitorTracker from "./visitor-tracker";
 import PublicSiteStatus from "./public-site-status";
+import { ThemeSync } from "./theme-toggle";
+import { themeInitScript } from "./theme";
+import SiteMotion from "./site-motion";
+import DocumentLanguage from "./document-language";
 import { listPublicMusicTracks } from "../db/music";
 import { getThemeSettings } from "../db/theme";
 import { getTheme, themeStyle } from "./themes";
@@ -10,6 +14,10 @@ import "./globals.css";
 import "./music-player.css";
 import "./premium.css";
 import "./site-header.css";
+import "./theme.css";
+import "./admin/admin-feedback.css";
+import "./recovery.css";
+import "./motion-3d.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,9 +32,14 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Steven — 學生、程式設計與創作",
   description: "Steven 的個人網站：程式設計、AI、Arduino 與 Raspberry Pi。",
+  manifest: "/site.webmanifest",
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    icon: [
+      { url: "/favicon.ico", sizes: "16x16 32x32 48x48", type: "image/x-icon" },
+      { url: "/favicon.svg", sizes: "any", type: "image/svg+xml" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
   },
 };
 
@@ -35,17 +48,26 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [tracks, themeSettings] = await Promise.all([listPublicMusicTracks(), getThemeSettings()]);
+  const [tracks, themeSettings] = await Promise.all([listPublicMusicTracks().catch(() => {
+    // Music is optional; a playlist outage must not take down every page.
+    console.error("Public playlist unavailable; rendering the page without site tracks.");
+    return [];
+  }), getThemeSettings()]);
+  const siteTheme = getTheme(themeSettings.theme);
+  const custom = siteTheme.id !== "classic" || Boolean(themeSettings.accent);
   return (
-    <html lang="zh-Hant-TW" data-theme={getTheme(themeSettings.theme).id} style={themeStyle(themeSettings.theme, themeSettings.accent)}>
+    <DocumentLanguage siteTheme={siteTheme.id} siteScheme={siteTheme.id === "classic" ? undefined : siteTheme.scheme} style={custom ? themeStyle(themeSettings.theme, themeSettings.accent) : undefined}>
+      <head><script dangerouslySetInnerHTML={{ __html: themeInitScript }} /></head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <ThemeSync />
+        <SiteMotion />
         {children}
         <PublicSiteStatus />
         <VisitorTracker />
         <MusicPlayer tracks={tracks.map(track=>({id:track.id,title:track.title,artist:track.artist,src:track.audio_url,cover:track.cover_url}))}/>
       </body>
-    </html>
+    </DocumentLanguage>
   );
 }

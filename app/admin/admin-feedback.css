@@ -1,0 +1,25 @@
+.admin-nav .admin-nav-item {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 5px 12px;
+  align-items: center;
+  min-width: 0;
+}
+.admin-nav .admin-nav-item .admin-nav-label { grid-column: 1; font-size: 14px; }
+.admin-nav .admin-nav-item>small { grid-column: 1; font-size: 9px; letter-spacing: .04em; }
+.admin-nav .admin-nav-item>b, .admin-nav .admin-nav-item>.admin-nav-spinner { grid-column: 2; grid-row: 1 / 3; }
+.admin-nav a { transition: background-color .18s, color .18s; }
+.admin-nav a:has([data-pending="true"]) { color: var(--blue); background: color-mix(in srgb, var(--blue) 9%, var(--paper)); }
+.admin-nav a:has([data-pending="true"]) small { color: inherit; }
+.admin-nav-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: admin-loading-spin .7s linear infinite; }
+.admin-workspace:has(.admin-nav-item[data-pending="true"]) .admin-content::before { content: ""; position: fixed; inset: 0 0 auto; z-index: 100; height: 3px; background: var(--blue); transform-origin: left; animation: admin-loading-progress 1.1s ease-in-out infinite alternate; }
+.admin-loading { min-height: 70vh; padding: clamp(32px, 8vw, 110px); }
+.admin-loading__heading { display: flex; align-items: center; gap: 14px; color: var(--blue); font: 500 15px/1.5 var(--sans); }
+.admin-loading__line { width: 38%; height: 30px; margin: 24px 0 40px; background: var(--line); border-radius: 5px; }
+.admin-loading__cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.admin-loading__cards>span { height: 180px; background: var(--line); border-radius: 12px; opacity: .5; }
+@keyframes admin-loading-spin { to { transform: rotate(360deg); } }
+@keyframes admin-loading-progress { from { transform: scaleX(.15); opacity: .65; } to { transform: scaleX(.9); opacity: 1; } }
+@media (max-width: 800px) { .admin-nav .admin-nav-item .admin-nav-label { font-size: 13px; } .admin-loading__cards { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .admin-nav-spinner, .admin-workspace:has(.admin-nav-item[data-pending="true"]) .admin-content::before { animation: none; } }

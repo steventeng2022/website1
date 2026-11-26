@@ -9,7 +9,7 @@ test("admin can switch the whole-site theme", async () => {
     read("app/layout.tsx"), read("app/admin/page.tsx"), read("app/admin/actions.ts"), read("db/theme.ts"), read("app/themes.ts"),
   ]);
   assert.match(layout, /themeStyle\(themeSettings\.theme, themeSettings\.accent\)/);
-  assert.match(layout, /data-theme=/);
+  assert.match(layout, /data-site-theme=/);
   assert.match(page, /id: "theme"/);
   assert.match(page, /action=\{updateThemeAction\}/);
   assert.match(actions, /revalidatePath\("\/", "layout"\)/);

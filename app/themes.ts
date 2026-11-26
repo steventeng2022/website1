@@ -40,6 +40,5 @@ export function themeStyle(id: string, accent: string | null): Record<string, st
   return {
     "--paper": v.paper, "--ink": v.ink, "--blue": accent && HEX_COLOR.test(accent) ? accent : v.blue,
     "--line": v.line, "--muted": v.muted, "--surface": v.surface, "--surface-2": v.surface2, "--surface-3": v.surface3,
-    colorScheme: theme.scheme,
   };
 }

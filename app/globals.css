@@ -600,3 +600,6 @@ footer .section-kicker span { color:#6688ff; }
 .theme-swatch { display:flex; gap:6px; }
 .theme-swatch i { width:26px; height:26px; border-radius:50%; border:1px solid transparent; }
 .theme-form input[type=color] { width:72px; height:40px; padding:2px; }
+
+/* Non-classic site themes fix the palette, so the visitor light/dark toggle is hidden. */
+html[data-site-scheme] .theme-toggle, html[data-site-scheme] .premium-header__theme { display:none; }

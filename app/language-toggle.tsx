@@ -16,6 +16,8 @@ export default function LanguageToggle() {
     <Link
       className="language-toggle"
       href={`${pathname}${query ? `?${query}` : ""}`}
+      hrefLang={isEnglish ? "zh-Hant-TW" : "en"}
+      lang={isEnglish ? "zh-Hant-TW" : "en"}
       aria-label={isEnglish ? "切換為繁體中文" : "Switch to English"}
     >
       {isEnglish ? "繁中" : "EN"}

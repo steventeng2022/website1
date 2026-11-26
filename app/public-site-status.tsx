@@ -6,10 +6,17 @@ import SiteUptime from "./site-uptime";
 
 export default function PublicSiteStatus() {
   const pathname = usePathname();
-  const en = useSearchParams().get("lang") === "en";
-  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const en = searchParams.get("lang") === "en";
+  const route = `${pathname}?${searchParams.toString()}`;
+  const publicRoute = !!pathname && !pathname.startsWith("/admin") && !pathname.startsWith("/api");
+  const [privacyRoute, setPrivacyRoute] = useState<string | null>(null);
+  const privacyOpen = publicRoute && privacyRoute === route;
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+
+  // A layout survives client navigation. Forget the old dialog so Back does not reopen it.
+  useEffect(() => { setPrivacyRoute(null); }, [route]);
 
   useEffect(() => {
     if (!privacyOpen) return;
@@ -21,7 +28,7 @@ export default function PublicSiteStatus() {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
-        setPrivacyOpen(false);
+        setPrivacyRoute(null);
         return;
       }
       if (event.key !== "Tab") return;
@@ -48,13 +55,13 @@ export default function PublicSiteStatus() {
     };
   }, [privacyOpen]);
 
-  if (!pathname || pathname.startsWith("/admin") || pathname.startsWith("/api")) return null;
+  if (!publicRoute) return null;
 
   return <>
     <section className="public-site-status" aria-label={en ? "Website status" : "網站狀態"}>
       <div><span className="status-dot" aria-hidden="true"/> <strong>{en ? "Website online" : "網站已上線"}</strong><small>{en ? "Since July 31, 2026" : "自 2026 年 7 月 31 日起"}</small></div>
       <SiteUptime compact en={en}/>
-      <button type="button" aria-haspopup="dialog" onClick={() => setPrivacyOpen(true)}>{en ? "Privacy & data notice" : "隱私與資料告知"}</button>
+      <button type="button" aria-haspopup="dialog" onClick={() => setPrivacyRoute(route)}>{en ? "Privacy & data notice" : "隱私與資料告知"}</button>
     </section>
 
     {privacyOpen ? <div ref={dialogRef} className="privacy-consent" role="dialog" aria-modal="true" aria-labelledby="privacy-title">
@@ -64,8 +71,8 @@ export default function PublicSiteStatus() {
         <p>{en ? "When you visit this website, technical data needed for site operations and traffic analysis is recorded automatically, without a separate consent window. The data is used only to manage and improve this website; it is not sold or used for advertising tracking." : "造訪本網站時，系統會自動記錄網站維運與流量分析所需的技術資料，不會另外顯示同意視窗。資料只供網站管理與改善使用，不會出售或用於廣告追蹤。"}</p>
         <details open><summary>{en ? "What is collected and how it is stored" : "蒐集項目與保存方式"}</summary><p>{en ? "IP address, anonymous visitor ID, page path, visit time, time spent in seconds, device type, browser, operating system, language, time zone, Cloudflare country code, referring domain, screen and viewport size ranges, light or dark mode, network type, and touch support. Records are kept for up to 90 days and can be viewed only by the administrator. Precise location, passwords, clipboard contents, and device fingerprints are not collected." : "IP 位址、匿名訪客代碼、頁面路徑、造訪時間、停留秒數、裝置類型、瀏覽器、作業系統、語言、時區、Cloudflare 國家代碼、來源網域、螢幕與視窗尺寸級距、深淺色模式、網路類型及觸控支援。紀錄最長保存 90 天，僅管理員可查看；不蒐集精確定位、密碼、剪貼簿或裝置指紋。"}</p></details>
         <p className="privacy-rights">{en ? "To request access to, correction of, cessation of use of, or deletion of your data, email " : "如需查詢、更正、停止利用或刪除與你有關的資料，請寄信至 "}<a href="mailto:steventeng2022@gmail.com">steventeng2022@gmail.com</a>{en ? "." : "。"}</p>
-        <div><button type="button" className="privacy-accept" onClick={() => setPrivacyOpen(false)}>{en ? "Got it" : "我知道了"}</button></div>
-        <button ref={closeRef} className="privacy-close" type="button" aria-label={en ? "Close privacy notice" : "關閉隱私告知"} onClick={() => setPrivacyOpen(false)}>×</button>
+        <div><button type="button" className="privacy-accept" onClick={() => setPrivacyRoute(null)}>{en ? "Got it" : "我知道了"}</button></div>
+        <button ref={closeRef} className="privacy-close" type="button" aria-label={en ? "Close privacy notice" : "關閉隱私告知"} onClick={() => setPrivacyRoute(null)}>×</button>
       </div>
     </div> : null}
   </>;
