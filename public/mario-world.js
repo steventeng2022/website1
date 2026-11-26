@@ -47,6 +47,11 @@
   const STAR = sprite(["....YY....", "....YY....", "...YYYY...", "YYYYYYYYYY", ".YYYEYEYY.", "..YYYYYY..", "..YYYYYY..", ".YYYYYYYY.", ".YY....YY.", "YY......YY"]);
   const FLAG = sprite(["WWWWWWWW", "WRRWWRRW", "WRRRRRRW", "WWRRRRWW", "WWWRRWWW", "WWWWWWWW"]);
 
+  // Shared with /mario-game.js (the full-screen side-scrolling home) so both use one set of sprites and one score.
+  const SAVE = { score: 0, coins: 0, lives: 3 };
+  try { Object.assign(SAVE, JSON.parse(sessionStorage.getItem("mw-state") || "{}")); } catch (e) { /* storage may be blocked */ }
+  window.__mwKit = { sprite, PLAYER, CRITTER, STAR, FLAG, PAL, save: SAVE, persist() { try { sessionStorage.setItem("mw-state", JSON.stringify(SAVE)); } catch (e) { /* ignore */ } } };
+
   function start() {
     const rect = { w: innerWidth, h: innerHeight };
     const mk = (cls, parent, tag) => { const e = document.createElement(tag || "div"); e.className = cls; (parent || layer).appendChild(e); return e; };
@@ -56,9 +61,7 @@
     root.classList.add("mw-active");
 
     // --- persistent counters -------------------------------------------------
-    let save = { score: 0, coins: 0, lives: 3 };
-    try { save = Object.assign(save, JSON.parse(sessionStorage.getItem("mw-state") || "{}")); } catch (e) { /* storage may be blocked */ }
-    const persist = () => { try { sessionStorage.setItem("mw-state", JSON.stringify(save)); } catch (e) { /* ignore */ } };
+    const save = window.__mwKit.save, persist = window.__mwKit.persist;
 
     // --- HUD -----------------------------------------------------------------
     const hud = mk("mw-hud", document.body);
@@ -245,6 +248,10 @@
       if (!isOn()) { destroy(); return; }
       const dt = Math.min(0.05, (now - last) / 1000); last = now; clock += dt;
       rect.w = innerWidth; rect.h = innerHeight;
+      if (root.classList.contains("mw-game-on")) { // the full-screen game owns the page: only keep the HUD fresh
+        timeLeft -= dt * 0.9; if (timeLeft <= 0) timeLeft = 400;
+        renderHud(); raf = requestAnimationFrame(frame); return;
+      }
 
       // timers
       P.hurt = Math.max(0, P.hurt - dt); P.star = Math.max(0, P.star - dt); P.big = Math.max(0, P.big - dt);
@@ -352,6 +359,9 @@
       for (const c of coins) c.el.style.setProperty("--age", c.age.toFixed(2));
       for (const s of stars) s.el.style.transform = `translate3d(${s.x}px,${-s.y}px,0)`;
       // hud
+      renderHud();
+    }
+    function renderHud() {
       setText("score", pad(save.score, 6)); setText("coins", pad(save.coins, 2)); setText("lives", String(save.lives)); setText("time", pad(timeLeft, 3));
     }
 
