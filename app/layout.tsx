@@ -30,6 +30,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Google Tag Manager for public pages only: the private studio under /admin is never tagged.
+const googleTagScript = `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date());var p=location.pathname;if(p!=="/admin"&&p.indexOf("/admin/")!==0){var s=document.createElement("script");s.async=true;s.src="https://www.googletagmanager.com/gtm.js?id=GTM-P4HZ4DZ5";document.head.appendChild(s)}`;
+
 export const metadata: Metadata = {
   title: "Steven — 學生、程式設計與創作",
   description: "Steven 的個人網站：程式設計、AI、Arduino 與 Raspberry Pi。",
@@ -58,7 +61,7 @@ export default async function RootLayout({
   const custom = siteTheme.id !== "classic" || Boolean(themeSettings.accent);
   return (
     <DocumentLanguage siteTheme={siteTheme.id} siteScheme={siteTheme.id === "classic" ? undefined : siteTheme.scheme} style={custom ? themeStyle(themeSettings.theme, themeSettings.accent) : undefined}>
-      <head><script dangerouslySetInnerHTML={{ __html: themeInitScript }} /></head>
+      <head><script dangerouslySetInnerHTML={{ __html: themeInitScript }} /><script dangerouslySetInnerHTML={{ __html: googleTagScript }} /></head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
